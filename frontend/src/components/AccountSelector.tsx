@@ -519,17 +519,18 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
         }}
       >
         {filteredAccounts.length > 0 ? (
-          <List
+          <List<{}>
             listRef={listRef}
             rowCount={filteredAccounts.length}
             rowHeight={120}
             rowComponent={renderAccountRow}
+            rowProps={{}}
             defaultHeight={containerHeight - (isScrolled ? token.paddingLG : token.paddingXS) - token.paddingLG}
             onResize={({ height }) => {
               setContainerHeight(height);
             }}
-            onRowsRendered={({ overscanStartIndex }) => {
-              setIsScrolled(overscanStartIndex > 0);
+            onRowsRendered={({ startIndex }) => {
+              setIsScrolled(startIndex > 0);
             }}
             style={{
               overflowX: 'hidden',

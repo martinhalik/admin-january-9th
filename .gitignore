@@ -37,3 +37,4 @@ encore.gen.cue
 /.encore
 /encore.gen
 .playwright-mcp/
+.vercel
