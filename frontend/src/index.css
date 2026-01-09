@@ -1,0 +1,873 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 234px; /* Offset for fixed headers in Content tab (main nav 64px + breadcrumb 47px + tabs 53px + publishing header 60px + padding 10px) */
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+/* Section anchor highlighting */
+#title-section:target,
+#media-section:target,
+#options-section:target,
+#description-section:target,
+#redemption-method-section:target,
+#locations-section:target {
+  animation: highlight-section 2s ease-out;
+}
+
+@keyframes highlight-section {
+  0% {
+    outline: 3px solid #1890ff;
+    outline-offset: 4px;
+    border-radius: 8px;
+    background-color: rgba(24, 144, 255, 0.05);
+  }
+  100% {
+    outline: 3px solid transparent;
+    outline-offset: 4px;
+    border-radius: 8px;
+    background-color: transparent;
+  }
+}
+
+/* Dynamic Text Menu Scrollbar Styling */
+.dynamic-text-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dynamic-text-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dynamic-text-menu::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.dynamic-text-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Notion-style TipTap Editor Container */
+.notion-editor-container {
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Notion-style TipTap Editor */
+.notion-editor {
+  outline: none;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #37352f;
+  caret-color: #1890ff;
+  position: relative;
+  padding-left: 36px; /* Space for drag handle */
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Drag Handle */
+.drag-handle {
+  pointer-events: auto !important;
+  cursor: grab !important;
+}
+
+.drag-handle:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: #1890ff !important;
+}
+
+.drag-handle:active {
+  cursor: grabbing !important;
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Paragraph styles */
+.notion-editor p,
+.notion-editor h1,
+.notion-editor h2,
+.notion-editor h3,
+.notion-editor li {
+  position: relative;
+  transition: background-color 0.1s ease;
+}
+
+/* Block hover effects */
+.notion-editor p:hover,
+.notion-editor h1:hover,
+.notion-editor h2:hover,
+.notion-editor h3:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+}
+
+/* Dragging state - original block stays visible but dimmed */
+.notion-editor .is-dragging {
+  opacity: 0.4;
+  background-color: rgba(24, 144, 255, 0.05) !important;
+  border-radius: 4px;
+  outline: 2px dashed rgba(24, 144, 255, 0.4);
+}
+
+/* Prevent hover effects on list items when parent is being dragged */
+.notion-editor ul.is-dragging li:hover,
+.notion-editor ol.is-dragging li:hover {
+  background-color: transparent !important;
+  margin-left: 0 !important;
+  padding-left: 0.25em !important;
+}
+
+/* Highlight entire list, not individual items */
+.notion-editor ul.is-dragging,
+.notion-editor ol.is-dragging {
+  padding: 4px;
+  margin-left: -4px;
+}
+
+/* Placeholder styling */
+.notion-editor p.is-editor-empty:first-child::before {
+  color: #9ca3af;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  font-weight: 400;
+}
+
+/* Headings - Notion style */
+.notion-editor h1 {
+  font-size: 1.875em;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 1em 0 0.5em;
+  color: #1f2937;
+  letter-spacing: -0.01em;
+}
+
+.notion-editor h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0.8em 0 0.4em;
+  color: #1f2937;
+  letter-spacing: -0.01em;
+}
+
+.notion-editor h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0.6em 0 0.3em;
+  color: #374151;
+}
+
+/* First heading no top margin */
+.notion-editor h1:first-child,
+.notion-editor h2:first-child,
+.notion-editor h3:first-child {
+  margin-top: 0;
+}
+
+/* Paragraphs */
+.notion-editor p {
+  margin: 0.5em 0;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.notion-editor p:first-child {
+  margin-top: 0;
+}
+
+/* Text formatting */
+.notion-editor strong {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.notion-editor em {
+  font-style: italic;
+}
+
+.notion-editor u {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Lists - Notion style */
+.notion-editor ul,
+.notion-editor ol {
+  padding-left: 1.75rem;
+  margin: 0.5em 0;
+}
+
+.notion-editor ul {
+  list-style-type: disc;
+}
+
+.notion-editor ol {
+  list-style-type: decimal;
+}
+
+/* Nested list bullet styles - different markers for each level */
+.notion-editor ul ul {
+  list-style-type: circle;
+}
+
+.notion-editor ul ul ul {
+  list-style-type: square;
+}
+
+.notion-editor li {
+  margin: 0.25em 0;
+  padding-left: 0.25em;
+  line-height: 1.7;
+}
+
+.notion-editor li p {
+  margin: 0;
+}
+
+/* Nested lists */
+.notion-editor ul ul,
+.notion-editor ol ul,
+.notion-editor ul ol,
+.notion-editor ol ol {
+  margin: 0.25em 0;
+}
+
+/* List item hover effect - Notion-like */
+.notion-editor li:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+}
+
+/* Dragging state for list items */
+.notion-editor li.is-dragging {
+  opacity: 0.4;
+  background-color: rgba(24, 144, 255, 0.05) !important;
+  border-radius: 4px;
+  outline: 2px dashed rgba(24, 144, 255, 0.4);
+}
+
+/* Selection styling */
+.notion-editor ::selection {
+  background-color: rgba(24, 144, 255, 0.15);
+}
+
+/* Code block styling - prevent layout breaking */
+.notion-editor pre {
+  background-color: #f6f8fa;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  padding: 16px;
+  margin: 1em 12px 1em 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: calc(100% - 12px);
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", "Consolas", "source-code-pro",
+    monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.notion-editor pre code {
+  background: none;
+  padding: 0;
+  border: none;
+  font-size: inherit;
+  color: #24292e;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  display: block;
+}
+
+/* Inline code styling */
+.notion-editor code {
+  background-color: rgba(135, 131, 120, 0.15);
+  color: #eb5757;
+  border-radius: 4px;
+  padding: 0.2em 0.4em;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", "Consolas", "source-code-pro",
+    monospace;
+  font-size: 85%;
+}
+
+/* Blockquote styling */
+.notion-editor blockquote {
+  border-left: 3px solid #ddd;
+  padding-left: 1em;
+  margin: 1em 12px 1em 0;
+  color: #6a737d;
+  font-style: italic;
+  max-width: calc(100% - 12px);
+  overflow-wrap: break-word;
+}
+
+/* Horizontal rule */
+.notion-editor hr {
+  border: none;
+  border-top: 2px solid #e1e4e8;
+  margin: 2em 12px 2em 0;
+  max-width: calc(100% - 12px);
+}
+
+/* Images - prevent overflow */
+.notion-editor img {
+  max-width: calc(100% - 12px);
+  height: auto;
+  border-radius: 6px;
+  display: block;
+  margin: 1em 12px 1em 0;
+}
+
+/* Focus state for container */
+.notion-editor-container:focus-within {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+/* Preview content styling */
+.notion-preview {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #37352f;
+}
+
+.notion-preview h1 {
+  font-size: 1.875em;
+  font-weight: 700;
+  margin: 1em 0 0.5em;
+  color: #1f2937;
+}
+
+.notion-preview h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin: 0.8em 0 0.4em;
+  color: #1f2937;
+}
+
+.notion-preview h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin: 0.6em 0 0.3em;
+  color: #374151;
+}
+
+.notion-preview p {
+  margin: 0.5em 0;
+}
+
+.notion-preview ul,
+.notion-preview ol {
+  padding-left: 1.75rem;
+  margin: 0.5em 0;
+}
+
+.notion-preview li {
+  margin: 0.25em 0;
+  line-height: 1.7;
+}
+
+.notion-preview strong {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Note: Transitions are applied per element above for better control */
+
+/* Images */
+.notion-editor .editor-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1em 0;
+  display: block;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Links */
+.notion-editor .editor-link {
+  color: #1890ff;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(24, 144, 255, 0.4);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.notion-editor .editor-link:hover {
+  border-bottom-color: #1890ff;
+  background-color: rgba(24, 144, 255, 0.1);
+}
+
+/* Highlights */
+.notion-editor mark {
+  background-color: #fef08a;
+  padding: 0.125em 0.25em;
+  border-radius: 4px;
+  color: inherit;
+}
+
+/* Task Lists */
+.notion-editor ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.notion-editor .task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+}
+
+.notion-editor .task-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 0.25em;
+  cursor: pointer;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.notion-editor .task-item input[type="checkbox"]:checked + div {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* Horizontal Rule / Divider */
+.notion-editor hr {
+  border: none;
+  border-top: 2px solid #e5e7eb;
+  margin: 2em 0;
+}
+
+/* Colored Text */
+.notion-editor [style*="color"] {
+  font-weight: 500;
+}
+
+/* Preview styles */
+.notion-preview .editor-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1em 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.notion-preview .editor-link {
+  color: #1890ff;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(24, 144, 255, 0.4);
+}
+
+.notion-preview mark {
+  background-color: #fef08a;
+  padding: 0.125em 0.25em;
+  border-radius: 4px;
+}
+
+.notion-preview ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.notion-preview .task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+}
+
+.notion-preview hr {
+  border: none;
+  border-top: 2px solid #e5e7eb;
+  margin: 2em 0;
+}
+
+/* ======================================
+   Mobile Responsive Styles
+   ====================================== */
+
+/* Mobile breakpoints */
+@media (max-width: 768px) {
+  /* Global mobile adjustments */
+  body {
+    font-size: 14px;
+  }
+
+  /* Reduce padding on cards for mobile */
+  .ant-card {
+    margin-bottom: 12px !important;
+  }
+
+  .ant-card-head {
+    padding: 12px 16px !important;
+    font-size: 16px !important;
+  }
+
+  .ant-card-body {
+    padding: 12px 16px !important;
+  }
+
+  /* Make buttons smaller on mobile */
+  .ant-btn {
+    font-size: 14px !important;
+    padding: 4px 12px !important;
+    height: auto !important;
+  }
+
+  /* Stack segmented controls on mobile */
+  .ant-segmented {
+    width: 100% !important;
+  }
+
+  .ant-segmented-item {
+    min-width: auto !important;
+    padding: 4px 8px !important;
+  }
+
+  /* Responsive tables */
+  .ant-table {
+    font-size: 12px !important;
+  }
+
+  .ant-table-thead > tr > th {
+    padding: 8px !important;
+    font-size: 12px !important;
+  }
+
+  .ant-table-tbody > tr > td {
+    padding: 8px !important;
+    font-size: 12px !important;
+  }
+
+  /* Responsive breadcrumbs */
+  .responsive-breadcrumb {
+    display: flex !important;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .responsive-breadcrumb .ant-breadcrumb-link {
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .responsive-breadcrumb li:last-child .ant-breadcrumb-link {
+    max-width: 400px;
+  }
+
+  /* Large tablets and smaller desktops */
+  @media (max-width: 1024px) {
+    .responsive-breadcrumb .ant-breadcrumb-link {
+      max-width: 180px;
+    }
+
+    .responsive-breadcrumb li:last-child .ant-breadcrumb-link {
+      max-width: 250px;
+    }
+  }
+
+  /* Tablets */
+  @media (max-width: 768px) {
+    .responsive-breadcrumb .ant-breadcrumb-link {
+      max-width: 120px;
+    }
+
+    .responsive-breadcrumb li:last-child .ant-breadcrumb-link {
+      max-width: 180px;
+    }
+  }
+
+  /* Small tablets and large phones */
+  @media (max-width: 640px) {
+    .responsive-breadcrumb .ant-breadcrumb-link {
+      max-width: 100px;
+    }
+
+    .responsive-breadcrumb li:last-child .ant-breadcrumb-link {
+      max-width: 140px;
+    }
+  }
+
+  /* Mobile phones */
+  @media (max-width: 480px) {
+    .responsive-breadcrumb .ant-breadcrumb-link {
+      max-width: 70px;
+    }
+
+    .responsive-breadcrumb li:last-child .ant-breadcrumb-link {
+      max-width: 110px;
+    }
+  }
+
+  /* Responsive typography */
+  .ant-typography h1 {
+    font-size: 24px !important;
+  }
+
+  .ant-typography h2 {
+    font-size: 20px !important;
+  }
+
+  .ant-typography h3 {
+    font-size: 18px !important;
+  }
+
+  /* Notion editor mobile adjustments */
+  .notion-editor-container {
+    padding: 0 !important;
+  }
+
+  .notion-editor {
+    font-size: 14px !important;
+    padding-left: 24px !important;
+  }
+
+  .notion-editor h1 {
+    font-size: 1.5em !important;
+  }
+
+  .notion-editor h2 {
+    font-size: 1.25em !important;
+  }
+
+  .notion-editor h3 {
+    font-size: 1.125em !important;
+  }
+
+  .notion-editor p {
+    font-size: 14px !important;
+  }
+
+  /* Image uploads responsive */
+  .ant-upload-wrapper {
+    width: 100% !important;
+  }
+
+  /* Space component adjustments */
+  .ant-space {
+    flex-wrap: wrap !important;
+  }
+
+  /* Drawer full width on mobile */
+  .ant-drawer-content-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Very small mobile devices */
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+
+  .ant-card-head-title {
+    font-size: 14px !important;
+  }
+
+  .ant-btn {
+    font-size: 13px !important;
+    padding: 3px 8px !important;
+  }
+
+  .ant-segmented-item-label {
+    font-size: 12px !important;
+  }
+
+  /* Hide certain columns in tables on very small screens */
+  .ant-table-cell.hide-mobile {
+    display: none !important;
+  }
+
+  /* Stack form items vertically */
+  .ant-form-item {
+    margin-bottom: 12px !important;
+  }
+
+  /* Smaller modals on mobile */
+  .ant-modal {
+    max-width: 95% !important;
+    margin: 8px auto !important;
+  }
+}
+
+/* Prevent horizontal scroll on mobile */
+@media (max-width: 768px) {
+  html,
+  body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  * {
+    max-width: 100%;
+  }
+
+  /* Make charts responsive */
+  .recharts-wrapper {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Responsive images */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .ant-layout-sider,
+  .ant-layout-header,
+  .ant-btn,
+  .hide-on-print {
+    display: none !important;
+  }
+}
+
+/* Drag and Drop animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Custom carousel dots styling to match screenshot */
+.custom-dots {
+  margin-top: 16px !important;
+}
+
+.custom-dots .ant-carousel-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background-color: rgba(0, 0, 0, 0.25) !important;
+  margin: 0 4px !important;
+  border: none !important;
+}
+
+.custom-dots .ant-carousel-dot-active {
+  background-color: #52c41a !important;
+}
+
+.custom-dots .ant-carousel-dot button {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* ======================================
+   Ant Design Component Overrides
+   ====================================== */
+
+/* Select Dropdown - Use neutral colors for hover/selection instead of primary */
+.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background-color: rgba(0, 0, 0, 0.04) !important; /* Neutral hover */
+}
+
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: rgba(0, 0, 0, 0.06) !important; /* Neutral selected */
+  font-weight: 600 !important;
+}
+
+/* Dropdown Menu items - Use neutral colors */
+.ant-dropdown-menu-item:hover,
+.ant-dropdown-menu-submenu-title:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+.ant-dropdown-menu-item-selected {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+  color: inherit !important;
+}
+
+/* AutoComplete dropdown - neutral hover */
+.ant-select-dropdown .ant-select-item-option:hover:not(.ant-select-item-option-disabled) {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Dashboard specific styling */
+.ant-card-head-title {
+  font-weight: 600 !important;
+  font-size: 16px !important;
+}
+
+.ant-card-extra {
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Country cards styling */
+.ant-card-small > .ant-card-body {
+  padding: 12px !important;
+}
+
+/* Tag styling for categories */
+.ant-tag {
+  font-size: 12px !important;
+  padding: 2px 8px !important;
+  line-height: 1.5 !important;
+  border-radius: 4px !important;
+  margin: 0 !important;
+}
+
+/* Sidebar sections - remove border radius */
+.sidebar-collapse-no-radius,
+.sidebar-collapse-no-radius .ant-collapse-item,
+.sidebar-collapse-no-radius .ant-collapse-header,
+.sidebar-collapse-no-radius .ant-collapse-content {
+  border-radius: 0 !important;
+}
+
+/* Spinning animation for loading icons */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}

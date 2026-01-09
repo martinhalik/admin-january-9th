@@ -1,0 +1,5116 @@
+import { useEffect, useState, useRef } from "react";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import dayjs from "dayjs";
+import ContentEditor from "../components/ContentEditor";
+import DealOptionsTable from "../components/ContentEditor/DealOptionsTable";
+import FinePrintEditor from "../components/ContentEditor/FinePrintEditor";
+import HighlightsSettingsEditor from "../components/ContentEditor/HighlightsSettingsEditor";
+import DynamicBreadcrumbs from "../components/Breadcrumbs";
+import { useRecentlyViewed } from "../contexts/RecentlyViewedContext";
+import {
+  Card,
+  Segmented,
+  Tabs,
+  Row,
+  Col,
+  Tag,
+  Button,
+  Descriptions,
+  Avatar,
+  Image,
+  Input,
+  Space,
+  Typography,
+  theme,
+  Tooltip,
+  Dropdown,
+  message,
+  InputNumber,
+  Switch,
+  Divider,
+  Select,
+  Modal,
+  Checkbox,
+  Spin,
+  Progress,
+  DatePicker,
+  Collapse,
+  Badge,
+} from "antd";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  MapPin,
+  ThumbsUp,
+  ThumbsDown,
+  Plus,
+  Star,
+  TrendingUp,
+  Edit2,
+  Settings,
+  MoreVertical,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Image as ImageIcon,
+  Upload as UploadIcon,
+  Search,
+  Eye,
+  Users,
+  RotateCcw,
+  Building2,
+  Edit,
+  Globe,
+  FileText,
+  Paperclip,
+  Check,
+  CircleCheck,
+} from "lucide-react";
+import {
+  Deal,
+  ChartDataPoint,
+  // Recommendation,
+} from "../data/mockDeals";
+import { getSimilarDeals } from "../data/similarDeals";
+import {
+  FinePointItem,
+  HighlightVersion,
+} from "../components/ContentEditor/types";
+import { getDeal, updateDealFields } from "../lib/api";
+import { useFavorites } from "../contexts/FavoritesContext";
+import {
+  getMerchantAccount,
+  MerchantAccount,
+  merchantAccounts,
+} from "../data/merchantAccounts";
+import AccountSelector from "../components/AccountSelector";
+import { SalesforceIcon, SalesloftIcon, GrouponIcon } from "../components/icons";
+import DealOptionDetailsContent from "../components/DealDetail/DealOptionDetailsContent";
+import TitleSettingsContent from "../components/DealDetail/TitleSettingsContent";
+import {
+  VALIDITY_PERIOD_OPTIONS,
+  QUALITY_OPTIONS,
+  DIVISION_OPTIONS,
+  CATEGORY_OPTIONS,
+  PERSONNEL_OPTIONS,
+  ACTION_MENU_ITEMS,
+  filterSelectOption,
+} from "../components/DealDetail/constants";
+
+const { Title, Text, Paragraph } = Typography;
+const { TextArea } = Input;
+const { useToken } = theme;
+
+const DealDetail = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <rect width="16" height="16" rx="4" fill="#1B5E20" />
+    <path
+      d="M9.50777 6.47349C9.47747 6.16793 9.34742 5.93056 9.11762 5.76137C8.88782 5.59218 8.57595 5.50758 8.18201 5.50758C7.91434 5.50758 7.68833 5.54546 7.50398 5.62122C7.31964 5.69445 7.17823 5.79672 7.07974 5.92803C6.98378 6.05935 6.9358 6.20834 6.9358 6.375C6.93075 6.51389 6.95979 6.63511 7.02292 6.73864C7.08858 6.84218 7.17823 6.93182 7.29186 7.00758C7.4055 7.08081 7.53681 7.14521 7.6858 7.20076C7.83479 7.25379 7.99388 7.29925 8.16308 7.33713L8.86004 7.50379C9.19843 7.57955 9.50903 7.68056 9.79186 7.80682C10.0747 7.93309 10.3196 8.08839 10.5267 8.27273C10.7338 8.45707 10.8941 8.67425 11.0078 8.92425C11.1239 9.17425 11.1833 9.46086 11.1858 9.7841C11.1833 10.2588 11.0621 10.6705 10.8222 11.0189C10.5848 11.3649 10.2414 11.6338 9.79186 11.8258C9.34489 12.0152 8.80575 12.1099 8.17444 12.1099C7.54818 12.1099 7.00272 12.0139 6.53807 11.822C6.07595 11.6301 5.71484 11.346 5.45474 10.9697C5.19717 10.5909 5.06206 10.1225 5.04944 9.5644H6.63656C6.65424 9.8245 6.72873 10.0417 6.86004 10.2159C6.99388 10.3876 7.17191 10.5177 7.39414 10.6061C7.61888 10.6919 7.87267 10.7349 8.1555 10.7349C8.43328 10.7349 8.67444 10.6944 8.87898 10.6136C9.08605 10.5328 9.24641 10.4205 9.36004 10.2765C9.47368 10.1326 9.5305 9.96718 9.5305 9.78031C9.5305 9.60606 9.47873 9.4596 9.3752 9.34091C9.27419 9.22223 9.1252 9.12122 8.92823 9.03788C8.73378 8.95455 8.49515 8.87879 8.21232 8.81061L7.36762 8.59849C6.71358 8.4394 6.19717 8.19066 5.81838 7.85228C5.43959 7.51389 5.25146 7.05809 5.25398 6.48485C5.25146 6.01516 5.37646 5.6048 5.62898 5.25379C5.88403 4.90278 6.23378 4.62879 6.67823 4.43182C7.12267 4.23485 7.62772 4.13637 8.19338 4.13637C8.76914 4.13637 9.27166 4.23485 9.70095 4.43182C10.1328 4.62879 10.4686 4.90278 10.7085 5.25379C10.9484 5.6048 11.0722 6.01137 11.0797 6.47349H9.50777Z"
+      fill="white"
+    />
+    <rect
+      x="10.6667"
+      y="10.6667"
+      width="4"
+      height="4"
+      rx="1.5"
+      fill="#8BC34A"
+    />
+  </svg>
+);
+
+const GrouponIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 17 17"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    style={{ display: 'inline-block', verticalAlign: 'middle' }}
+  >
+    <path
+      d="M16.3643 7.35858L16.3617 7.31667H7.24667V10.5133H11.815C11.0275 11.91 9.7 12.675 8.21417 12.675C6.00833 12.675 4.02833 10.7167 4.02833 8.1725C4.02833 5.87667 5.87417 3.96333 8.21417 3.96333C9.47417 3.96333 10.51 4.48167 11.5 5.51667H15.9567C14.6733 2.09417 11.6808 0 8.25917 0C5.98667 0 4.00583 0.81 2.43 2.36333C0.855 3.9175 0 5.94333 0 8.15C0 10.5142 0.764167 12.4958 2.27333 14.0942C3.84833 15.7608 5.85167 16.6383 8.215 16.6383C10.9383 16.6383 13.5042 15.2883 15.035 13.0592C15.9575 11.7083 16.4075 10.1775 16.4075 8.37583C16.4075 8.0506 16.3859 7.70535 16.3643 7.35858Z"
+      fill="#007C1F"
+    />
+  </svg>
+);
+
+// ============================================================
+// SELECT OPTIONS CONSTANTS
+// ============================================================
+
+const VALIDITY_PERIOD_OPTIONS = [
+  { label: "30 days", value: "30 days" },
+  { label: "60 days", value: "60 days" },
+  { label: "90 days", value: "90 days" },
+  { label: "120 days", value: "120 days" },
+  { label: "180 days", value: "180 days" },
+  { label: "1 year", value: "1 year" },
+];
+
+const QUALITY_OPTIONS = [
+  { value: "Ace", label: "Ace" },
+  { value: "Good", label: "Good" },
+  { value: "Fair", label: "Fair" },
+  { value: "Poor", label: "Poor" },
+];
+
+const DIVISION_OPTIONS = [
+  { value: "Chicago (USA)", label: "Chicago (USA)" },
+  { value: "New York (USA)", label: "New York (USA)" },
+  { value: "Los Angeles (USA)", label: "Los Angeles (USA)" },
+  { value: "San Francisco (USA)", label: "San Francisco (USA)" },
+  { value: "London (UK)", label: "London (UK)" },
+  { value: "Paris (France)", label: "Paris (France)" },
+  { value: "Berlin (Germany)", label: "Berlin (Germany)" },
+  { value: "Dubai (UAE)", label: "Dubai (UAE)" },
+];
+
+const CATEGORY_OPTIONS = [
+  { value: "Food & Drink - Restaurant - Mexican", label: "Food & Drink / Mexican" },
+  { value: "Food & Drink - Restaurant - Italian", label: "Food & Drink / Italian" },
+  { value: "Food & Drink - Restaurant - American", label: "Food & Drink / American" },
+  { value: "Beauty & Spa - Spa - Day Spa", label: "Beauty & Spa / Day Spa" },
+  { value: "Things to Do - Adventure - Outdoor", label: "Things to Do / Adventure" },
+];
+
+const PERSONNEL_OPTIONS = [
+  { value: "Unassigned", label: "Unassigned" },
+  { value: "Sarah Johnson", label: "Sarah Johnson" },
+  { value: "Michael Chen", label: "Michael Chen" },
+  { value: "Emily Rodriguez", label: "Emily Rodriguez" },
+  { value: "John Peterson", label: "John Peterson" },
+  { value: "Emma Davis", label: "Emma Davis" },
+];
+
+const ACTION_MENU_ITEMS = [
+  { key: "de", label: "DE", icon: null },
+  { key: "dct", label: "DCT", icon: null },
+  { key: "salesforce", label: "Salesforce", icon: <SalesforceIcon /> },
+  { key: "salesloft", label: "Salesloft", icon: <SalesloftIcon /> },
+];
+
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+
+// Unified filter function for Select with search
+const filterSelectOption = (input: string, option?: { label: string }) =>
+  (option?.label ?? "").toLowerCase().includes(input.toLowerCase());
+
+// ============================================================
+// COMPONENTS
+// ============================================================
+
+// Deal Option Details Content Component (for Universal Sidebar)
+interface DealOptionDetailsContentProps {
+  option: any;
+  onUpdate: (field: string, value: any) => void;
+  onRemove: () => void;
+}
+
+const DealOptionDetailsContent = ({
+  option,
+  onUpdate,
+  onRemove,
+}: DealOptionDetailsContentProps) => {
+  const { token } = useToken();
+
+  const calculateDiscount = (
+    regularPrice: number,
+    grouponPrice: number
+  ): number => {
+    if (regularPrice === 0) return 0;
+    return Math.round(((regularPrice - grouponPrice) / regularPrice) * 100);
+  };
+
+  const calculateGrouponPrice = (
+    regularPrice: number,
+    discount: number
+  ): number => {
+    return Math.round(regularPrice * (1 - discount / 100));
+  };
+
+  return (
+    <Space direction="vertical" style={{ width: "100%" }} size="middle">
+      {/* Option Name */}
+      <div>
+        <Text
+          type="secondary"
+          style={{
+            fontSize: token.fontSizeSM,
+            display: "block",
+            marginBottom: token.marginXS,
+          }}
+        >
+          Option Name *
+        </Text>
+        <Input
+          value={option.name}
+          onChange={(e) => onUpdate("name", e.target.value)}
+          size="large"
+        />
+      </div>
+
+      {/* Pricing - 2 Column Layout */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div>
+          <Text
+            type="secondary"
+            style={{ fontSize: 12, display: "block", marginBottom: 8 }}
+          >
+            Original Price *
+          </Text>
+          <InputNumber
+            value={option.regularPrice}
+            onChange={(value) => {
+              const newRegularPrice = value || 0;
+              onUpdate("regularPrice", newRegularPrice);
+              const newDiscount = calculateDiscount(
+                newRegularPrice,
+                option.grouponPrice
+              );
+              onUpdate("discount", newDiscount);
+            }}
+            prefix="$"
+            size="large"
+            style={{ width: "100%" }}
+            min={0}
+            step={1}
+            precision={0}
+          />
+        </div>
+
+        <div>
+          <Text
+            type="secondary"
+            style={{ fontSize: 12, display: "block", marginBottom: 8 }}
+          >
+            Groupon Price *
+          </Text>
+          <InputNumber
+            value={option.grouponPrice}
+            onChange={(value) => {
+              const newGrouponPrice = value || 0;
+              onUpdate("grouponPrice", newGrouponPrice);
+              const newDiscount = calculateDiscount(
+                option.regularPrice,
+                newGrouponPrice
+              );
+              onUpdate("discount", newDiscount);
+            }}
+            prefix="$"
+            size="large"
+            style={{ width: "100%" }}
+            min={0}
+            step={1}
+            precision={0}
+          />
+        </div>
+      </div>
+
+      {/* Discount and Monthly Capacity - 2 Column Layout */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div>
+          <Text
+            type="secondary"
+            style={{ fontSize: 12, display: "block", marginBottom: 8 }}
+          >
+            Discount *
+          </Text>
+          <InputNumber
+            value={option.discount}
+            onChange={(value) => {
+              const newDiscount = value || 0;
+              onUpdate("discount", newDiscount);
+              const newGrouponPrice = calculateGrouponPrice(
+                option.regularPrice,
+                newDiscount
+              );
+              onUpdate("grouponPrice", newGrouponPrice);
+            }}
+            suffix="%"
+            size="large"
+            style={{ width: "100%" }}
+            min={0}
+            max={100}
+            step={1}
+            precision={0}
+          />
+          <Text
+            type="secondary"
+            style={{ fontSize: 11, marginTop: 4, display: "block" }}
+          >
+            Save ${Math.round(option.regularPrice - option.grouponPrice)}
+          </Text>
+        </div>
+
+        <div>
+          <Text
+            type="secondary"
+            style={{ fontSize: 12, display: "block", marginBottom: 8 }}
+          >
+            Monthly Capacity
+          </Text>
+          <InputNumber
+            value={option.monthlyCapacity || 100}
+            onChange={(value) => onUpdate("monthlyCapacity", value || 100)}
+            size="large"
+            style={{ width: "100%" }}
+            min={1}
+            max={10000}
+            step={10}
+            precision={0}
+          />
+        </div>
+      </div>
+
+      {/* Status */}
+      <div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <Text strong style={{ display: "block" }}>
+              Active Status
+            </Text>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Make this option available for purchase
+            </Text>
+          </div>
+          <Switch
+            checked={option.enabled}
+            onChange={(checked) => onUpdate("enabled", checked)}
+          />
+        </div>
+      </div>
+
+      <Divider style={{ margin: 0 }} />
+
+      {/* Optional Details */}
+      <div>
+        <Text
+          type="secondary"
+          style={{ fontSize: 12, display: "block", marginBottom: 8 }}
+        >
+          Subtitle
+        </Text>
+        <Input
+          value={option.subtitle || ""}
+          onChange={(e) => onUpdate("subtitle", e.target.value)}
+          size="large"
+          placeholder="e.g., Most Popular, Best Value"
+        />
+      </div>
+
+      <div>
+        <Text
+          type="secondary"
+          style={{ fontSize: 12, display: "block", marginBottom: 8 }}
+        >
+          Details
+        </Text>
+        <TextArea
+          value={option.details || ""}
+          onChange={(e) => onUpdate("details", e.target.value)}
+          rows={3}
+          placeholder="Enter additional details..."
+        />
+      </div>
+
+      <div>
+        <Text
+          type="secondary"
+          style={{ fontSize: 12, display: "block", marginBottom: 8 }}
+        >
+          Validity Period
+        </Text>
+        <Select
+          value={option.validity}
+          onChange={(value) => onUpdate("validity", value)}
+          size="large"
+          style={{ width: "100%" }}
+          options={VALIDITY_PERIOD_OPTIONS}
+        />
+      </div>
+
+      <Divider style={{ margin: 0 }} />
+
+      {/* Revenue Split */}
+      <div>
+        <Text
+          strong
+          style={{ fontSize: 13, display: "block", marginBottom: 12 }}
+        >
+          Revenue Split
+        </Text>
+
+        {/* Merchant and Groupon Margin - 2 Column Layout */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 12,
+            marginBottom: 16,
+          }}
+        >
+          <div>
+            <Text
+              type="secondary"
+              style={{ fontSize: 12, display: "block", marginBottom: 8 }}
+            >
+              Merchant Margin %
+            </Text>
+            <InputNumber
+              value={option.merchantMargin || 50}
+              onChange={(value) => {
+                const merchantMargin = value || 0;
+                onUpdate("merchantMargin", merchantMargin);
+                onUpdate("grouponMargin", 100 - merchantMargin);
+              }}
+              suffix="%"
+              size="large"
+              style={{ width: "100%" }}
+              min={0}
+              max={100}
+              step={1}
+              precision={0}
+            />
+            <Text
+              type="secondary"
+              style={{ fontSize: 11, marginTop: 4, display: "block" }}
+            >
+              40-70% ideal
+            </Text>
+          </div>
+
+          <div>
+            <Text
+              type="secondary"
+              style={{ fontSize: 12, display: "block", marginBottom: 8 }}
+            >
+              Groupon Margin %
+            </Text>
+            <InputNumber
+              value={option.grouponMargin || 50}
+              onChange={(value) => {
+                const grouponMargin = value || 0;
+                onUpdate("grouponMargin", grouponMargin);
+                onUpdate("merchantMargin", 100 - grouponMargin);
+              }}
+              suffix="%"
+              size="large"
+              style={{ width: "100%" }}
+              min={0}
+              max={100}
+              step={1}
+              precision={0}
+            />
+            <Text
+              type="secondary"
+              style={{ fontSize: 11, marginTop: 4, display: "block" }}
+            >
+              Auto-balanced
+            </Text>
+          </div>
+        </div>
+
+        {/* Revenue Summary */}
+        <Card size="small" style={{ background: token.colorFillSecondary }}>
+          <Text
+            strong
+            style={{ display: "block", marginBottom: 12, fontSize: 13 }}
+          >
+            Summary
+          </Text>
+          <Space direction="vertical" style={{ width: "100%" }} size="small">
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ fontSize: 13 }}>Customer pays</Text>
+              <Text strong style={{ fontSize: 14 }}>
+                ${Math.round(option.grouponPrice)}
+              </Text>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ fontSize: 13 }}>Merchant gets</Text>
+              <Text strong style={{ fontSize: 14 }}>
+                $
+                {Math.round(
+                  (option.grouponPrice * (option.merchantMargin || 50)) / 100
+                )}
+              </Text>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ fontSize: 13 }}>Merchant margin</Text>
+              <Text strong style={{ fontSize: 14 }}>
+                {option.merchantMargin || 50}%
+              </Text>
+            </div>
+            <Divider style={{ margin: "8px 0" }} />
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ fontSize: 13 }}>Groupon gets</Text>
+              <Text strong style={{ fontSize: 14 }}>
+                $
+                {Math.round(
+                  (option.grouponPrice * (option.grouponMargin || 50)) / 100
+                )}
+              </Text>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ fontSize: 13 }}>Groupon margin</Text>
+              <Text strong style={{ fontSize: 14 }}>
+                {option.grouponMargin || 50}%
+              </Text>
+            </div>
+          </Space>
+        </Card>
+      </div>
+
+      <Divider style={{ margin: 0 }} />
+
+      {/* Remove Option Button */}
+      <Button
+        danger
+        block
+        icon={<X size={16} />}
+        onClick={() => {
+          Modal.confirm({
+            title: "Remove Option",
+            content: `Are you sure you want to remove "${option.name}"? This action cannot be undone.`,
+            okText: "Remove",
+            okType: "danger",
+            cancelText: "Cancel",
+            onOk: onRemove,
+          });
+        }}
+      >
+        Remove Option
+      </Button>
+    </Space>
+  );
+};
+
+interface TitleSettingsContentProps {
+  title: string;
+  galleryTitle: string;
+  shortDescriptor: string;
+  descriptor: string;
+  originalTitle: string;
+  originalGalleryTitle: string;
+  originalShortDescriptor: string;
+  originalDescriptor: string;
+  isGalleryTitleAuto: boolean;
+  isDescriptorAuto: boolean;
+  onTitleChange: (title: string) => void;
+  onGalleryTitleChange: (galleryTitle: string) => void;
+  onShortDescriptorChange: (shortDescriptor: string) => void;
+  onDescriptorChange: (descriptor: string) => void;
+  onIsGalleryTitleAutoChange: (isAuto: boolean) => void;
+  onIsDescriptorAutoChange: (isAuto: boolean) => void;
+}
+
+const TitleSettingsContent = ({
+  title,
+  galleryTitle,
+  shortDescriptor,
+  descriptor,
+  originalTitle,
+  originalGalleryTitle,
+  originalShortDescriptor,
+  originalDescriptor,
+  isGalleryTitleAuto,
+  isDescriptorAuto,
+  onTitleChange,
+  onGalleryTitleChange,
+  onShortDescriptorChange,
+  onDescriptorChange,
+  onIsGalleryTitleAutoChange,
+  onIsDescriptorAutoChange,
+}: TitleSettingsContentProps) => {
+  const { token } = useToken();
+
+  // Helper to render diff with smart ordering
+  const renderDiff = (diff: any) => {
+    if (!diff || !diff.changes) return originalTitle;
+
+    return diff.changes.map((change: any, index: number) => {
+      if (change.type === "equal") {
+        return <span key={index}>{change.value}</span>;
+      } else if (change.type === "delete") {
+        return (
+          <span
+            key={index}
+            style={{
+              backgroundColor: token.colorErrorBg,
+              textDecoration: "line-through",
+            }}
+          >
+            {change.value}
+          </span>
+        );
+      } else if (change.type === "insert") {
+        return (
+          <span key={index} style={{ backgroundColor: token.colorSuccessBg }}>
+            {change.value}
+          </span>
+        );
+      }
+      return null;
+    });
+  };
+
+  return (
+    <Space direction="vertical" style={{ width: "100%" }} size="middle">
+      {/* Main Title */}
+      <div>
+        <Text
+          type="secondary"
+          style={{ fontSize: 12, display: "block", marginBottom: 8 }}
+        >
+          Deal Title *
+        </Text>
+        <TextArea
+          value={title}
+          onChange={(e) => onTitleChange(e.target.value)}
+          placeholder="Enter deal title..."
+          rows={3}
+          style={{
+            fontSize: 16,
+            fontWeight: 500,
+            width: "100%",
+            resize: "none",
+          }}
+        />
+        {title !== originalTitle && (
+          <div
+            style={{
+              marginTop: 8,
+              padding: "8px 8px 8px 10px",
+              background: token.colorBgLayout,
+              border: `1px solid ${token.colorBorder}`,
+              borderRadius: 6,
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 8,
+            }}
+          >
+            <Text
+              type="secondary"
+              style={{
+                fontSize: 11,
+                flexShrink: 0,
+                lineHeight: 1.5,
+                padding: "2px 0",
+              }}
+            >
+              Original:
+            </Text>
+            <div
+              style={{
+                flex: 1,
+                fontSize: 12,
+                lineHeight: 1.5,
+                padding: "2px 0",
+              }}
+            >
+              {renderDiff(computeDiff(originalTitle, title))}
+            </div>
+            <Tooltip title="Revert to original">
+              <Button
+                size="small"
+                icon={<RotateCcw size={14} />}
+                onClick={() => onTitleChange(originalTitle)}
+                style={{ flexShrink: 0, marginTop: -2 }}
+              />
+            </Tooltip>
+          </div>
+        )}
+      </div>
+
+      {/* Gallery Title */}
+      <div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 8,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Text type="secondary" style={{ fontSize: 12, display: "block" }}>
+              Gallery Title
+            </Text>
+            {!isGalleryTitleAuto && (
+              <Tag color="blue" style={{ fontSize: 11, margin: 0 }}>
+                Custom
+              </Tag>
+            )}
+          </div>
+          <Checkbox
+            checked={isGalleryTitleAuto}
+            onChange={(e) => onIsGalleryTitleAutoChange(e.target.checked)}
+          >
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Same as Title
+            </Text>
+          </Checkbox>
+        </div>
+        <TextArea
+          value={galleryTitle}
+          onChange={(e) => onGalleryTitleChange(e.target.value)}
+          placeholder="Enter gallery title..."
+          readOnly={isGalleryTitleAuto}
+          rows={3}
+          onClick={() => {
+            if (isGalleryTitleAuto) {
+              onIsGalleryTitleAutoChange(false);
+            }
+          }}
+          onBlur={() => {
+            if (!isGalleryTitleAuto && galleryTitle === title) {
+              onIsGalleryTitleAutoChange(true);
+            }
+          }}
+          style={{
+            cursor: isGalleryTitleAuto ? "pointer" : "text",
+            backgroundColor: isGalleryTitleAuto
+              ? token.colorBgContainerDisabled
+              : undefined,
+            color: isGalleryTitleAuto ? token.colorTextDisabled : undefined,
+            resize: "none",
+          }}
+        />
+        {!isGalleryTitleAuto &&
+          galleryTitle !== title &&
+          galleryTitle !==
+            (originalGalleryTitle.length > 0
+              ? originalGalleryTitle
+              : title) && (
+            <div
+              style={{
+                marginTop: 8,
+                padding: "8px 8px 8px 10px",
+                background: token.colorBgLayout,
+                border: `1px solid ${token.colorBorder}`,
+                borderRadius: 6,
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 8,
+              }}
+            >
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: 11,
+                  flexShrink: 0,
+                  lineHeight: 1.5,
+                  padding: "2px 0",
+                }}
+              >
+                Original:
+              </Text>
+              <div
+                style={{
+                  flex: 1,
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                  padding: "2px 0",
+                }}
+              >
+                {renderDiff(
+                  computeDiff(
+                    originalGalleryTitle.length > 0
+                      ? originalGalleryTitle
+                      : title,
+                    galleryTitle
+                  )
+                )}
+              </div>
+              <Tooltip title="Revert to original">
+                <Button
+                  size="small"
+                  icon={<RotateCcw size={14} />}
+                  onClick={() => onGalleryTitleChange(originalGalleryTitle)}
+                  style={{ flexShrink: 0, marginTop: -2 }}
+                />
+              </Tooltip>
+            </div>
+          )}
+      </div>
+
+      {/* Descriptor */}
+      <div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 8,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Text type="secondary" style={{ fontSize: 12, display: "block" }}>
+              Descriptor
+            </Text>
+            {!isDescriptorAuto && (
+              <Tag color="blue" style={{ fontSize: 11, margin: 0 }}>
+                Custom
+              </Tag>
+            )}
+          </div>
+          <Checkbox
+            checked={isDescriptorAuto}
+            onChange={(e) => onIsDescriptorAutoChange(e.target.checked)}
+          >
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Same as Title
+            </Text>
+          </Checkbox>
+        </div>
+        <TextArea
+          value={descriptor}
+          onChange={(e) => onDescriptorChange(e.target.value)}
+          placeholder="Enter descriptor..."
+          readOnly={isDescriptorAuto}
+          rows={3}
+          onClick={() => {
+            if (isDescriptorAuto) {
+              onIsDescriptorAutoChange(false);
+            }
+          }}
+          onBlur={() => {
+            if (!isDescriptorAuto && descriptor === title) {
+              onIsDescriptorAutoChange(true);
+            }
+          }}
+          style={{
+            cursor: isDescriptorAuto ? "pointer" : "text",
+            backgroundColor: isDescriptorAuto
+              ? token.colorBgContainerDisabled
+              : undefined,
+            color: isDescriptorAuto ? token.colorTextDisabled : undefined,
+            resize: "none",
+          }}
+        />
+        {!isDescriptorAuto &&
+          descriptor !== title &&
+          descriptor !==
+            (originalDescriptor.length > 0 ? originalDescriptor : title) && (
+            <div
+              style={{
+                marginTop: 8,
+                padding: "8px 8px 8px 10px",
+                background: token.colorBgLayout,
+                border: `1px solid ${token.colorBorder}`,
+                borderRadius: 6,
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 8,
+              }}
+            >
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: 11,
+                  flexShrink: 0,
+                  lineHeight: 1.5,
+                  padding: "2px 0",
+                }}
+              >
+                Original:
+              </Text>
+              <div
+                style={{
+                  flex: 1,
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                  padding: "2px 0",
+                }}
+              >
+                {renderDiff(
+                  computeDiff(
+                    originalDescriptor.length > 0 ? originalDescriptor : title,
+                    descriptor
+                  )
+                )}
+              </div>
+              <Tooltip title="Revert to original">
+                <Button
+                  size="small"
+                  icon={<RotateCcw size={14} />}
+                  onClick={() => onDescriptorChange(originalDescriptor)}
+                  style={{ flexShrink: 0, marginTop: -2 }}
+                />
+              </Tooltip>
+            </div>
+          )}
+      </div>
+
+      {/* Short Descriptor */}
+      <div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 8,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Text type="secondary" style={{ fontSize: 12, display: "block" }}>
+              Short Descriptor
+            </Text>
+            {shortDescriptor.length > 0 && (
+              <Tag color="blue" style={{ fontSize: 11, margin: 0 }}>
+                Custom
+              </Tag>
+            )}
+          </div>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {shortDescriptor.length}/32
+          </Text>
+        </div>
+        <Input
+          value={shortDescriptor}
+          onChange={(e) => onShortDescriptorChange(e.target.value)}
+          placeholder="Enter short descriptor..."
+          maxLength={32}
+          style={{
+            width: "100%",
+          }}
+        />
+        {shortDescriptor !== originalShortDescriptor &&
+          (originalShortDescriptor.length > 0 ||
+            shortDescriptor.length > 0) && (
+            <div
+              style={{
+                marginTop: 8,
+                padding: "8px 8px 8px 10px",
+                background: token.colorBgLayout,
+                border: `1px solid ${token.colorBorder}`,
+                borderRadius: 6,
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 8,
+              }}
+            >
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: 11,
+                  flexShrink: 0,
+                  lineHeight: 1.5,
+                  padding: "2px 0",
+                }}
+              >
+                Original:
+              </Text>
+              <div
+                style={{
+                  flex: 1,
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                  padding: "2px 0",
+                }}
+              >
+                {renderDiff(
+                  computeDiff(originalShortDescriptor, shortDescriptor)
+                )}
+              </div>
+              <Tooltip title="Revert to original">
+                <Button
+                  size="small"
+                  icon={<RotateCcw size={14} />}
+                  onClick={() =>
+                    onShortDescriptorChange(originalShortDescriptor)
+                  }
+                  style={{ flexShrink: 0, marginTop: -2 }}
+                />
+              </Tooltip>
+            </div>
+          )}
+      </div>
+    </Space>
+  );
+};
+
+const DealDetail = () => {
+  const params = useParams<{
+    id?: string;
+    dealId?: string;
+    accountId?: string;
+  }>();
+  // Support both /deals/:id and /accounts/:accountId/deals/:dealId
+  const id = params.id || params.dealId;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { token } = useToken();
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const { addToRecentlyViewed } = useRecentlyViewed();
+  const [deal, setDeal] = useState<Deal | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isAIGenerating, setIsAIGenerating] = useState(
+    searchParams.get("aiGenerating") === "true"
+  );
+  const [aiProgress, setAiProgress] = useState(0);
+
+  // Check if this is a newly created deal
+  const isNewDeal = Boolean(
+    deal &&
+      (deal.id.startsWith("deal-") || // AI generated or from scratch
+        (deal.status === "Draft" &&
+          (!deal.content.description ||
+            deal.content.description.length === 0 ||
+            deal.title === "Untitled Deal")))
+  );
+
+  // Check if this is a "from scratch" deal without account
+  const isFromScratch = deal && deal.title === "Untitled Deal";
+  
+  // Use URL parameter for active view (with fallback to Overview)
+  const activeView = searchParams.get('view') || 'Overview';
+  const setActiveView = (view: string | number) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('view', String(view));
+    setSearchParams(newParams, { replace: true });
+  };
+  const [timePeriod, setTimePeriod] = useState<"30days" | "7days" | "total">(
+    "30days"
+  );
+  const [selectedMetric, setSelectedMetric] = useState<
+    | "grossProfit"
+    | "orders"
+    | "gpPerVisit"
+    | "conversionRate"
+    | "visits"
+    | "refunds"
+  >("grossProfit");
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Universal sidebar state
+  const [sidebarView, setSidebarView] = useState<
+    | "default"
+    | "option-details"
+    | "library"
+    | "account-selector"
+    | "title-settings"
+  >("default");
+  const [selectedOption, setSelectedOption] = useState<any | null>(null);
+  const [libraryData, setLibraryData] = useState<any | null>(null);
+  const [libraryTab, setLibraryTab] = useState("merchant");
+  const [librarySearch, setLibrarySearch] = useState("");
+  const [libraryMediaType, setLibraryMediaType] = useState<"image" | "video">(
+    "image"
+  );
+
+  // Merchant account state
+  const [selectedMerchantAccount, setSelectedMerchantAccount] =
+    useState<MerchantAccount | null>(null);
+
+  // Fine Print state
+  const [originalFinePoints, setOriginalFinePoints] = useState<FinePointItem[]>(
+    []
+  );
+  const [finePoints, setFinePoints] = useState<FinePointItem[]>([]);
+
+  // Highlights state (plain text string)
+  const [originalHighlights, setOriginalHighlights] = useState<string>("");
+  const [highlights, setHighlights] = useState<string>("");
+
+  // Highlight version history
+  const [highlightVersions, setHighlightVersions] = useState<
+    HighlightVersion[]
+  >([]);
+
+  // Summary editing state
+  const [isEditingSummary, setIsEditingSummary] = useState(false);
+  const [launchDate, setLaunchDate] = useState<dayjs.Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(null);
+  const [isContinuous, setIsContinuous] = useState(false);
+  const [editableQuality, setEditableQuality] = useState("");
+  const [editableDivision, setEditableDivision] = useState("");
+  const [editableCategorySubcategoryPos, setEditableCategorySubcategoryPos] =
+    useState("");
+  const [editableWeb, setEditableWeb] = useState("");
+
+  // Roles editing state
+  const [isEditingRoles, setIsEditingRoles] = useState(false);
+  const [editableAccountOwner, setEditableAccountOwner] = useState("");
+  const [editableWriter, setEditableWriter] = useState("");
+  const [editableImageDesigner, setEditableImageDesigner] = useState("");
+  const [editableOpportunityOwner, setEditableOpportunityOwner] = useState("");
+
+  // Overview autosave state
+  const [overviewHasUnsavedChanges, setOverviewHasUnsavedChanges] =
+    useState(false);
+  const [, setOverviewIsSaving] = useState(false);
+  const [overviewAutoSaveEnabled] = useState(true);
+  const [overviewPublishedState, setOverviewPublishedState] =
+    useState<any>(null);
+  const overviewRenderCount = useRef(0);
+
+  // Summary and Roles autosave state
+  const [summaryHasUnsavedChanges, setSummaryHasUnsavedChanges] =
+    useState(false);
+  const [rolesHasUnsavedChanges, setRolesHasUnsavedChanges] = useState(false);
+  const [summaryPublishedState, setSummaryPublishedState] = useState<any>(null);
+  const [rolesPublishedState, setRolesPublishedState] = useState<any>(null);
+
+  // Content autosave state
+  const [contentHasUnsavedChanges, setContentHasUnsavedChanges] = useState(false);
+  const [contentUnpublishedCount, setContentUnpublishedCount] = useState(0);
+  const [contentIsSaving, setContentIsSaving] = useState(false);
+  const [contentLastSaved, setContentLastSaved] = useState<Date | null>(null);
+  const [contentPendingSave, setContentPendingSave] = useState(false);
+  const contentEditorPublishRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    fetchDeal();
+  }, [id]);
+
+  // Scroll to top when component mounts (handles browser back/forward navigation)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  // Scroll to section if section parameter is present
+  useEffect(() => {
+    const section = searchParams.get("section");
+    if (section) {
+      // Small delay to ensure the DOM is ready
+      setTimeout(() => {
+        const element = document.getElementById(section);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+          // Remove the section parameter after scrolling
+          const newParams = new URLSearchParams(searchParams);
+          newParams.delete("section");
+          setSearchParams(newParams, { replace: true });
+        }
+      }, 300);
+    }
+  }, [searchParams, setSearchParams, activeView]);
+
+  // Update state when deal changes
+  useEffect(() => {
+    if (deal) {
+      // Update summary fields
+      setEditableQuality(deal.quality || "Ace");
+      setEditableDivision(deal.division || "Chicago (USA)");
+      setEditableCategorySubcategoryPos(
+        `${deal.category || "Food & Drink"} - ${
+          deal.subcategory || "Restaurant"
+        } - ${deal.pos || "Mexican"}`.replace(/^ - | - $/g, "")
+      );
+      setEditableWeb(deal.web || "example.com");
+
+      // Update roles fields
+      setEditableAccountOwner(deal.roles?.accountOwner || "Unassigned");
+      setEditableWriter(deal.roles?.writer || "John Peterson");
+      setEditableImageDesigner(deal.roles?.imageDesigner || "Aartiya Johrison");
+      setEditableOpportunityOwner(
+        deal.roles?.opportunityOwner || "Aanya Kublikova"
+      );
+
+      // Update date fields
+      if (deal.dealStart) {
+        setLaunchDate(dayjs(deal.dealStart, "DD. M. YYYY"));
+      }
+      if (deal.dealEnd) {
+        setEndDate(dayjs(deal.dealEnd, "DD. M. YYYY"));
+        setIsContinuous(false);
+      } else {
+        setIsContinuous(true);
+      }
+    }
+  }, [deal]);
+
+  // Refetch deal data when switching to Overview tab to ensure featured image is up-to-date
+  useEffect(() => {
+    if (activeView === "Overview" && deal) {
+      const updatedDeal = getDeal(id || "1");
+      setDeal(updatedDeal);
+    }
+  }, [activeView, id]);
+
+  // Show account selector for "from scratch" deals
+  useEffect(() => {
+    if (isFromScratch && !selectedMerchantAccount) {
+      setSidebarView("account-selector");
+    }
+  }, [isFromScratch]);
+
+  // Auto-set merchant account when deal loads
+  useEffect(() => {
+    if (!deal || selectedMerchantAccount) return;
+
+    // Try to get account from URL params first
+    const accountIdFromUrl = params.accountId || searchParams.get("accountId");
+    if (accountIdFromUrl) {
+      const account = getMerchantAccount(accountIdFromUrl);
+      if (account) {
+        setSelectedMerchantAccount(account);
+        return;
+      }
+    }
+
+    // Use the deal's accountId if it exists (most reliable)
+    if (deal.accountId) {
+      const account = getMerchantAccount(deal.accountId);
+      if (account) {
+        setSelectedMerchantAccount(account);
+        return;
+      }
+    }
+
+    // If no accountId, try to find account by matching deal location/name (fallback)
+    const matchedAccount = merchantAccounts.find(
+      (acc: any) =>
+        deal.location
+          ?.toLowerCase()
+          .includes(acc.location.toLowerCase().split(",")[0]) ||
+        deal.title
+          ?.toLowerCase()
+          .includes(acc.name.toLowerCase().split(" ")[0])
+    );
+
+    if (matchedAccount) {
+      setSelectedMerchantAccount(matchedAccount);
+    }
+  }, [deal, params.accountId, searchParams, selectedMerchantAccount]);
+
+  // AI Generation Effect - runs for 30 seconds
+  useEffect(() => {
+    if (!isAIGenerating || !deal) return;
+
+    const accountId = searchParams.get("accountId");
+    if (!accountId) return;
+
+    const account = getMerchantAccount(accountId);
+    if (!account) return;
+
+    // Update progress every second for 30 seconds
+    let elapsed = 0;
+    const TOTAL_DURATION = 30;
+
+    const progressInterval = setInterval(() => {
+      elapsed += 1;
+      setAiProgress(Math.min((elapsed / TOTAL_DURATION) * 100, 100));
+
+      if (elapsed >= TOTAL_DURATION) {
+        clearInterval(progressInterval);
+        // Generate AI content
+        generateAIContent(account);
+      }
+    }, 1000);
+
+    return () => clearInterval(progressInterval);
+  }, [isAIGenerating, deal]);
+
+  // Overview autosave effect
+  useEffect(() => {
+    if (!overviewAutoSaveEnabled || !overviewHasUnsavedChanges || !deal) return;
+
+    const timer = setTimeout(() => {
+      performOverviewSave(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [
+    deal?.title,
+    deal?.location,
+    deal?.division,
+    deal?.roles?.accountOwner,
+    deal?.roles?.writer,
+    deal?.roles?.imageDesigner,
+    deal?.roles?.opportunityOwner,
+    overviewAutoSaveEnabled,
+    overviewHasUnsavedChanges,
+  ]);
+
+  // Mark overview content as changed
+  useEffect(() => {
+    if (!deal) return;
+
+    // Increment render count
+    overviewRenderCount.current += 1;
+
+    // Skip the first few renders to allow initial setup
+    if (overviewRenderCount.current <= 3) {
+      return;
+    }
+
+    setOverviewHasUnsavedChanges(true);
+  }, [
+    deal?.title,
+    deal?.location,
+    deal?.division,
+    deal?.roles?.accountOwner,
+    deal?.roles?.writer,
+    deal?.roles?.imageDesigner,
+    deal?.roles?.opportunityOwner,
+  ]);
+
+  // Initialize published state when deal loads
+  useEffect(() => {
+    if (deal && !overviewPublishedState) {
+      setOverviewPublishedState({
+        title: deal.title,
+        location: deal.location,
+        division: deal.division,
+        roles: deal.roles,
+      });
+    }
+  }, [deal, overviewPublishedState]);
+
+  // Initialize Summary and Roles published states
+  useEffect(() => {
+    if (deal && !summaryPublishedState) {
+      setSummaryPublishedState({
+        quality: deal.quality,
+        division: deal.division,
+        category: deal.category,
+        subcategory: deal.subcategory,
+        pos: deal.pos,
+        web: deal.web,
+        dealStart: deal.dealStart,
+        dealEnd: deal.dealEnd,
+      });
+    }
+  }, [deal, summaryPublishedState]);
+
+  useEffect(() => {
+    if (deal && !rolesPublishedState) {
+      setRolesPublishedState({
+        accountOwner: deal.roles.accountOwner,
+        writer: deal.roles.writer,
+        imageDesigner: deal.roles.imageDesigner,
+        opportunityOwner: deal.roles.opportunityOwner,
+      });
+    }
+  }, [deal, rolesPublishedState]);
+
+  // Track Summary changes
+  useEffect(() => {
+    if (!deal || !summaryPublishedState) return;
+
+    const changes = countSummaryChanges();
+    setSummaryHasUnsavedChanges(changes > 0);
+  }, [
+    deal?.quality,
+    deal?.division,
+    deal?.category,
+    deal?.subcategory,
+    deal?.pos,
+    deal?.web,
+    deal?.dealStart,
+    deal?.dealEnd,
+    summaryPublishedState,
+  ]);
+
+  // Track Roles changes
+  useEffect(() => {
+    if (!deal || !rolesPublishedState) return;
+
+    const changes = countRolesChanges();
+    setRolesHasUnsavedChanges(changes > 0);
+  }, [
+    deal?.roles?.accountOwner,
+    deal?.roles?.writer,
+    deal?.roles?.imageDesigner,
+    deal?.roles?.opportunityOwner,
+    rolesPublishedState,
+  ]);
+
+  // Summary autosave effect
+  useEffect(() => {
+    if (!summaryHasUnsavedChanges || !deal) return;
+
+    const timer = setTimeout(() => {
+      // Auto-save summary changes
+      updateDealFields(id || "1", {
+        quality: deal.quality,
+        division: deal.division,
+        category: deal.category,
+        subcategory: deal.subcategory,
+        pos: deal.pos,
+        web: deal.web,
+        dealStart: deal.dealStart,
+        dealEnd: deal.dealEnd,
+      })
+        .then(() => {
+          message.success({
+            content: "Summary auto-saved",
+            duration: 1,
+          });
+        })
+        .catch((error) => {
+          // Summary autosave error - silently fail
+        });
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [
+    deal?.quality,
+    deal?.division,
+    deal?.category,
+    deal?.subcategory,
+    deal?.pos,
+    deal?.web,
+    deal?.dealStart,
+    deal?.dealEnd,
+    summaryHasUnsavedChanges,
+  ]);
+
+  // Roles autosave effect
+  useEffect(() => {
+    if (!rolesHasUnsavedChanges || !deal) return;
+
+    const timer = setTimeout(() => {
+      // Auto-save roles changes
+      updateDealFields(id || "1", {
+        roles: deal.roles,
+      })
+        .then(() => {
+          message.success({
+            content: "Roles auto-saved",
+            duration: 1,
+          });
+        })
+        .catch((error) => {
+          // Roles autosave error - silently fail
+        });
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [
+    deal?.roles?.accountOwner,
+    deal?.roles?.writer,
+    deal?.roles?.imageDesigner,
+    deal?.roles?.opportunityOwner,
+    rolesHasUnsavedChanges,
+  ]);
+
+  const handleAccountSelection = async (account: MerchantAccount) => {
+    if (!deal) return;
+
+    setSelectedMerchantAccount(account);
+
+    // Update deal with account information
+    const updatedDeal = {
+      ...deal,
+      title: `New Deal at ${account.name}`,
+      location: account.name,
+      category: account.businessType,
+    };
+
+    try {
+      await updateDealFields(deal.id, updatedDeal);
+      setDeal(updatedDeal);
+      setSidebarView("default");
+      message.success(`Account selected: ${account.name}`);
+    } catch (error) {
+      message.error("Failed to update deal");
+    }
+  };
+
+  const generateAIContent = async (account: any) => {
+    if (!deal) return;
+
+    // Generate AI content
+    const aiDescription = `Welcome to ${account.name}! ${account.description}
+
+Discover an exceptional experience at one of the area's premier ${account.businessType.toLowerCase()} destinations. Our expert team is dedicated to providing you with outstanding service and unforgettable moments.
+
+Perfect for anyone looking for a premium experience. Whether you're celebrating a special occasion or simply treating yourself, this deal offers exceptional value.
+
+Don't miss this opportunity to enjoy ${account.businessType.toLowerCase()} excellence at an unbeatable price!`;
+
+    const aiHighlights = [
+      {
+        id: "1",
+        text: `Premium ${account.businessType.toLowerCase()} experience`,
+      },
+      { id: "2", text: "Perfect for all occasions" },
+      { id: "3", text: "Exceptional value and quality" },
+      { id: "4", text: "Easy booking and redemption" },
+    ];
+
+    const updatedDeal = {
+      ...deal,
+      title: `Amazing Deal at ${account.name}`,
+      galleryTitle: `Experience Excellence at ${account.name}`,
+      content: {
+        ...deal.content,
+        description: aiDescription,
+        highlights: aiHighlights,
+        finePoints: [
+          { id: "1", text: "Valid for new customers only" },
+          { id: "2", text: "Reservation required - subject to availability" },
+          { id: "3", text: "See full terms and conditions for details" },
+        ],
+      },
+    };
+
+    try {
+      await updateDealFields(deal.id, updatedDeal);
+      setDeal(updatedDeal);
+      setIsAIGenerating(false);
+
+      // Remove query parameters
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("aiGenerating");
+      newParams.delete("accountId");
+      setSearchParams(newParams);
+
+      message.success("AI generation complete!");
+    } catch (error) {
+      message.error("Failed to generate content");
+      setIsAIGenerating(false);
+    }
+  };
+
+  // Sidebar view changes
+  useEffect(() => {
+    // Sidebar view and option tracking
+  }, [sidebarView, selectedOption]);
+
+  // Add CSS for library item hover effect, pulse animation, and custom Segmented styling
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      .library-item-hover:hover .library-preview-icon {
+        opacity: 1 !important;
+      }
+      @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+      }
+      /* Custom Segmented Tab Styling */
+      .ant-segmented {
+        background: transparent !important;
+        padding: 0 !important;
+        gap: ${token.marginXS}px !important;
+      }
+      .ant-segmented .ant-segmented-item {
+        background: transparent !important;
+        border-radius: ${token.borderRadius}px !important;
+        transition: all ${token.motionDurationMid} !important;
+        margin: 0 !important;
+      }
+      .ant-segmented .ant-segmented-item + .ant-segmented-item {
+        margin-left: ${token.marginXS}px !important;
+      }
+      .ant-segmented .ant-segmented-item:not(.ant-segmented-item-selected):hover {
+        background: ${token.colorBgTextHover} !important;
+      }
+      .ant-segmented .ant-segmented-item.ant-segmented-item-selected,
+      .ant-segmented .ant-segmented-item-selected,
+      .ant-segmented-item-selected {
+        background: ${token.colorFillSecondary} !important;
+        color: ${token.colorText} !important;
+        font-weight: ${token.fontWeightStrong} !important;
+      }
+      .ant-segmented .ant-segmented-item-selected .ant-segmented-item-label {
+        color: ${token.colorText} !important;
+      }
+      .ant-segmented .ant-segmented-thumb,
+      .ant-segmented-thumb {
+        display: none !important;
+        opacity: 0 !important;
+      }
+      .ant-segmented .ant-segmented-group {
+        gap: ${token.marginXS}px !important;
+      }
+      
+      /* Custom Collapse Panel Styling for Sidebar */
+      .ant-collapse-ghost > .ant-collapse-item {
+        border-bottom: 1px solid ${token.colorBorder};
+      }
+      .ant-collapse-ghost > .ant-collapse-item:last-child {
+        border-bottom: none;
+      }
+      .ant-collapse-ghost > .ant-collapse-item > .ant-collapse-header {
+        padding: 16px 24px !important;
+        align-items: center !important;
+      }
+      .ant-collapse-ghost > .ant-collapse-item > .ant-collapse-header:hover {
+        background: ${token.colorBgTextHover} !important;
+      }
+      .ant-collapse-ghost .ant-collapse-content > .ant-collapse-content-box {
+        padding: 0 24px 0 24px !important;
+      }
+      .ant-collapse-ghost > .ant-collapse-item > .ant-collapse-header .ant-collapse-expand-icon {
+        padding-inline-end: 12px !important;
+      }
+      
+      /* Remove border radius from right sidebar */
+      #deal-details-sidebar.ant-card {
+        border-radius: 0 !important;
+      }
+      #deal-details-sidebar .ant-card-head {
+        border-radius: 0 !important;
+      }
+      #deal-details-sidebar .ant-card-body {
+        border-radius: 0 !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      if (document.head.contains(style)) {
+        document.head.removeChild(style);
+      }
+    };
+  }, [token]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const fetchDeal = async () => {
+    setLoading(true);
+    try {
+      // Get deal data from localStorage (persistent storage)
+      const dealData = getDeal(id || "1");
+      setDeal(dealData);
+
+      // Add to recently viewed deals
+      addToRecentlyViewed(dealData);
+
+      // Scroll to top when new deal is loaded
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      // Initialize date values
+      if (dealData.dealStart) {
+        setLaunchDate(dayjs(dealData.dealStart, "DD. M. YYYY"));
+      }
+      if (dealData.dealEnd) {
+        setEndDate(dayjs(dealData.dealEnd, "DD. M. YYYY"));
+        setIsContinuous(false);
+      } else {
+        setIsContinuous(true);
+      }
+
+      // Initialize summary fields
+      setEditableQuality(dealData.quality || "Ace");
+      setEditableDivision(dealData.division || "Chicago (USA)");
+      setEditableCategorySubcategoryPos(
+        `${dealData.category || "Food & Drink"} - ${
+          dealData.subcategory || "Restaurant"
+        } - ${dealData.pos || "Mexican"}`.replace(/^ - | - $/g, "")
+      );
+      setEditableWeb(dealData.web || "example.com");
+
+      // Initialize roles fields
+      setEditableAccountOwner(dealData.roles?.accountOwner || "Unassigned");
+      setEditableWriter(dealData.roles?.writer || "John Peterson");
+      setEditableImageDesigner(
+        dealData.roles?.imageDesigner || "Aartiya Johrison"
+      );
+      setEditableOpportunityOwner(
+        dealData.roles?.opportunityOwner || "Aanya Kublikova"
+      );
+
+      // Initialize fine points
+      setOriginalFinePoints(dealData.content.finePoints || []);
+      setFinePoints(dealData.content.finePoints || []);
+      // Initialize highlights - convert array to plain text string
+      const highlightsText = (dealData.content.highlights || [])
+        .map((h: any) => h.text)
+        .join(" • ");
+      setOriginalHighlights(highlightsText);
+      setHighlights(highlightsText);
+
+      // Initialize highlight versions with original as first version
+      setHighlightVersions([
+        {
+          id: "original",
+          content: highlightsText,
+          timestamp: new Date(Date.now() - 86400000), // 1 day ago for demo
+          author: "System",
+          label: "Original",
+        },
+      ]);
+    } catch (error) {
+      // Error fetching deal - silently fail
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Generate chart data based on time period and metric
+  const getChartData = (period: string, metric: string) => {
+    const data: ChartDataPoint[] = [];
+    const dates: string[] = [];
+    let numDays = 30;
+    let baseDate = new Date("2024-09-01");
+
+    if (period === "7days") {
+      numDays = 7;
+      baseDate = new Date("2024-09-24");
+    } else if (period === "total") {
+      numDays = 90;
+      baseDate = new Date("2024-07-01");
+    }
+
+    for (let i = 0; i < numDays; i++) {
+      const date = new Date(baseDate);
+      date.setDate(date.getDate() + i);
+      dates.push(date.toISOString().split("T")[0]);
+    }
+
+    // Different values for different metrics and periods
+    let values: number[] = [];
+
+    if (metric === "grossProfit") {
+      if (period === "30days") {
+        values = Array.from(
+          { length: numDays },
+          () => Math.floor(Math.random() * 500) + 300
+        );
+      } else if (period === "7days") {
+        values = Array.from(
+          { length: numDays },
+          () => Math.floor(Math.random() * 200) + 150
+        );
+      } else {
+        // Total - largest values
+        values = Array.from(
+          { length: numDays },
+          () => Math.floor(Math.random() * 1200) + 600
+        );
+      }
+    } else if (metric === "orders") {
+      if (period === "30days") {
+        values = Array.from(
+          { length: numDays },
+          () => Math.floor(Math.random() * 20) + 5
+        );
+      } else if (period === "7days") {
+        values = Array.from(
+          { length: numDays },
+          () => Math.floor(Math.random() * 10) + 3
+        );
+      } else {
+        // Total - largest values
+        values = Array.from(
+          { length: numDays },
+          () => Math.floor(Math.random() * 35) + 15
+        );
+      }
+    } else if (metric === "gpPerVisit") {
+      if (period === "30days") {
+        values = Array.from({ length: numDays }, () => Math.random() * 3 + 1);
+      } else if (period === "7days") {
+        values = Array.from({ length: numDays }, () => Math.random() * 2 + 1);
+      } else {
+        // Total - highest range
+        values = Array.from({ length: numDays }, () => Math.random() * 4 + 2);
+      }
+    } else if (metric === "conversionRate") {
+      if (period === "30days") {
+        values = Array.from({ length: numDays }, () => Math.random() * 4 + 2);
+      } else if (period === "7days") {
+        values = Array.from({ length: numDays }, () => Math.random() * 3 + 1.5);
+      } else {
+        // Total - highest conversion
+        values = Array.from({ length: numDays }, () => Math.random() * 5 + 3);
+      }
+    } else if (metric === "visits") {
+      if (period === "30days") {
+        values = Array.from(
+          { length: numDays },
+          () => Math.floor(Math.random() * 10000) + 3000
+        );
+      } else if (period === "7days") {
+        values = Array.from(
+          { length: numDays },
+          () => Math.floor(Math.random() * 5000) + 2000
+        );
+      } else {
+        // Total - largest traffic
+        values = Array.from(
+          { length: numDays },
+          () => Math.floor(Math.random() * 15000) + 5000
+        );
+      }
+    } else if (metric === "refunds") {
+      if (period === "30days") {
+        values = Array.from(
+          { length: numDays },
+          () => Math.floor(Math.random() * 5) + 1
+        );
+      } else if (period === "7days") {
+        values = Array.from(
+          { length: numDays },
+          () => Math.floor(Math.random() * 3) + 1
+        );
+      } else {
+        // Total - more refunds accumulated
+        values = Array.from(
+          { length: numDays },
+          () => Math.floor(Math.random() * 8) + 2
+        );
+      }
+    }
+
+    dates.forEach((date, i) => {
+      data.push({ date, value: values[i] || 0 });
+    });
+
+    return data;
+  };
+
+  // Get stats based on time period
+  const getStatsForPeriod = (period: string) => {
+    if (period === "30days") {
+      // Medium values for 30 days
+      return {
+        grossProfit: 12023,
+        orders: 303,
+        gpPerVisit: 2.34,
+        conversionRate: 3.5,
+        visits: 132200000,
+        refunds: 32,
+        change: "+35%",
+      };
+    } else if (period === "7days") {
+      // Smallest values for 7 days (most recent week)
+      return {
+        grossProfit: 3456,
+        orders: 87,
+        gpPerVisit: 1.89,
+        conversionRate: 2.8,
+        visits: 45600000,
+        refunds: 9,
+        change: "+12%",
+      };
+    } else {
+      // Largest values for Total (all-time)
+      return {
+        grossProfit: 78945,
+        orders: 1897,
+        gpPerVisit: 3.67,
+        conversionRate: 4.8,
+        visits: 489300000,
+        refunds: 156,
+        change: "+8%",
+      };
+    }
+  };
+
+  if (loading || !deal) {
+    return <Card loading={loading} />;
+  }
+
+  // Map deal options to include discount and enabled status
+  const mappedOptions = deal.options.map((opt) => ({
+    id: opt.id,
+    name: opt.name,
+    regularPrice: opt.regularPrice,
+    grouponPrice: opt.grouponPrice,
+    merchantPayout: opt.merchantPayout,
+    status: opt.status,
+    discount:
+      opt.discount ||
+      Math.round(
+        ((opt.regularPrice - opt.grouponPrice) / opt.regularPrice) * 100
+      ),
+    validity: "Valid for 90 days",
+    enabled: opt.status === "Live",
+  }));
+
+  const handleOptionsChange = async (options: any[]) => {
+    if (!deal) return;
+
+    // Update the deal options
+    const updatedOptions = options.map((opt) => ({
+      id: opt.id,
+      name: opt.name,
+      regularPrice: opt.regularPrice,
+      grouponPrice: opt.grouponPrice,
+      merchantPayout: opt.grouponPrice * 0.8, // 80% of groupon price
+      status: opt.enabled ? "Live" : "Paused",
+      discount: opt.discount,
+      validity: opt.validity || "Valid for 90 days",
+      enabled: opt.enabled,
+    }));
+
+    try {
+      // Save to localStorage
+      const updatedDeal = await updateDealFields(id || "1", {
+        options: updatedOptions,
+      });
+
+      setDeal(updatedDeal);
+      message.success("Options saved successfully!");
+    } catch (error) {
+      message.error("Failed to save options");
+    }
+  };
+
+  const handleSaveHighlightVersion = (content: string, label?: string) => {
+    const newVersion: HighlightVersion = {
+      id: `version-${Date.now()}`,
+      content,
+      timestamp: new Date(),
+      author: "Current User", // In a real app, this would come from auth context
+      label,
+    };
+    setHighlightVersions((prev) => [...prev, newVersion]);
+  };
+
+  // Save highlights and fine points to localStorage
+  const handleSaveSettings = async () => {
+    if (!deal) return;
+
+    try {
+      // Convert highlights text back to array format
+      const highlightsArray = highlights
+        .split("•")
+        .map((h) => h.trim())
+        .filter((h) => h.length > 0)
+        .map((text, index) => ({
+          id: `highlight-${index + 1}`,
+          text,
+          icon: "✓",
+        }));
+
+      const updatedDeal = await updateDealFields(id || "1", {
+        content: {
+          ...deal.content,
+          highlights: highlightsArray,
+          finePoints: finePoints,
+        },
+      });
+
+      setDeal(updatedDeal);
+      setOriginalHighlights(highlights);
+      setOriginalFinePoints(finePoints);
+
+      message.success("Settings saved successfully!");
+    } catch (error) {
+      message.error("Failed to save settings");
+    }
+  };
+
+  // Summary editing handlers
+  const handleEditSummary = () => {
+    setIsEditingSummary(true);
+  };
+
+  // Roles editing handlers
+  const handleEditRoles = () => {
+    setIsEditingRoles(true);
+  };
+
+  // Overview autosave functions
+  /* Disabled for now - not being used
+  const _countOverviewChanges = () => {
+    if (!deal || !overviewPublishedState) return 0;
+
+    let count = 0;
+
+    // Check title changes
+    if (deal.title !== overviewPublishedState.title) count++;
+
+    // Check location changes
+    if (deal.location !== overviewPublishedState.location) count++;
+
+    // Check division changes
+    if (deal.division !== overviewPublishedState.division) count++;
+
+    // Check roles changes
+    if (deal.roles.accountOwner !== overviewPublishedState.roles?.accountOwner)
+      count++;
+    if (deal.roles.writer !== overviewPublishedState.roles?.writer) count++;
+    if (
+      deal.roles.imageDesigner !== overviewPublishedState.roles?.imageDesigner
+    )
+      count++;
+    if (
+      deal.roles.opportunityOwner !==
+      overviewPublishedState.roles?.opportunityOwner
+    )
+      count++;
+
+    return count;
+  };
+  */
+
+  const performOverviewSave = async (isAutoSave: boolean = false) => {
+    if (!deal) return;
+
+    setOverviewIsSaving(true);
+    try {
+      // Save to localStorage
+      const updatedDeal = await updateDealFields(id || "1", {
+        title: deal.title,
+        location: deal.location,
+        division: deal.division,
+        roles: deal.roles,
+      });
+
+      setDeal(updatedDeal);
+
+      if (!isAutoSave) {
+        message.success("Overview changes saved successfully!");
+      } else {
+        message.success({
+          content: "Overview auto-saved",
+          duration: 1,
+        });
+      }
+    } catch (error) {
+      message.error("Failed to save overview changes");
+    } finally {
+      setOverviewIsSaving(false);
+    }
+  };
+
+  /* Disabled for now - not being used
+  const _performOverviewPublish = async () => {
+    if (!deal) return;
+
+    setOverviewIsSaving(true);
+    try {
+      // First ensure everything is saved
+      await performOverviewSave(false);
+
+      // Update published state to match current state
+      setOverviewPublishedState({
+        title: deal.title,
+        location: deal.location,
+        division: deal.division,
+        roles: deal.roles,
+      });
+
+      setOverviewHasUnsavedChanges(false);
+      message.success("Overview changes published successfully!");
+    } catch (error) {
+      message.error("Failed to publish overview changes");
+    } finally {
+      setOverviewIsSaving(false);
+    }
+  };
+  */
+
+  // Summary and Roles change counting functions
+  const countSummaryChanges = () => {
+    if (!deal || !summaryPublishedState) return 0;
+
+    let count = 0;
+
+    // Check summary fields
+    if (deal.quality !== summaryPublishedState.quality) count++;
+    if (deal.division !== summaryPublishedState.division) count++;
+    if (deal.category !== summaryPublishedState.category) count++;
+    if (deal.subcategory !== summaryPublishedState.subcategory) count++;
+    if (deal.pos !== summaryPublishedState.pos) count++;
+    if (deal.web !== summaryPublishedState.web) count++;
+    if (deal.dealStart !== summaryPublishedState.dealStart) count++;
+    if (deal.dealEnd !== summaryPublishedState.dealEnd) count++;
+
+    return count;
+  };
+
+  const countRolesChanges = () => {
+    if (!deal || !rolesPublishedState) return 0;
+
+    let count = 0;
+
+    // Check roles fields
+    if (deal.roles.accountOwner !== rolesPublishedState.accountOwner) count++;
+    if (deal.roles.writer !== rolesPublishedState.writer) count++;
+    if (deal.roles.imageDesigner !== rolesPublishedState.imageDesigner) count++;
+    if (deal.roles.opportunityOwner !== rolesPublishedState.opportunityOwner)
+      count++;
+
+    return count;
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "HIGH":
+        return "#ff4d4f";
+      case "MEDIUM":
+        return "#faad14";
+      case "LOW":
+        return "#52c41a";
+      default:
+        return "#d9d9d9";
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    const colors: { [key: string]: string } = {
+      Clarity: "#1890ff",
+      Pricing: "#722ed1",
+      Other: "#13c2c2",
+    };
+    return colors[category] || "#d9d9d9";
+  };
+
+  return (
+    <div style={{ position: "relative" }}>
+      {/* AI Generation Loader Overlay */}
+      {isAIGenerating && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <Card
+            style={{
+              width: 500,
+              maxWidth: "90%",
+              textAlign: "center",
+            }}
+          >
+            <Space direction="vertical" size="large" style={{ width: "100%" }}>
+              <div
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: "50%",
+                  background: `${token.colorPrimary}15`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto",
+                }}
+              >
+                <Spin size="large" />
+              </div>
+              <div>
+                <Title level={3} style={{ margin: 0, marginBottom: 8 }}>
+                  Generating Campaign with AI
+                </Title>
+                <Paragraph type="secondary">
+                  Our AI is creating compelling content for your deal. This will
+                  take approximately 30 seconds...
+                </Paragraph>
+              </div>
+              <div style={{ width: "100%" }}>
+                <Progress
+                  percent={Math.round(aiProgress)}
+                  status="active"
+                  strokeColor={{
+                    from: token.colorPrimary,
+                    to: token.colorSuccess,
+                  }}
+                />
+                <Text
+                  type="secondary"
+                  style={{ fontSize: 13, marginTop: 8, display: "block" }}
+                >
+                  {Math.round(aiProgress)}% complete
+                </Text>
+              </div>
+            </Space>
+          </Card>
+        </div>
+      )}
+
+      {/* Breadcrumb & Status - Fixed/Not Scrolling - FULL WIDTH */}
+      <div
+        style={{
+          position: "sticky",
+          top: 64,
+          zIndex: 51,
+          background: token.colorBgContainer,
+          padding: `${token.paddingXS}px ${token.paddingLG}px`,
+          marginTop: -token.paddingLG,
+          marginBottom: 0,
+          marginLeft: -token.paddingLG,
+          marginRight: -token.paddingLG,
+          width: "100vw",
+          left: 0,
+          right: 0,
+          display: "flex",
+          alignItems: "center",
+          gap: token.marginSM,
+          flexWrap: "wrap",
+          borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        }}
+      >
+        <DynamicBreadcrumbs />
+        {deal && (
+          <Tag
+            color={
+              deal.status === "Active" || deal.status === "Live"
+                ? "green"
+                : deal.status === "Draft"
+                ? "orange"
+                : deal.status === "Paused"
+                ? "gold"
+                : deal.status === "Ended"
+                ? "red"
+                : "default"
+            }
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              padding: "2px 8px",
+              borderRadius: 4,
+            }}
+          >
+            {deal.status.toUpperCase()}
+          </Tag>
+        )}
+      </div>
+
+      {/* Scrollable Tabs Row - FULL WIDTH */}
+      <div
+        style={{
+          position: "sticky",
+          top: 111,
+          zIndex: 50,
+          background: token.colorBgContainer,
+          marginTop: 0,
+          marginBottom: 0,
+          marginLeft: -token.paddingLG,
+          marginRight: -token.paddingLG,
+          width: "100vw",
+          left: 0,
+          right: 0,
+          paddingLeft: token.paddingLG,
+          paddingRight: token.paddingLG,
+          paddingTop: token.paddingXS,
+          paddingBottom: token.paddingXS,
+          borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: token.padding,
+            flexWrap: windowWidth < 768 ? "wrap" : "nowrap",
+          }}
+        >
+          {/* Scrollable Tabs Container */}
+          <div
+            style={{
+              flex: "1 1 auto",
+              overflowX: "auto",
+              overflowY: "hidden",
+              WebkitOverflowScrolling: "touch",
+              scrollbarWidth: "thin",
+              msOverflowStyle: "-ms-autohiding-scrollbar",
+            }}
+          >
+            <Segmented
+              value={activeView}
+              onChange={setActiveView}
+              options={[
+                {
+                  label: (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: token.marginXS,
+                        whiteSpace: "nowrap",
+                        padding: `${token.paddingXXS}px 0px`,
+                        fontSize: token.fontSize,
+                      }}
+                    >
+                      <TrendingUp size={16} />
+                      <span
+                        style={{
+                          display: windowWidth < 768 ? "none" : "inline",
+                        }}
+                      >
+                        Overview
+                      </span>
+                    </div>
+                  ),
+                  value: "Overview",
+                },
+                {
+                  label: (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: token.marginXS,
+                        whiteSpace: "nowrap",
+                        padding: `${token.paddingXXS}px 0px`,
+                        fontSize: token.fontSize,
+                      }}
+                    >
+                      <Edit2 size={16} />
+                      <span
+                        style={{
+                          display: windowWidth < 768 ? "none" : "inline",
+                        }}
+                      >
+                        Content
+                      </span>
+                    </div>
+                  ),
+                  value: "Content",
+                },
+                {
+                  label: (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: token.marginXS,
+                        whiteSpace: "nowrap",
+                        padding: `${token.paddingXXS}px 0px`,
+                        fontSize: token.fontSize,
+                      }}
+                    >
+                      <Settings size={16} />
+                      <span
+                        style={{
+                          display: windowWidth < 768 ? "none" : "inline",
+                        }}
+                      >
+                        Settings
+                      </span>
+                    </div>
+                  ),
+                  value: "Settings",
+                },
+                {
+                  label: (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: token.marginXS,
+                        whiteSpace: "nowrap",
+                        padding: `${token.paddingXXS}px 0px`,
+                        fontSize: token.fontSize,
+                      }}
+                    >
+                      <Star size={16} />
+                      <span
+                        style={{
+                          display: windowWidth < 768 ? "none" : "inline",
+                        }}
+                      >
+                        Reviews
+                      </span>
+                    </div>
+                  ),
+                  value: "Reviews",
+                },
+              ]}
+              style={{
+                background: "transparent",
+                gap: token.marginXS,
+              }}
+            />
+          </div>
+          {/* Action Buttons */}
+          <Space
+            size={windowWidth < 768 ? 4 : "small"}
+            style={{
+              justifyContent: windowWidth < 768 ? "center" : "flex-start",
+              flexWrap: "nowrap",
+              flexShrink: 0,
+            }}
+          >
+            {windowWidth >= 1024 ? (
+              <>
+                <Button icon={<SalesforceIcon />} iconPosition="start"></Button>
+                {/* <Button icon={<SalesloftIcon />} iconPosition="start"></Button> */}
+                
+                <Button>
+                  <strong>DE</strong>
+                </Button>
+                {/* <Button style={{ paddingLeft: token.paddingXS, paddingRight: token.paddingXS }}>
+                  <strong>DCT</strong>
+                </Button> */}
+                <Button icon={<GrouponIcon />} iconPosition="start">View deal</Button>
+                <Button>Voucher</Button>
+                
+                
+              </>
+            ) : (
+              <Dropdown
+                menu={{
+                  items: ACTION_MENU_ITEMS.map((item) => ({
+                    key: item.key,
+                    label: (
+                      <Space size={8}>
+                        {item.icon}
+                        <strong>{item.label}</strong>
+                      </Space>
+                    ),
+                  })),
+                }}
+                placement="bottomRight"
+                trigger={["click"]}
+              >
+                <Button
+                  type="text"
+                  icon={<MoreVertical size={windowWidth < 768 ? 20 : 18} />}
+                />
+              </Dropdown>
+            )}
+          </Space>
+        </div>
+      </div>
+
+      {/* Main Content and Sidebar Container */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: windowWidth < 1200 ? "column" : "row",
+          gap: 0,
+          marginRight: windowWidth < 1200 ? 0 : 360,
+        }}
+      >
+        {/* Main Content Area */}
+        <div
+          style={{
+            flex: 1,
+            minWidth: 0,
+            paddingRight: token.paddingLG,
+            paddingTop: token.padding,
+          }}
+        >
+          {/* Content based on active view */}
+          {activeView === "Overview" && (
+            <>
+              {/* Overview Autosave Status - Removed as status is now shown in fixed header */}
+
+              {/* Header */}
+              <div style={{ marginBottom: 20 }}>
+                <Row gutter={16}>
+                  <Col xs={24} sm={8} md={6} lg={4}>
+                    <div style={{ position: "relative" }}>
+                      <Image
+                        src={
+                          deal?.content?.media?.find(
+                            (media: any) => media.isFeatured
+                          )?.url ||
+                          deal?.content?.media?.[0]?.url ||
+                          "/images/ai/chef-cooking.jpg"
+                        }
+                        alt={deal?.title || "Deal"}
+                        style={{
+                          borderRadius: 8,
+                          objectFit: "cover",
+                          width: "100%",
+                          height: "auto",
+                          aspectRatio: "16/9",
+                          minHeight: "150px",
+                        }}
+                        fallback="/images/ai/chef-cooking.jpg"
+                        preview={false}
+                      />
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 8,
+                          left: 8,
+                          background: "#52c41a",
+                          color: "#fff",
+                          borderRadius: 4,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          padding: "2px 6px",
+                        }}
+                      >
+                        ACTIVE
+                      </div>
+                    </div>
+                  </Col>
+                  <Col xs={24} sm={16} md={18} lg={20}>
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <Input
+                            value={deal.title}
+                            onChange={(e) => {
+                              setDeal({ ...deal, title: e.target.value });
+                            }}
+                            style={{
+                              fontSize: 24,
+                              fontWeight: 600,
+                              border: "none",
+                              background: "transparent",
+                              padding: 0,
+                              marginBottom: 8,
+                            }}
+                            placeholder="Deal title"
+                          />
+                          {/* Account Link */}
+                          {(() => {
+                            // Try to get account from various sources
+                            let account = selectedMerchantAccount;
+
+                            // If no selected account, try to find it from URL params
+                            if (!account) {
+                              const accountId = searchParams.get("accountId");
+                              if (accountId) {
+                                account = getMerchantAccount(accountId) || null;
+                              }
+                            }
+
+                            // If still no account, try to find it by matching deal location/name
+                            if (!account && deal) {
+                              account =
+                                merchantAccounts.find(
+                                  (acc: any) =>
+                                    deal.location
+                                      ?.toLowerCase()
+                                      .includes(
+                                        acc.location.toLowerCase().split(",")[0]
+                                      ) ||
+                                    deal.title
+                                      ?.toLowerCase()
+                                      .includes(
+                                        acc.name.toLowerCase().split(" ")[0]
+                                      )
+                                ) || null;
+                            }
+
+                            return null;
+                          })()}
+                          <Space size="large" wrap>
+                            {(() => {
+                              // Try to get account from various sources
+                              let account = selectedMerchantAccount;
+
+                              // If no selected account, try to find it from URL params
+                              if (!account) {
+                                const accountId = searchParams.get("accountId");
+                                if (accountId) {
+                                  account =
+                                    getMerchantAccount(accountId) || null;
+                                }
+                              }
+
+                              // If still no account, try to find it by matching deal location/name
+                              if (!account && deal) {
+                                account =
+                                  merchantAccounts.find(
+                                    (acc: any) =>
+                                      deal.location
+                                        ?.toLowerCase()
+                                        .includes(
+                                          acc.location
+                                            .toLowerCase()
+                                            .split(",")[0]
+                                        ) ||
+                                      deal.title
+                                        ?.toLowerCase()
+                                        .includes(
+                                          acc.name.toLowerCase().split(" ")[0]
+                                        )
+                                  ) || null;
+                              }
+
+                              return account ? (
+                                <Space>
+                                  <Building2 size={14} color="#666" />
+                                  <Text
+                                    type="secondary"
+                                    style={{
+                                      cursor: "pointer",
+                                      transition: "color 0.2s ease",
+                                    }}
+                                    onMouseEnter={(e) =>
+                                      ((e.target as HTMLElement).style.color =
+                                        "#000")
+                                    }
+                                    onMouseLeave={(e) =>
+                                      ((e.target as HTMLElement).style.color =
+                                        "#666")
+                                    }
+                                    onClick={() =>
+                                      (window.location.href = `/accounts/${account.id}`)
+                                    }
+                                  >
+                                    {account.name}
+                                  </Text>
+                                </Space>
+                              ) : null;
+                            })()}
+                            <Space>
+                              <MapPin size={14} color="#666" />
+                              <div
+                                style={{
+                                  cursor: "pointer",
+                                  padding: "4px 8px",
+                                  borderRadius: "4px",
+                                  border: "1px dashed #d9d9d9",
+                                  backgroundColor: "#fafafa",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 6,
+                                  transition: "all 0.2s ease",
+                                  maxWidth: "200px",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.borderColor = "#1890ff";
+                                  e.currentTarget.style.backgroundColor =
+                                    "#f0f8ff";
+                                  e.currentTarget.style.color = "#1890ff";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.borderColor = "#d9d9d9";
+                                  e.currentTarget.style.backgroundColor =
+                                    "#fafafa";
+                                  e.currentTarget.style.color = "#666";
+                                }}
+                                onClick={() => {
+                                  // Try to get account to open locations section
+                                  let account = selectedMerchantAccount;
+                                  if (!account) {
+                                    const accountId =
+                                      searchParams.get("accountId");
+                                    if (accountId) {
+                                      account =
+                                        getMerchantAccount(accountId) || null;
+                                    }
+                                  }
+                                  if (!account && deal) {
+                                    account =
+                                      merchantAccounts.find(
+                                        (acc: any) =>
+                                          deal.location
+                                            ?.toLowerCase()
+                                            .includes(
+                                              acc.location
+                                                .toLowerCase()
+                                                .split(",")[0]
+                                            ) ||
+                                          deal.title
+                                            ?.toLowerCase()
+                                            .includes(
+                                              acc.name
+                                                .toLowerCase()
+                                                .split(" ")[0]
+                                            )
+                                      ) || null;
+                                  }
+                                  if (account) {
+                                    // Navigate to account page and scroll to locations section
+                                    window.location.href = `/accounts/${account.id}#locations`;
+                                  }
+                                }}
+                              >
+                                <Input
+                                  value={deal.location}
+                                  onChange={(e) => {
+                                    setDeal({
+                                      ...deal,
+                                      location: e.target.value,
+                                    });
+                                  }}
+                                  style={{
+                                    margin: 0,
+                                    fontSize: 12,
+                                    fontFamily: "monospace",
+                                    border: "none",
+                                    background: "transparent",
+                                    padding: 0,
+                                    minWidth: 120,
+                                  }}
+                                  placeholder="Location"
+                                />
+                                <Edit size={12} color="#999" />
+                              </div>
+                            </Space>
+                            <Space>
+                              <Users size={14} color="#666" />
+                              <div
+                                style={{
+                                  cursor: "pointer",
+                                  padding: "4px 8px",
+                                  borderRadius: "4px",
+                                  border: "1px dashed #d9d9d9",
+                                  backgroundColor: "#fafafa",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 6,
+                                  transition: "all 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.borderColor = "#1890ff";
+                                  e.currentTarget.style.backgroundColor =
+                                    "#f0f8ff";
+                                  e.currentTarget.style.color = "#1890ff";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.borderColor = "#d9d9d9";
+                                  e.currentTarget.style.backgroundColor =
+                                    "#fafafa";
+                                  e.currentTarget.style.color = "#666";
+                                }}
+                                onClick={() => setActiveView("Summary")}
+                              >
+                                <Text
+                                  type="secondary"
+                                  style={{ margin: 0, fontSize: 12 }}
+                                >
+                                  {deal.roles.accountOwner || "Unassigned"}
+                                </Text>
+                                <Edit size={12} color="#999" />
+                              </div>
+                            </Space>
+                            <Space>
+                              <Settings size={14} color="#666" />
+                              <div
+                                style={{
+                                  cursor: "pointer",
+                                  padding: "4px 8px",
+                                  borderRadius: "4px",
+                                  border: "1px dashed #d9d9d9",
+                                  backgroundColor: "#fafafa",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 6,
+                                  transition: "all 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.borderColor = "#1890ff";
+                                  e.currentTarget.style.backgroundColor =
+                                    "#f0f8ff";
+                                  e.currentTarget.style.color = "#1890ff";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.borderColor = "#d9d9d9";
+                                  e.currentTarget.style.backgroundColor =
+                                    "#fafafa";
+                                  e.currentTarget.style.color = "#666";
+                                }}
+                                onClick={() => setActiveView("Settings")}
+                              >
+                                <Text
+                                  type="secondary"
+                                  style={{ margin: 0, fontSize: 12 }}
+                                >
+                                  Redemption Method
+                                </Text>
+                                <Edit size={12} color="#999" />
+                              </div>
+                            </Space>
+                            <Space>
+                              <Globe size={14} color="#666" />
+                              <div
+                                style={{
+                                  cursor: "pointer",
+                                  padding: "4px 8px",
+                                  borderRadius: "4px",
+                                  border: "1px dashed #d9d9d9",
+                                  backgroundColor: "#fafafa",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 6,
+                                  transition: "all 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.borderColor = "#1890ff";
+                                  e.currentTarget.style.backgroundColor =
+                                    "#f0f8ff";
+                                  e.currentTarget.style.color = "#1890ff";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.borderColor = "#d9d9d9";
+                                  e.currentTarget.style.backgroundColor =
+                                    "#fafafa";
+                                  e.currentTarget.style.color = "#666";
+                                }}
+                                onClick={() => setActiveView("Summary")}
+                              >
+                                <Input
+                                  value={deal.division}
+                                  onChange={(e) => {
+                                    setDeal({
+                                      ...deal,
+                                      division: e.target.value,
+                                    });
+                                  }}
+                                  style={{
+                                    margin: 0,
+                                    fontSize: 12,
+                                    border: "none",
+                                    background: "transparent",
+                                    padding: 0,
+                                    minWidth: 100,
+                                  }}
+                                  placeholder="Division"
+                                />
+                                <Edit size={12} color="#999" />
+                              </div>
+                            </Space>
+                          </Space>
+                        </div>
+                      </div>
+                    </div>
+                  </Col>
+                </Row>
+              </div>
+
+              {/* Stats Card with Chart */}
+              <Card style={{ marginBottom: 24 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 20,
+                  }}
+                >
+                  <Segmented
+                    value={timePeriod}
+                    onChange={(value) => setTimePeriod(value as any)}
+                    options={[
+                      { label: "30 days", value: "30days" },
+                      { label: "7 days", value: "7days" },
+                      { label: "Total", value: "total" },
+                    ]}
+                  />
+                  <Button type="link" style={{ color: token.colorSuccessText }}>
+                    See All Stats
+                  </Button>
+                </div>
+
+                <Row gutter={[16, 16]}>
+                  <Col xs={12} sm={8} md={6} lg={4}>
+                    <div
+                      onClick={() => setSelectedMetric("grossProfit")}
+                      style={{
+                        cursor: "pointer",
+                        padding: "8px",
+                        borderRadius: 4,
+                        background:
+                          selectedMetric === "grossProfit"
+                            ? token.colorFillSecondary
+                            : "transparent",
+                        transition: "background 0.2s",
+                      }}
+                    >
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        Gross Profit
+                      </Text>
+                      <div
+                        style={{
+                          fontSize: windowWidth < 768 ? 20 : 28,
+                          fontWeight: 600,
+                          marginTop: 4,
+                          marginBottom: 4,
+                        }}
+                      >
+                        $
+                        {getStatsForPeriod(
+                        timePeriod
+                      ).grossProfit.toLocaleString()}
+                    </div>
+                    <Text style={{ fontSize: 11, color: token.colorSuccessText }}>
+                      {getStatsForPeriod(timePeriod).change}
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col xs={12} sm={8} md={6} lg={4}>
+                    <div
+                      onClick={() => setSelectedMetric("orders")}
+                      style={{
+                        cursor: "pointer",
+                        padding: "8px",
+                        borderRadius: 4,
+                        background:
+                          selectedMetric === "orders"
+                            ? token.colorFillSecondary
+                            : "transparent",
+                        transition: "background 0.2s",
+                      }}
+                    >
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        Orders
+                      </Text>
+                      <div
+                        style={{
+                          fontSize: windowWidth < 768 ? 20 : 28,
+                          fontWeight: 600,
+                          marginTop: 4,
+                          marginBottom: 4,
+                        }}
+                    >
+                      {getStatsForPeriod(timePeriod).orders}
+                    </div>
+                    <Text style={{ fontSize: 11, color: token.colorSuccessText }}>
+                      {getStatsForPeriod(timePeriod).change}
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col xs={12} sm={8} md={6} lg={4}>
+                    <div
+                      onClick={() => setSelectedMetric("gpPerVisit")}
+                      style={{
+                        cursor: "pointer",
+                        padding: "8px",
+                        borderRadius: 4,
+                        background:
+                          selectedMetric === "gpPerVisit"
+                            ? token.colorFillSecondary
+                            : "transparent",
+                        transition: "background 0.2s",
+                      }}
+                    >
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        GP per visit
+                      </Text>
+                      <div
+                        style={{
+                          fontSize: windowWidth < 768 ? 20 : 28,
+                          fontWeight: 600,
+                          marginTop: 4,
+                          marginBottom: 4,
+                        }}
+                    >
+                      ${getStatsForPeriod(timePeriod).gpPerVisit.toFixed(2)}
+                    </div>
+                    <Text style={{ fontSize: 11, color: token.colorSuccessText }}>
+                      {getStatsForPeriod(timePeriod).change}
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col xs={12} sm={8} md={6} lg={4}>
+                    <div
+                      onClick={() => setSelectedMetric("conversionRate")}
+                      style={{
+                        cursor: "pointer",
+                        padding: "8px",
+                        borderRadius: 4,
+                        background:
+                          selectedMetric === "conversionRate"
+                            ? token.colorFillSecondary
+                            : "transparent",
+                        transition: "background 0.2s",
+                      }}
+                    >
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        Conversion rate
+                      </Text>
+                      <div
+                        style={{
+                          fontSize: windowWidth < 768 ? 20 : 28,
+                          fontWeight: 600,
+                          marginTop: 4,
+                          marginBottom: 4,
+                        }}
+                    >
+                      {getStatsForPeriod(timePeriod).conversionRate}%
+                    </div>
+                    <Text style={{ fontSize: 11, color: token.colorSuccessText }}>
+                      {getStatsForPeriod(timePeriod).change}
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col xs={12} sm={8} md={6} lg={4}>
+                    <div
+                      onClick={() => setSelectedMetric("visits")}
+                      style={{
+                        cursor: "pointer",
+                        padding: "8px",
+                        borderRadius: 4,
+                        background:
+                          selectedMetric === "visits"
+                            ? token.colorFillSecondary
+                            : "transparent",
+                        transition: "background 0.2s",
+                      }}
+                    >
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        Visits
+                      </Text>
+                      <div
+                        style={{
+                          fontSize: windowWidth < 768 ? 20 : 28,
+                          fontWeight: 600,
+                          marginTop: 4,
+                          marginBottom: 4,
+                        }}
+                      >
+                        {(
+                          getStatsForPeriod(timePeriod).visits / 1000000
+                      ).toFixed(1)}
+                      M
+                    </div>
+                    <Text style={{ fontSize: 11, color: token.colorSuccessText }}>
+                      {getStatsForPeriod(timePeriod).change}
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col xs={12} sm={8} md={6} lg={4}>
+                    <div
+                      onClick={() => setSelectedMetric("refunds")}
+                      style={{
+                        cursor: "pointer",
+                        padding: "8px",
+                        borderRadius: 4,
+                        background:
+                          selectedMetric === "refunds"
+                            ? token.colorFillSecondary
+                            : "transparent",
+                        transition: "background 0.2s",
+                      }}
+                    >
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        Refunds
+                      </Text>
+                      <div
+                        style={{
+                          fontSize: windowWidth < 768 ? 20 : 28,
+                          fontWeight: 600,
+                          marginTop: 4,
+                          marginBottom: 4,
+                        }}
+                    >
+                      {getStatsForPeriod(timePeriod).refunds}
+                    </div>
+                    <Text style={{ fontSize: 11, color: token.colorSuccessText }}>
+                      {getStatsForPeriod(timePeriod).change}
+                      </Text>
+                    </div>
+                  </Col>
+                </Row>
+
+                {/* Chart inside the same card */}
+                <div style={{ marginTop: 24 }}>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={getChartData(timePeriod, selectedMetric)}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={token.colorBorder}
+                      />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 10, fill: token.colorTextSecondary }}
+                        stroke={token.colorBorder}
+                        tickFormatter={(value) =>
+                          new Date(value).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })
+                        }
+                      />
+                      <YAxis
+                        tick={{ fontSize: 10, fill: token.colorTextSecondary }}
+                        stroke={token.colorBorder}
+                      />
+                      <RechartsTooltip
+                        contentStyle={{
+                          background: token.colorBgElevated,
+                          border: `1px solid ${token.colorBorder}`,
+                          borderRadius: 6,
+                          color: token.colorText,
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#007C1F"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
+
+              {/* Deal Options */}
+              <div style={{ marginBottom: 24 }}>
+                <DealOptionsTable
+                  options={mappedOptions}
+                  onOptionsChange={handleOptionsChange}
+                  showStatus={true}
+                  showMerchantPayout={true}
+                  onOptionSelect={(option) => {
+                    setSelectedOption(option);
+                    setSidebarView("option-details");
+                  }}
+                />
+              </div>
+
+              {/* Summary and Roles */}
+              <Row gutter={16} style={{ marginBottom: 24 }}>
+                <Col xs={24} md={12}>
+                  <Card
+                    title={
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        <span>Summary</span>
+                        {summaryHasUnsavedChanges && (
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 4,
+                              padding: "2px 6px",
+                              background: token.colorWarningBg,
+                              border: `1px solid ${token.colorWarningBorder}`,
+                              borderRadius: 4,
+                              fontSize: 11,
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: "50%",
+                                background: token.colorWarning,
+                                animation: "pulse 1.5s infinite",
+                              }}
+                            />
+                            <Text style={{ color: token.colorWarningText, fontSize: 11 }}>
+                              {countSummaryChanges()} change
+                              {countSummaryChanges() !== 1 ? "s" : ""}
+                            </Text>
+                          </div>
+                        )}
+                      </div>
+                    }
+                    extra={
+                      <Button
+                        type="text"
+                        icon={<Settings size={14} />}
+                        onClick={
+                          isEditingSummary
+                            ? () => setIsEditingSummary(false)
+                            : handleEditSummary
+                        }
+                        style={{
+                          background: isEditingSummary
+                            ? token.colorWarningBg
+                            : token.colorFillSecondary,
+                          color: isEditingSummary
+                            ? token.colorWarning
+                            : token.colorTextSecondary,
+                          borderRadius: 6,
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    }
+                  >
+                    <Descriptions column={1} size="small">
+                      <Descriptions.Item label="Deal quality">
+                        {isEditingSummary ? (
+                          <Select
+                            value={editableQuality}
+                            onChange={setEditableQuality}
+                            style={{ width: 200 }}
+                            placeholder="Select quality"
+                            options={QUALITY_OPTIONS}
+                          />
+                        ) : (
+                          <Tag
+                            color={
+                              editableQuality === "Ace"
+                                ? "green"
+                                : editableQuality === "Good"
+                                ? "blue"
+                                : editableQuality === "Fair"
+                                ? "orange"
+                                : "red"
+                            }
+                          >
+                            {deal.quality}
+                          </Tag>
+                        )}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Deal start">
+                        {isEditingSummary ? (
+                          <DatePicker
+                            value={launchDate}
+                            onChange={(date) => setLaunchDate(date)}
+                            format="DD. M. YYYY"
+                            style={{ width: 200 }}
+                            placeholder="Select launch date"
+                          />
+                        ) : (
+                          <Text>{deal.dealStart || "Not set"}</Text>
+                        )}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Deal end">
+                        {isEditingSummary ? (
+                          <Space
+                            direction="vertical"
+                            size="small"
+                            style={{ width: 200 }}
+                          >
+                            <Checkbox
+                              checked={isContinuous}
+                              onChange={(e) => {
+                                setIsContinuous(e.target.checked);
+                                if (e.target.checked) {
+                                  setEndDate(null);
+                                }
+                              }}
+                            >
+                              Continuous (no end date)
+                            </Checkbox>
+                            {!isContinuous && (
+                              <DatePicker
+                                value={endDate}
+                                onChange={(date) => setEndDate(date)}
+                                format="DD. M. YYYY"
+                                style={{ width: "100%" }}
+                                placeholder="Select end date"
+                              />
+                            )}
+                          </Space>
+                        ) : (
+                          <Text>{deal.dealEnd || "Continuous"}</Text>
+                        )}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Division">
+                        {isEditingSummary ? (
+                          <Select
+                            value={editableDivision}
+                            onChange={setEditableDivision}
+                            style={{ width: 200 }}
+                            placeholder="Select division"
+                            showSearch
+                            filterOption={filterSelectOption}
+                            options={DIVISION_OPTIONS}
+                          />
+                        ) : (
+                          <Text>{deal.division}</Text>
+                        )}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Category">
+                        {isEditingSummary ? (
+                          <Select
+                            value={editableCategorySubcategoryPos}
+                            onChange={setEditableCategorySubcategoryPos}
+                            style={{ width: 300 }}
+                            placeholder="Select category / POS"
+                            showSearch
+                            filterOption={filterSelectOption}
+                            options={CATEGORY_OPTIONS}
+                          />
+                        ) : (
+                          <Tag
+                            color="blue"
+                            title={`${deal.category} > ${deal.subcategory} > ${deal.pos}`}
+                            style={{ cursor: "help" }}
+                          >
+                            {deal.category}
+                          </Tag>
+                        )}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Web">
+                        {isEditingSummary ? (
+                          <Input
+                            value={editableWeb}
+                            onChange={(e) => setEditableWeb(e.target.value)}
+                            style={{ width: 200 }}
+                            placeholder="Enter web"
+                          />
+                        ) : (
+                          <Text copyable>{deal.web}</Text>
+                        )}
+                      </Descriptions.Item>
+                    </Descriptions>
+                  </Card>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Card
+                    title={
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        <span>Roles</span>
+                        {rolesHasUnsavedChanges && (
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 4,
+                              padding: "2px 6px",
+                              background: token.colorWarningBg,
+                              border: `1px solid ${token.colorWarningBorder}`,
+                              borderRadius: 4,
+                              fontSize: 11,
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: "50%",
+                                background: token.colorWarning,
+                                animation: "pulse 1.5s infinite",
+                              }}
+                            />
+                            <Text style={{ color: token.colorWarningText, fontSize: 11 }}>
+                              {countRolesChanges()} change
+                              {countRolesChanges() !== 1 ? "s" : ""}
+                            </Text>
+                          </div>
+                        )}
+                      </div>
+                    }
+                    extra={
+                      <Button
+                        type="text"
+                        icon={<Settings size={14} />}
+                        onClick={
+                          isEditingRoles
+                            ? () => setIsEditingRoles(false)
+                            : handleEditRoles
+                        }
+                        style={{
+                          background: isEditingRoles
+                            ? token.colorWarningBg
+                            : token.colorFillSecondary,
+                          color: isEditingRoles
+                            ? token.colorWarning
+                            : token.colorTextSecondary,
+                          borderRadius: 6,
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    }
+                  >
+                    <Descriptions column={1} size="small">
+                      <Descriptions.Item label="Account owner">
+                        {isEditingRoles ? (
+                          <Select
+                            value={editableAccountOwner}
+                            onChange={setEditableAccountOwner}
+                            style={{ width: 200 }}
+                            placeholder="Select account owner"
+                            showSearch
+                            filterOption={filterSelectOption}
+                            options={PERSONNEL_OPTIONS}
+                          />
+                        ) : (
+                          <Space>
+                            {deal.roles.accountOwner === "Unassigned" ? (
+                              <Tag color="orange">Unassigned</Tag>
+                            ) : (
+                              <Space>
+                                <Avatar
+                                  size="small"
+                                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${deal.roles.accountOwner.replace(
+                                    /\s+/g,
+                                    ""
+                                  )}`}
+                                />
+                                <Text>{deal.roles.accountOwner}</Text>
+                              </Space>
+                            )}
+                          </Space>
+                        )}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Writer">
+                        {isEditingRoles ? (
+                          <Select
+                            value={editableWriter}
+                            onChange={setEditableWriter}
+                            style={{ width: 200 }}
+                            placeholder="Select writer"
+                            showSearch
+                            filterOption={filterSelectOption}
+                            options={PERSONNEL_OPTIONS}
+                          />
+                        ) : (
+                          <Space>
+                            <Avatar
+                              size="small"
+                              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${deal.roles.writer.replace(
+                                /\s+/g,
+                                ""
+                              )}`}
+                            />
+                            <Text>{deal.roles.writer}</Text>
+                          </Space>
+                        )}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Image designer">
+                        {isEditingRoles ? (
+                          <Select
+                            value={editableImageDesigner}
+                            onChange={setEditableImageDesigner}
+                            style={{ width: 200 }}
+                            placeholder="Select image designer"
+                            showSearch
+                            filterOption={filterSelectOption}
+                            options={PERSONNEL_OPTIONS}
+                          />
+                        ) : (
+                          <Space>
+                            <Avatar
+                              size="small"
+                              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${deal.roles.imageDesigner.replace(
+                                /\s+/g,
+                                ""
+                              )}`}
+                            />
+                            <Text>{deal.roles.imageDesigner}</Text>
+                          </Space>
+                        )}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Opportunity owner">
+                        {isEditingRoles ? (
+                          <Select
+                            value={editableOpportunityOwner}
+                            onChange={setEditableOpportunityOwner}
+                            style={{ width: 200 }}
+                            placeholder="Select opportunity owner"
+                            showSearch
+                            filterOption={(input, option) =>
+                              (option?.label ?? "")
+                                .toLowerCase()
+                                .includes(input.toLowerCase())
+                            }
+                            options={[
+                              {
+                                value: "Aanya Kublikova",
+                                label: "Aanya Kublikova",
+                              },
+                              { value: "James Brown", label: "James Brown" },
+                              {
+                                value: "Sofia Andersson",
+                                label: "Sofia Andersson",
+                              },
+                              { value: "Kevin Zhang", label: "Kevin Zhang" },
+                              { value: "Rachel Green", label: "Rachel Green" },
+                            ]}
+                          />
+                        ) : (
+                          <Space>
+                            <Avatar
+                              size="small"
+                              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${deal.roles.opportunityOwner.replace(
+                                /\s+/g,
+                                ""
+                              )}`}
+                            />
+                            <Text>{deal.roles.opportunityOwner}</Text>
+                          </Space>
+                        )}
+                      </Descriptions.Item>
+                    </Descriptions>
+                  </Card>
+                </Col>
+              </Row>
+
+              {/* Similar Deals */}
+              <Card
+                title={`Similar Deals (${getSimilarDeals(deal.id).length})`}
+                style={{ marginBottom: 24 }}
+                extra={
+                  getSimilarDeals(deal.id).length > 0 && (
+                    <Button
+                      type="link"
+                      onClick={() => navigate("/deals")}
+                      style={{ padding: 0 }}
+                    >
+                      View All
+                    </Button>
+                  )
+                }
+              >
+                {(() => {
+                  const similarDeals = getSimilarDeals(deal.id);
+
+                  if (similarDeals.length === 0) {
+                    return (
+                      <div
+                        style={{
+                          textAlign: "center",
+                          padding: "40px 20px",
+                          color: token.colorTextSecondary,
+                        }}
+                      >
+                        <Text type="secondary" style={{ fontSize: 14 }}>
+                          No similar deals found for this offer.
+                        </Text>
+                        <br />
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          Check back later or explore other deals in our
+                          catalog.
+                        </Text>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <Row gutter={16}>
+                      {similarDeals.map((similarDeal) => {
+                        const featuredImage =
+                          similarDeal.content.media.find(
+                            (media) => media.isFeatured
+                          ) || similarDeal.content.media[0];
+                        const imageUrl =
+                          featuredImage?.url || "/images/ai/chef-cooking.jpg";
+
+                        return (
+                          <Col xs={24} sm={12} lg={8} key={similarDeal.id}>
+                            <Card
+                              size="small"
+                              style={{ marginBottom: 8, cursor: "pointer" }}
+                              hoverable
+                              onClick={() => {
+                                // Preserve URL structure: if we're in account context, stay in account context
+                                const targetPath = params.accountId
+                                  ? `/accounts/${params.accountId}/deals/${similarDeal.id}`
+                                  : `/deals/${similarDeal.id}`;
+                                navigate(targetPath);
+                                // Scroll to top immediately for better UX
+                                window.scrollTo({ top: 0, behavior: "smooth" });
+                              }}
+                            >
+                              <div style={{ display: "flex", gap: 12 }}>
+                                <Image
+                                  src={imageUrl}
+                                  width={80}
+                                  height={60}
+                                  style={{
+                                    borderRadius: 4,
+                                    objectFit: "cover",
+                                  }}
+                                  fallback="/images/ai/chef-cooking.jpg"
+                                  preview={false}
+                                />
+                                <div style={{ flex: 1 }}>
+                                  <Text
+                                    strong
+                                    style={{ fontSize: 12, lineHeight: 1.3 }}
+                                  >
+                                    {similarDeal.title.length > 80
+                                      ? `${similarDeal.title.substring(
+                                          0,
+                                          80
+                                        )}...`
+                                      : similarDeal.title}
+                                  </Text>
+                                  <div style={{ marginTop: 4 }}>
+                                    <Text
+                                      type="secondary"
+                                      style={{ fontSize: 11 }}
+                                    >
+                                      {similarDeal.location}
+                                    </Text>
+                                  </div>
+                                  <div
+                                    style={{
+                                      marginTop: 4,
+                                      display: "flex",
+                                      gap: 8,
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    <Tag
+                                      color={
+                                        similarDeal.quality === "Ace"
+                                          ? "green"
+                                          : similarDeal.quality === "Good"
+                                          ? "blue"
+                                          : "orange"
+                                      }
+                                      style={{ fontSize: 10, margin: 0 }}
+                                    >
+                                      {similarDeal.quality}
+                                    </Tag>
+                                    <Text
+                                      type="secondary"
+                                      style={{ fontSize: 10 }}
+                                    >
+                                      $
+                                      {similarDeal.stats.revenue.toLocaleString()}{" "}
+                                      revenue
+                                    </Text>
+                                  </div>
+                                  {similarDeal.options.length > 0 && (
+                                    <div style={{ marginTop: 4 }}>
+                                      <Text
+                                        type="secondary"
+                                        style={{ fontSize: 10 }}
+                                      >
+                                        From $
+                                        {similarDeal.options[0].grouponPrice} ($
+                                        {similarDeal.options[0].discount}% off)
+                                      </Text>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </Card>
+                          </Col>
+                        );
+                      })}
+                    </Row>
+                  );
+                })()}
+              </Card>
+
+              {/* Recommendations */}
+              <Card
+                title="Recommendations"
+                extra={
+                  <Button type="link" style={{ color: "#007C1F" }}>
+                    Give Feedback
+                  </Button>
+                }
+                style={{ marginBottom: 24 }}
+              >
+                <Space
+                  direction="vertical"
+                  style={{ width: "100%" }}
+                  size="middle"
+                >
+                  {deal.recommendations.map((rec) => (
+                    <Card
+                      key={rec.id}
+                      size="small"
+                      style={{
+                        borderLeft: `4px solid ${getPriorityColor(
+                          rec.priority
+                        )}`,
+                      }}
+                    >
+                      <Row gutter={16}>
+                        <Col span={2}>
+                          <Tag
+                            color={getPriorityColor(rec.priority)}
+                            style={{ marginRight: 0 }}
+                          >
+                            {rec.priority}
+                          </Tag>
+                          <Tag
+                            color={getCategoryColor(rec.category)}
+                            style={{ marginTop: 8 }}
+                          >
+                            {rec.category}
+                          </Tag>
+                        </Col>
+                        <Col span={20}>
+                          <Title
+                            level={5}
+                            style={{ marginBottom: 8, fontSize: 14 }}
+                          >
+                            {rec.title}
+                          </Title>
+                          <Paragraph style={{ marginBottom: 8, fontSize: 13 }}>
+                            {rec.description}
+                          </Paragraph>
+                          <Paragraph
+                            type="secondary"
+                            style={{ fontSize: 12, marginBottom: 16 }}
+                          >
+                            {rec.details}
+                          </Paragraph>
+                          <Space>
+                            <Button
+                              size="small"
+                              icon={<ThumbsUp size={12} />}
+                            />
+                            <Button
+                              size="small"
+                              icon={<ThumbsDown size={12} />}
+                            />
+                            <Button size="small">Mark as resolved</Button>
+                          </Space>
+                        </Col>
+                      </Row>
+                    </Card>
+                  ))}
+                </Space>
+              </Card>
+
+              {/* Review Summary */}
+              <Card
+                title="Review Summary"
+                extra={
+                  <Button type="link" style={{ color: "#007C1F" }}>
+                    See All Reviews
+                  </Button>
+                }
+                style={{ marginBottom: 24 }}
+              >
+                <Text type="secondary">Slot component</Text>
+              </Card>
+
+              {/* Customer Support Insights */}
+              <Card
+                title="Customer support insights"
+                extra={
+                  <Button type="link" style={{ color: "#007C1F" }}>
+                    Give Feedback
+                  </Button>
+                }
+              >
+                <Text type="secondary">Slot component</Text>
+              </Card>
+            </>
+          )}
+
+          {activeView === "Content" && (
+            <>
+              {/* Fixed Status Header Bar - Only for Content Tab */}
+              <div
+                style={{
+                  position: "sticky",
+                  top: 164,
+                  zIndex: 52,
+                  background: token.colorBgContainer,
+                  borderBottom: `1px solid ${token.colorBorder}`,
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.04)",
+                  marginBottom: 16,
+                  marginLeft: -token.paddingLG,
+                  marginRight: -token.paddingLG,
+                  marginTop: -token.paddingMD,
+                  paddingLeft: token.paddingLG,
+                  paddingRight: token.paddingLG,
+                }}
+              >
+                <div
+                  style={{
+                    padding: "10px 0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  {/* Left Side - Status Badges */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    {/* Unsaved badge - only when pending or saving */}
+                    {(contentPendingSave || contentIsSaving) && (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "4px 12px",
+                          background: token.colorWarningBg,
+                          border: `1px solid ${token.colorWarningBorder}`,
+                          borderRadius: 16,
+                        }}
+                      >
+                        {contentIsSaving ? (
+                          <Spin size="small" style={{ fontSize: 10 }} />
+                        ) : (
+                          <div
+                            style={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              background: token.colorWarning,
+                            }}
+                          />
+                        )}
+                        <Text style={{ fontSize: 13, fontWeight: 500, color: token.colorWarningText }}>
+                          Unsaved
+                        </Text>
+                      </div>
+                    )}
+
+                    {/* Saved badge - when not pending/saving and has been saved */}
+                    {!contentPendingSave && !contentIsSaving && contentLastSaved && (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "4px 10px",
+                          background: token.colorSuccessBg,
+                          border: `1px solid ${token.colorSuccessBorder}`,
+                          borderRadius: 6,
+                        }}
+                      >
+                        <CircleCheck size={14} color={token.colorSuccess} strokeWidth={2} />
+                        <Text style={{ fontSize: 12, fontWeight: 500, color: token.colorSuccessText }}>
+                          Saved
+                        </Text>
+                      </div>
+                    )}
+
+                    {/* Separator - only show when both Saved and unpublished count are visible */}
+                    {!contentPendingSave && !contentIsSaving && contentLastSaved && contentHasUnsavedChanges && contentUnpublishedCount > 0 && (
+                      <div style={{ height: 16, width: 1, background: token.colorBorder }} />
+                    )}
+
+                    {/* Unpublished count - with pulsing amber dot */}
+                    {contentHasUnsavedChanges && contentUnpublishedCount > 0 ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div
+                          style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: "50%",
+                            background: token.colorWarning,
+                            animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+                          }}
+                        />
+                        <style>{`
+                          @keyframes pulse {
+                            0%, 100% { opacity: 1; }
+                            50% { opacity: 0.5; }
+                          }
+                        `}</style>
+                        <Text type="secondary" style={{ fontSize: 14, fontWeight: 500 }}>
+                          {contentUnpublishedCount} unpublished
+                        </Text>
+                      </div>
+                    ) : (
+                      /* All published badge - when no unpublished changes */
+                      !contentPendingSave && !contentIsSaving && (
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                            padding: "4px 10px",
+                            background: token.colorSuccessBg,
+                            border: `1px solid ${token.colorSuccessBorder}`,
+                            borderRadius: 6,
+                          }}
+                        >
+                          <CircleCheck size={14} color={token.colorSuccess} strokeWidth={2} />
+                          <Text style={{ fontSize: 12, fontWeight: 500, color: token.colorSuccessText }}>
+                            All published
+                          </Text>
+                        </div>
+                      )
+                    )}
+                  </div>
+
+                  {/* Right Side - Action Buttons */}
+                  <Space size="small">
+                    <Button
+                      size="middle"
+                      icon={<RotateCcw size={14} />}
+                      onClick={() => {
+                        // Reload the page to revert content changes
+                        window.location.reload();
+                      }}
+                      disabled={!contentHasUnsavedChanges}
+                    >
+                      Revert
+                    </Button>
+                    <Button
+                      size="middle"
+                      icon={<Eye size={14} />}
+                    >
+                      Preview
+                    </Button>
+                    <Button
+                      type="primary"
+                      size="middle"
+                      icon={<UploadIcon size={14} />}
+                      onClick={() => {
+                        if (contentEditorPublishRef.current) {
+                          contentEditorPublishRef.current();
+                        }
+                      }}
+                      disabled={!contentHasUnsavedChanges}
+                    >
+                      Publish
+                    </Button>
+                  </Space>
+                </div>
+              </div>
+
+              <ContentEditor
+                dealId={id || "1"}
+                isNewDeal={isNewDeal}
+                accountId={
+                  params.accountId ||
+                  searchParams.get("accountId") ||
+                  selectedMerchantAccount?.id ||
+                  deal?.accountId ||
+                  undefined
+                }
+                onOptionSelect={(option) => {
+                  setSelectedOption(option);
+                  setSidebarView("option-details");
+                }}
+                onOpenLibrary={(data) => {
+                  setLibraryData(data);
+                  setLibraryMediaType(data.mediaType);
+                  setSidebarView("library");
+                }}
+                onTitleSettingsOpen={() => {
+                  setSidebarView("title-settings");
+                }}
+                onContentChanges={(hasChanges, changeCount = 0) => {
+                  setContentHasUnsavedChanges(hasChanges);
+                  setContentUnpublishedCount(changeCount);
+                  // Show pending state immediately when changes are detected
+                  if (hasChanges) {
+                    setContentPendingSave(true);
+                  }
+                }}
+                onContentPublish={() => {
+                  setContentHasUnsavedChanges(false);
+                  setContentUnpublishedCount(0);
+                  setContentPendingSave(false);
+                }}
+                onRegisterPublish={(publishFn) => {
+                  contentEditorPublishRef.current = publishFn;
+                }}
+                onSavingStateChange={(isSaving) => {
+                  setContentIsSaving(isSaving);
+                  if (isSaving) {
+                    setContentPendingSave(false); // Clear pending when save starts
+                  }
+                  if (!isSaving) {
+                    setContentLastSaved(new Date());
+                  }
+                }}
+              />
+            </>
+          )}
+
+          {activeView === "Settings" && (
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  marginBottom: 16,
+                }}
+              >
+                <Button
+                  type="primary"
+                  onClick={handleSaveSettings}
+                  disabled={
+                    highlights === originalHighlights &&
+                    JSON.stringify(finePoints) ===
+                      JSON.stringify(originalFinePoints)
+                  }
+                >
+                  Save Settings
+                </Button>
+              </div>
+              <HighlightsSettingsEditor
+                highlights={highlights}
+                originalHighlights={originalHighlights}
+                onHighlightsChange={setHighlights}
+                versions={highlightVersions}
+                onSaveVersion={handleSaveHighlightVersion}
+              />
+              <FinePrintEditor
+                finePoints={finePoints}
+                originalFinePoints={originalFinePoints}
+                onFinePointsChange={setFinePoints}
+              />
+            </div>
+          )}
+
+          {activeView === "Reviews" && (
+            <Card>
+              <Text type="secondary">Reviews tab - Coming soon...</Text>
+            </Card>
+          )}
+        </div>
+
+        {/* Universal Right Sidebar */}
+        <div
+          style={{
+            width: windowWidth < 1200 ? "100%" : 384,
+            flexShrink: 0,
+            position: "fixed",
+            right: 0,
+            top: 164,
+            height: "calc(100vh - 96px)",
+            zIndex: 10,
+          }}
+        >
+          {/* Universal Sidebar Card */}
+          <Card
+            id="deal-details-sidebar"
+            style={{
+              background: token.colorBgContainer,
+              borderLeft: `1px solid ${token.colorBorder}`,
+              borderTop: 'none',
+              borderRight: 'none',
+              borderBottom: 'none',
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+              overflow: "hidden",
+              borderRadius: 0,
+            }}
+            styles={{
+              header: {
+                position: "sticky",
+                top: 0,
+                zIndex: 10,
+                background: token.colorBgContainer,
+                borderBottom: `1px solid ${token.colorBorder}`,
+                marginBottom: 0,
+                padding: `${token.padding}px ${token.paddingLG}px`,
+              },
+              body: {
+                overflowY: "auto",
+                flex: 1,
+                padding: 0,
+              },
+            }}
+              title={
+                sidebarView !== "default" ? (
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: token.marginXS }}
+                  >
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<ChevronLeft size={16} />}
+                      onClick={() => {
+                        setSidebarView("default");
+                        setSelectedOption(null);
+                        setLibraryData(null);
+                        setLibraryTab("merchant");
+                        setLibrarySearch("");
+                        setLibraryMediaType("image");
+                      }}
+                    />
+                    {sidebarView === "option-details" ? (
+                      <>
+                        <Settings size={16} />
+                        <Text strong>Option Details</Text>
+                      </>
+                    ) : sidebarView === "library" ? (
+                      <>
+                        <ImageIcon size={16} />
+                        <Text strong>Media Library</Text>
+                      </>
+                    ) : sidebarView === "account-selector" ? (
+                      <>
+                        <Users size={16} />
+                        <Text strong>Select Account</Text>
+                      </>
+                    ) : sidebarView === "title-settings" ? (
+                      <>
+                        <Settings size={16} />
+                        <Text strong>Title Settings</Text>
+                      </>
+                    ) : null}
+                  </div>
+                ) : (
+                  <Text strong style={{ fontSize: 20 }}>Deal Details</Text>
+                )
+              }
+            >
+              {sidebarView === "default" && (
+                <Collapse
+                  defaultActiveKey={['tasks', 'roles', 'attachments', 'notes']}
+                  ghost
+                  expandIconPosition="start"
+                  bordered={false}
+                  style={{ 
+                    background: 'transparent',
+                  }}
+                  expandIcon={({ isActive }) => (
+                    <ChevronRight 
+                      size={16} 
+                      style={{ 
+                        transform: isActive ? 'rotate(90deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s',
+                      }} 
+                    />
+                  )}
+                  items={[
+                    {
+                      key: 'tasks',
+                      label: (
+                        <div style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          width: '100%',
+                          paddingRight: 16,
+                        }}>
+                          <Text strong style={{ fontSize: 16 }}>Tasks</Text>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Badge 
+                              count={3} 
+                              style={{ 
+                                backgroundColor: '#f0f0f0',
+                                color: '#595959',
+                                fontWeight: 500,
+                                fontSize: 12,
+                              }} 
+                            />
+                            <Button
+                              type="text"
+                              size="small"
+                              icon={<Plus size={14} />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                message.info('Add task clicked');
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ),
+                      children: !isNewDeal ? (
+                        <div style={{ padding: '0 0 20px 0' }}>
+                          <Space direction="vertical" style={{ width: '100%' }} size={0}>
+                            {/* Completed Task 1 */}
+                            <div 
+                              style={{ 
+                                display: 'flex', 
+                                alignItems: 'flex-start', 
+                                gap: 12,
+                                padding: '12px',
+                                cursor: 'pointer',
+                                borderRadius: 6,
+                                background: '#fafafa',
+                                border: '1px solid #e8e8e8',
+                                transition: 'all 0.2s',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = '#f5f5f5';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = '#fafafa';
+                              }}
+                            >
+                              <div style={{ 
+                                width: 20, 
+                                height: 20, 
+                                borderRadius: '50%',
+                                background: token.colorText,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                marginTop: 2,
+                              }}>
+                                <Check size={14} color="white" strokeWidth={3} />
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <Text 
+                                  style={{ 
+                                    textDecoration: 'line-through',
+                                    color: token.colorTextTertiary,
+                                    fontSize: 14,
+                                  }}
+                                >
+                                  Writer completed
+                                </Text>
+                                <div style={{ 
+                                  fontSize: 12, 
+                                  color: token.colorTextTertiary, 
+                                  marginTop: 2 
+                                }}>
+                                  Aug 29, 11:47 PM
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Completed Task 2 */}
+                            <div 
+                              style={{ 
+                                display: 'flex', 
+                                alignItems: 'flex-start', 
+                                gap: 12,
+                                padding: '12px',
+                                cursor: 'pointer',
+                                borderRadius: 6,
+                                background: '#fafafa',
+                                border: '1px solid #e8e8e8',
+                                transition: 'all 0.2s',
+                                marginTop: 8,
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = '#f5f5f5';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = '#fafafa';
+                              }}
+                            >
+                              <div style={{ 
+                                width: 20, 
+                                height: 20, 
+                                borderRadius: '50%',
+                                background: token.colorText,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                marginTop: 2,
+                              }}>
+                                <Check size={14} color="white" strokeWidth={3} />
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <Text 
+                                  style={{ 
+                                    textDecoration: 'line-through',
+                                    color: token.colorTextTertiary,
+                                    fontSize: 14,
+                                  }}
+                                >
+                                  Image Ready
+                                </Text>
+                                <div style={{ 
+                                  fontSize: 12, 
+                                  color: token.colorTextTertiary, 
+                                  marginTop: 2 
+                                }}>
+                                  Aug 29, 11:47 PM
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Uncompleted Task */}
+                            <div 
+                              style={{ 
+                                display: 'flex', 
+                                alignItems: 'flex-start', 
+                                gap: 12,
+                                padding: '12px',
+                                cursor: 'pointer',
+                                borderRadius: 6,
+                                background: '#fafafa',
+                                border: '1px solid #e8e8e8',
+                                transition: 'all 0.2s',
+                                marginTop: 8,
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = '#f5f5f5';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = '#fafafa';
+                              }}
+                            >
+                              <div style={{ 
+                                width: 20, 
+                                height: 20, 
+                                borderRadius: '50%',
+                                border: `2px solid ${token.colorBorder}`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                marginTop: 2,
+                              }}>
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <Text style={{ fontSize: 14, display: 'block' }}>
+                                  Other
+                                </Text>
+                                <Text 
+                                  type="secondary" 
+                                  style={{ 
+                                    fontSize: 12,
+                                    display: 'block',
+                                    marginTop: 2,
+                                  }}
+                                >
+                                  City Planner
+                                </Text>
+                                <div style={{ 
+                                  fontSize: 12, 
+                                  color: token.colorTextTertiary, 
+                                  marginTop: 2 
+                                }}>
+                                  Nov 10, 12:00 PM
+                                </div>
+                              </div>
+                              <div style={{ 
+                                flexShrink: 0,
+                                marginTop: 2,
+                              }}>
+                                <Eye size={16} color={token.colorTextTertiary} />
+                              </div>
+                            </div>
+                          </Space>
+                        </div>
+                      ) : (
+                        <div style={{ padding: '0 0 16px 0', textAlign: 'center' }}>
+                          <Text type="secondary" style={{ fontSize: 13 }}>No tasks yet</Text>
+                        </div>
+                      ),
+                    },
+                    {
+                      key: 'changes',
+                      label: <Text strong style={{ fontSize: 16 }}>Changes</Text>,
+                      children: (
+                        <div style={{ padding: '0 0 16px 0', textAlign: 'center' }}>
+                          <Text type="secondary" style={{ fontSize: 13 }}>No changes</Text>
+                        </div>
+                      ),
+                    },
+                    {
+                      key: 'roles',
+                      label: (
+                        <div style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          width: '100%',
+                          paddingRight: 16,
+                        }}>
+                          <Text strong style={{ fontSize: 16 }}>Roles</Text>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Badge 
+                              count={1} 
+                              style={{ 
+                                backgroundColor: token.colorPrimaryBg,
+                                color: token.colorPrimary,
+                                fontWeight: 600,
+                              }} 
+                            />
+                            <Avatar 
+                              size="small" 
+                              style={{ 
+                                background: '#ff6b35',
+                                width: 24,
+                                height: 24,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              K
+                            </Avatar>
+                          </div>
+                        </div>
+                      ),
+                      children: (
+                        <div style={{ padding: '0 0 16px 0' }}>
+                          <Card size="small">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <Avatar size="default" style={{ background: '#ff6b35' }}>K</Avatar>
+                              <div style={{ flex: 1 }}>
+                                <Text strong style={{ fontSize: 14 }}>Kamila Novak</Text>
+                                <div style={{ fontSize: 12, color: token.colorTextSecondary }}>
+                                  Content Manager
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        </div>
+                      ),
+                    },
+                    {
+                      key: 'attachments',
+                      label: (
+                        <div style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          width: '100%',
+                          paddingRight: 16,
+                        }}>
+                          <Text strong style={{ fontSize: 16 }}>Attachments</Text>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Badge 
+                              count={33} 
+                              style={{ 
+                                backgroundColor: token.colorPrimaryBg,
+                                color: token.colorPrimary,
+                                fontWeight: 600,
+                              }} 
+                            />
+                            <Button
+                              type="text"
+                              size="small"
+                              icon={<Plus size={14} />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                message.info('Add attachment clicked');
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ),
+                      children: (
+                        <div style={{ padding: '0 0 16px 0' }}>
+                          <Space direction="vertical" style={{ width: '100%' }} size="small">
+                            <Card size="small" hoverable>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <Paperclip size={16} style={{ color: token.colorTextSecondary }} />
+                                <div style={{ flex: 1 }}>
+                                  <Text style={{ fontSize: 13 }}>merchant-contract.pdf</Text>
+                                  <div style={{ fontSize: 11, color: token.colorTextTertiary }}>
+                                    2.3 MB
+                                  </div>
+                                </div>
+                              </div>
+                            </Card>
+                            <Card size="small" hoverable>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <Paperclip size={16} style={{ color: token.colorTextSecondary }} />
+                                <div style={{ flex: 1 }}>
+                                  <Text style={{ fontSize: 13 }}>deal-images.zip</Text>
+                                  <div style={{ fontSize: 11, color: token.colorTextTertiary }}>
+                                    15.8 MB
+                                  </div>
+                                </div>
+                              </div>
+                            </Card>
+                          </Space>
+                        </div>
+                      ),
+                    },
+                    {
+                      key: 'contract',
+                      label: <Text strong style={{ fontSize: 16 }}>Contract Agreements</Text>,
+                      children: (
+                        <div style={{ padding: '0 0 16px 0' }}>
+                          <Card size="small" hoverable>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <FileText size={16} style={{ color: token.colorTextSecondary }} />
+                              <div style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 13 }}>Master Agreement 2024</Text>
+                                <div style={{ fontSize: 11, color: token.colorTextTertiary }}>
+                                  Signed on Jan 15, 2024
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        </div>
+                      ),
+                    },
+                    {
+                      key: 'notes',
+                      label: (
+                        <div style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          width: '100%',
+                          paddingRight: 16,
+                        }}>
+                          <Text strong style={{ fontSize: 16 }}>Notes</Text>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Badge 
+                              count={3} 
+                              style={{ 
+                                backgroundColor: token.colorPrimaryBg,
+                                color: token.colorPrimary,
+                                fontWeight: 600,
+                              }} 
+                            />
+                            <Button
+                              type="text"
+                              size="small"
+                              icon={<Plus size={14} />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                message.info('Add note clicked');
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ),
+                      children: !isNewDeal ? (
+                        <div style={{ padding: '0 0 16px 0' }}>
+                          <Space direction="vertical" style={{ width: '100%' }} size="small">
+                            <Card size="small" hoverable>
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                <Avatar
+                                  size="small"
+                                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=Claudia"
+                                />
+                                <div style={{ flex: 1 }}>
+                                  <Text strong style={{ fontSize: 12 }}>Claudia Maggio</Text>
+                                  <Text type="secondary" style={{ fontSize: 11, marginLeft: 8 }}>
+                                    5h ago
+                                  </Text>
+                                  <Paragraph style={{ fontSize: 12, marginTop: 4, marginBottom: 0 }}>
+                                    Please add more photos from exterior
+                                  </Paragraph>
+                                </div>
+                              </div>
+                            </Card>
+                            <Card size="small" hoverable>
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                <Avatar
+                                  size="small"
+                                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jan"
+                                />
+                                <div style={{ flex: 1 }}>
+                                  <Text strong style={{ fontSize: 12 }}>Jan Stromek</Text>
+                                  <Text type="secondary" style={{ fontSize: 11, marginLeft: 8 }}>
+                                    May 23
+                                  </Text>
+                                  <Paragraph style={{ fontSize: 12, marginTop: 4, marginBottom: 0 }}>
+                                    Please add more photos from exterior
+                                  </Paragraph>
+                                </div>
+                              </div>
+                            </Card>
+                          </Space>
+                        </div>
+                      ) : (
+                        <div style={{ padding: '0 0 16px 0', textAlign: 'center' }}>
+                          <Text type="secondary" style={{ fontSize: 13 }}>No notes yet</Text>
+                        </div>
+                      ),
+                    },
+                  ]}
+                />
+              )}
+
+              {sidebarView === "option-details" && selectedOption && (
+                <div style={{ padding: `${token.paddingLG}px ${token.paddingLG}px ${token.paddingLG}px ${token.paddingLG}px` }}>
+                  <DealOptionDetailsContent
+                    option={selectedOption}
+                    onUpdate={(field, value) => {
+                      // Update the option in the main options array
+                      const newOptions = mappedOptions.map((opt) =>
+                        opt.id === selectedOption.id
+                          ? { ...opt, [field]: value }
+                          : opt
+                      );
+                      handleOptionsChange(newOptions);
+                      setSelectedOption({ ...selectedOption, [field]: value });
+                    }}
+                    onRemove={() => {
+                      const newOptions = mappedOptions.filter(
+                        (opt) => opt.id !== selectedOption.id
+                      );
+                      handleOptionsChange(newOptions);
+                      setSidebarView("default");
+                      setSelectedOption(null);
+                    }}
+                  />
+                </div>
+              )}
+
+              {sidebarView === "library" && libraryData && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "calc(100vh - 220px)",
+                    padding: `${token.paddingLG}px ${token.paddingLG}px ${token.paddingLG}px ${token.paddingLG}px`,
+                  }}
+                >
+                  {/* Upload Area */}
+                  <div
+                    style={{
+                      padding: token.padding,
+                      border: `2px dashed ${token.colorBorder}`,
+                      borderRadius: token.borderRadius,
+                      textAlign: "center",
+                      marginBottom: token.marginSM,
+                      cursor: "pointer",
+                      background: token.colorBgLayout,
+                    }}
+                    onClick={() => {
+                      message.info("Upload functionality - coming soon");
+                    }}
+                  >
+                    <UploadIcon size={20} style={{ marginBottom: 4 }} />
+                    <Text
+                      type="secondary"
+                      style={{ display: "block", fontSize: 12 }}
+                    >
+                      click or drag{" "}
+                      {libraryMediaType === "video" ? "videos" : "images"} to
+                      upload
+                    </Text>
+                  </div>
+
+                  {/* Tabs */}
+                  <Tabs
+                    activeKey={libraryTab}
+                    onChange={setLibraryTab}
+                    size="small"
+                    items={[
+                      { label: "Merchant", key: "merchant" },
+                      { label: "Stock", key: "stock" },
+                      { label: "AI", key: "ai" },
+                      { label: "Website", key: "website" },
+                      { label: "Previous", key: "previous" },
+                    ]}
+                    style={{ marginBottom: token.marginSM }}
+                  />
+
+                  {/* Search */}
+                  <Input
+                    placeholder={`Search ${
+                      libraryMediaType === "video" ? "videos" : "images"
+                    }...`}
+                    prefix={<Search size={14} />}
+                    value={librarySearch}
+                    onChange={(e) => setLibrarySearch(e.target.value)}
+                    style={{ marginBottom: token.marginSM }}
+                    allowClear
+                  />
+
+                  {/* Library Items Grid */}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, 1fr)",
+                      gap: token.marginXS,
+                      flex: 1,
+                      overflowY: "auto",
+                      paddingBottom: token.paddingXS,
+                      alignContent: "start",
+                    }}
+                  >
+                    {(() => {
+                      const filteredItems = libraryData.items.filter(
+                        (item: any) => {
+                          // Filter by media type (image vs video)
+                          if (
+                            libraryMediaType === "image" &&
+                            item.type !== "image"
+                          ) {
+                            return false;
+                          }
+                          if (
+                            libraryMediaType === "video" &&
+                            item.type !== "video"
+                          ) {
+                            return false;
+                          }
+
+                          // Filter by tab
+                          if (
+                            libraryTab === "merchant" &&
+                            item.source !== "merchant"
+                          ) {
+                            return false;
+                          } else if (
+                            libraryTab === "stock" &&
+                            item.source !== "stock"
+                          ) {
+                            return false;
+                          } else if (
+                            libraryTab === "ai" &&
+                            item.source !== "ai"
+                          ) {
+                            return false;
+                          } else if (
+                            libraryTab === "website" &&
+                            item.source !== "website"
+                          ) {
+                            return false;
+                          } else if (
+                            libraryTab === "previous" &&
+                            item.source !== "previous"
+                          ) {
+                            return false;
+                          }
+
+                          // Filter by search
+                          if (librarySearch) {
+                            const searchLower = librarySearch.toLowerCase();
+                            return (
+                              item.caption
+                                ?.toLowerCase()
+                                .includes(searchLower) ||
+                              item.source?.toLowerCase().includes(searchLower)
+                            );
+                          }
+                          return true;
+                        }
+                      );
+
+                      if (filteredItems.length === 0) {
+                        return (
+                          <div
+                            style={{
+                              gridColumn: "1 / -1",
+                              textAlign: "center",
+                              padding: "40px 20px",
+                            }}
+                          >
+                            <Text type="secondary">
+                              {librarySearch
+                                ? `No ${
+                                    libraryMediaType === "video"
+                                      ? "videos"
+                                      : "images"
+                                  } found matching "${librarySearch}"`
+                                : `No ${
+                                    libraryMediaType === "video"
+                                      ? "videos"
+                                      : "images"
+                                  } in ${libraryTab} library`}
+                            </Text>
+                          </div>
+                        );
+                      }
+
+                      return filteredItems.map((item: any) => {
+                        const isSelected = libraryData.selectedIds.includes(
+                          item.id
+                        );
+
+                        return (
+                          <div
+                            key={item.id}
+                            className="library-item-hover"
+                            style={{
+                              position: "relative",
+                              cursor: "pointer",
+                              border: isSelected
+                                ? `2px solid ${token.colorPrimary}`
+                                : `1px solid ${token.colorBorder}`,
+                              borderRadius: 8,
+                              overflow: "hidden",
+                              transition: "all 0.2s",
+                              width: "100%",
+                              paddingBottom: "100%",
+                              height: 0,
+                            }}
+                            onClick={() => {
+                              const newSelection = isSelected
+                                ? libraryData.selectedIds.filter(
+                                    (id: string) => id !== item.id
+                                  )
+                                : [...libraryData.selectedIds, item.id];
+                              setLibraryData({
+                                ...libraryData,
+                                selectedIds: newSelection,
+                              });
+                            }}
+                          >
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                width: "100%",
+                                height: "100%",
+                              }}
+                            >
+                              {item.type === "image" ? (
+                                <img
+                                  src={item.url}
+                                  alt={item.caption || "Library item"}
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                              ) : (
+                                <video
+                                  src={item.url}
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                              )}
+
+                              {/* Checkbox - Top Left - Only show when at least one item is selected */}
+                              {libraryData.selectedIds.length > 0 && (
+                                <div
+                                  style={{
+                                    position: "absolute",
+                                    top: 6,
+                                    left: 6,
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                  }}
+                                >
+                                  <Checkbox checked={isSelected} />
+                                </div>
+                              )}
+
+                              {/* Preview Icon - Bottom Right - Only show on hover */}
+                              <div
+                                className="library-preview-icon"
+                                style={{
+                                  position: "absolute",
+                                  bottom: 6,
+                                  right: 6,
+                                  width: 28,
+                                  height: 28,
+                                  borderRadius: "50%",
+                                  background: "rgba(0, 0, 0, 0.5)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  color: "white",
+                                  cursor: "pointer",
+                                  opacity: 0,
+                                  transition: "opacity 0.2s",
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // TODO: Open preview modal
+                                  message.info(
+                                    "Preview functionality - coming soon"
+                                  );
+                                }}
+                              >
+                                <Eye size={16} />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
+                    <Button
+                      block
+                      onClick={() => {
+                        setSidebarView("default");
+                        setLibraryData(null);
+                        setLibraryTab("merchant");
+                        setLibrarySearch("");
+                        setLibraryMediaType("image");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="primary"
+                      block
+                      onClick={() => {
+                        libraryData.onSelectItems(libraryData.selectedIds);
+                        setSidebarView("default");
+                        setLibraryData(null);
+                        setLibraryTab("merchant");
+                        setLibrarySearch("");
+                        setLibraryMediaType("image");
+                      }}
+                    >
+                      Add ({libraryData.selectedIds.length})
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {sidebarView === "account-selector" && (
+                <div style={{ padding: `${token.paddingLG}px ${token.paddingLG}px ${token.paddingLG}px ${token.paddingLG}px` }}>
+                  <Title level={5} style={{ marginBottom: token.margin }}>
+                    Select Merchant Account
+                  </Title>
+                  <Paragraph
+                    type="secondary"
+                    style={{ marginBottom: token.margin, fontSize: 13 }}
+                  >
+                    Choose the merchant account for this deal to continue
+                  </Paragraph>
+                  <AccountSelector
+                    onSelect={handleAccountSelection}
+                    selectedAccountId={selectedMerchantAccount?.id}
+                  />
+                </div>
+              )}
+
+              {sidebarView === "title-settings" && deal && (
+                <div style={{ padding: `${token.paddingLG}px ${token.paddingLG}px ${token.paddingLG}px ${token.paddingLG}px` }}>
+                  <TitleSettingsContent
+                    title={deal.title}
+                    galleryTitle={deal.galleryTitle}
+                    shortDescriptor={deal.shortDescriptor}
+                    descriptor={deal.descriptor}
+                    originalTitle={deal.title}
+                    originalGalleryTitle={deal.galleryTitle}
+                    originalShortDescriptor={deal.shortDescriptor}
+                    originalDescriptor={deal.descriptor}
+                    isGalleryTitleAuto={deal.isGalleryTitleAuto}
+                    isDescriptorAuto={deal.isDescriptorAuto}
+                    onTitleChange={(title) => {
+                      setDeal({ ...deal, title });
+                    }}
+                    onGalleryTitleChange={(galleryTitle) => {
+                      setDeal({ ...deal, galleryTitle });
+                    }}
+                    onShortDescriptorChange={(shortDescriptor) => {
+                      setDeal({ ...deal, shortDescriptor });
+                    }}
+                    onDescriptorChange={(descriptor) => {
+                      setDeal({ ...deal, descriptor });
+                    }}
+                    onIsGalleryTitleAutoChange={(isGalleryTitleAuto) => {
+                      setDeal({ ...deal, isGalleryTitleAuto });
+                    }}
+                    onIsDescriptorAutoChange={(isDescriptorAuto) => {
+                      setDeal({ ...deal, isDescriptorAuto });
+                    }}
+                  />
+                </div>
+              )}
+            </Card>
+
+            {/* AI Recommendations - Hidden per user request */}
+            {/* {activeView === "Content" && (
+            <Card
+              title="AI Recommendations"
+              style={{
+                background: token.colorBgContainer,
+                border: `1px solid ${token.colorBorder}`,
+              }}
+            >
+              <Space
+                direction="vertical"
+                style={{ width: "100%" }}
+                size="small"
+              >
+                {deal.recommendations
+                  .filter((rec) => ["Clarity", "Other"].includes(rec.category))
+                  .map((rec) => (
+                    <Card
+                      key={rec.id}
+                      size="small"
+                      style={{
+                        borderLeft: `3px solid ${getPriorityColor(
+                          rec.priority
+                        )}`,
+                        background: token.colorBgContainer,
+                      }}
+                    >
+                      <div style={{ marginBottom: 8 }}>
+                        <Space size={4}>
+                          <Tag
+                            color={getPriorityColor(rec.priority)}
+                            style={{ fontSize: 10, padding: "0 4px" }}
+                          >
+                            {rec.priority}
+                          </Tag>
+                          <Tag
+                            color={getCategoryColor(rec.category)}
+                            style={{ fontSize: 10, padding: "0 4px" }}
+                          >
+                            {rec.category}
+                          </Tag>
+                        </Space>
+                      </div>
+                      <Text
+                        strong
+                        style={{
+                          fontSize: 13,
+                          display: "block",
+                          marginBottom: 6,
+                        }}
+                      >
+                        {rec.title}
+                      </Text>
+                      <Paragraph
+                        style={{
+                          fontSize: 12,
+                          marginBottom: 6,
+                          color: token.colorText,
+                        }}
+                      >
+                        {rec.description}
+                      </Paragraph>
+                      <Paragraph
+                        type="secondary"
+                        style={{ fontSize: 11, marginBottom: 8 }}
+                      >
+                        {rec.details}
+                      </Paragraph>
+                      <Space size={4}>
+                        <Button
+                          size="small"
+                          icon={<ThumbsUp size={12} />}
+                          style={{ fontSize: 11, height: 24 }}
+                        />
+                        <Button
+                          size="small"
+                          icon={<ThumbsDown size={12} />}
+                          style={{ fontSize: 11, height: 24 }}
+                        />
+                      </Space>
+                    </Card>
+                  ))}
+              </Space>
+            </Card>
+          )} */}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DealDetail;

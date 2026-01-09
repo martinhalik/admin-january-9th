@@ -1,0 +1,151 @@
+{
+  "id": "bowlero-1",
+  "title": "Bowling Party Package - 2 Hours with Shoe Rentals & Arcade Credits",
+  "galleryTitle": "Bowling Party Package - 2 Hours with Shoe Rentals & Arcade Credits",
+  "shortDescriptor": "Family-friendly bowling entertainment at 120 locations nationwide",
+  "descriptor": "Bowling Party Package - 2 Hours with Shoe Rentals & Arcade Credits at Bowlero Entertainment",
+  "isGalleryTitleAuto": true,
+  "isDescriptorAuto": true,
+  "location": "Bowlero Entertainment, Multiple Locations",
+  "category": "Activities & Entertainment",
+  "subcategory": "Entertainment",
+  "division": "National (USA)",
+  "pos": "Bowling",
+  "web": "bowlero.com",
+  "dealStart": "1. 11. 2024",
+  "dealEnd": "1. 6. 2025",
+  "quality": "Ace",
+  "status": "Live",
+  "options": [
+    {
+      "id": "1",
+      "name": "Family Bowling Package",
+      "regularPrice": 80,
+      "grouponPrice": 50,
+      "merchantPayout": 40,
+      "status": "Live",
+      "subtitle": "Best Value",
+      "details": "2 hours bowling for up to 6 people with shoe rentals and $20 arcade credits.",
+      "discount": 37,
+      "enabled": true,
+      "validity": "Valid for 6 months",
+      "monthlyCapacity": 500,
+      "merchantMargin": 50,
+      "grouponMargin": 50
+    },
+    {
+      "id": "2",
+      "name": "VIP Bowling Experience",
+      "regularPrice": 150,
+      "grouponPrice": 99,
+      "merchantPayout": 79,
+      "status": "Live",
+      "subtitle": "Premium Experience",
+      "details": "3 hours in VIP lane with food & drink credits, unlimited arcade play.",
+      "discount": 34,
+      "enabled": true,
+      "validity": "Valid for 6 months",
+      "monthlyCapacity": 200,
+      "merchantMargin": 53,
+      "grouponMargin": 47
+    }
+  ],
+  "stats": {
+    "revenue": 125000,
+    "purchases": 2500,
+    "revenuePerView": 5.0,
+    "conversionRate": 4.5,
+    "views": 25000,
+    "likes": 1850,
+    "chartData": []
+  },
+  "roles": {
+    "accountOwner": "Thomas Anderson",
+    "writer": "Michelle Stevens",
+    "imageDesigner": "Jason Park",
+    "opportunityOwner": "Laura Martinez"
+  },
+  "recommendations": [],
+  "content": {
+    "description": "<p>Experience the ultimate bowling entertainment at Bowlero with state-of-the-art lanes, arcade games, laser tag, and delicious food & drinks. Available at 120 locations nationwide!</p><p><strong>What's Included:</strong></p><ul><li>2 hours of bowling with lane rental</li><li>Shoe rentals for your entire group</li><li>$20 arcade game credits</li><li>Access to premium entertainment facilities</li></ul>",
+    "media": [
+      {
+        "id": "1",
+        "url": "/images/ai/chef-cooking.jpg",
+        "isFeatured": true,
+        "caption": "Modern bowling entertainment center",
+        "source": "ai",
+        "type": "image"
+      },
+      {
+        "id": "2",
+        "url": "/images/adventure/outdoor-activity.jpg",
+        "caption": "Arcade and entertainment area",
+        "source": "adventure",
+        "type": "image"
+      },
+      {
+        "id": "3",
+        "url": "/images/restaurant-interior.jpg",
+        "caption": "Full-service restaurant and bar",
+        "source": "upload",
+        "type": "image"
+      }
+    ],
+    "highlights": [
+      {
+        "id": "1",
+        "text": "120 locations nationwide",
+        "icon": "✓"
+      },
+      {
+        "id": "2",
+        "text": "State-of-the-art bowling lanes",
+        "icon": "✓"
+      },
+      {
+        "id": "3",
+        "text": "Arcade games and laser tag",
+        "icon": "✓"
+      },
+      {
+        "id": "4",
+        "text": "Full-service restaurant and bar",
+        "icon": "✓"
+      },
+      {
+        "id": "5",
+        "text": "Perfect for families and groups",
+        "icon": "✓"
+      }
+    ],
+    "finePoints": [
+      {
+        "id": "1",
+        "text": "Valid for 6 months from purchase date"
+      },
+      {
+        "id": "2",
+        "text": "Reservation recommended, especially weekends"
+      },
+      {
+        "id": "3",
+        "text": "Valid at all 120 participating Bowlero locations"
+      },
+      {
+        "id": "4",
+        "text": "Subject to lane availability"
+      },
+      {
+        "id": "5",
+        "text": "Limit 1 per person, may buy 2 additional as gifts"
+      }
+    ]
+  }
+}
+
+
+
+
+
+

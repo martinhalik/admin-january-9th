@@ -1,0 +1,486 @@
+{
+  "merchantAccounts": {
+    "merchant-1": {
+      "id": "merchant-1",
+      "name": "Chimi's Fresh-Mex",
+      "businessType": "Restaurant",
+      "location": "Wentzville, MO",
+      "contactName": "Maria Rodriguez",
+      "contactEmail": "maria@chimisfreshmex.com",
+      "phone": "(555) 123-4567",
+      "website": "www.chimisfreshmex.com",
+      "description": "Authentic Mexican restaurant specializing in fresh ingredients and traditional recipes",
+      "status": "active",
+      "dealsCount": 3,
+      "createdDate": "2023-01-15",
+      "potential": "high",
+      "potentialAnalysis": {
+        "overall": "high",
+        "score": 85,
+        "factors": {
+          "marketDemand": {
+            "score": 88,
+            "notes": "Strong local demand for Mexican cuisine in the area. Limited competition within 5-mile radius."
+          },
+          "historicalPerformance": {
+            "score": 82,
+            "notes": "Average deal performance of 120% vs. category benchmark. Consistent redemption rates above 75%."
+          },
+          "competitivePosition": {
+            "score": 85,
+            "notes": "Unique positioning with fresh ingredients and authentic recipes. Strong brand recognition in local market."
+          },
+          "growthTrend": {
+            "score": 90,
+            "notes": "Year-over-year growth of 45% in deal revenue. Expanding customer base with strong repeat purchase rate."
+          },
+          "customerSatisfaction": {
+            "score": 80,
+            "notes": "4.5-star average rating with positive reviews highlighting food quality and service."
+          }
+        },
+        "recommendations": [
+          "Increase deal frequency during peak seasons (spring/summer)",
+          "Create family-style meal deals to boost average order value",
+          "Leverage customer testimonials in marketing materials",
+          "Consider expanding to catering packages for corporate events"
+        ],
+        "insights": "Chimi's Fresh-Mex shows exceptional growth potential with strong market position and customer loyalty. The authentic cuisine and focus on fresh ingredients differentiate them from competitors. Recommended for priority partnership expansion."
+      }
+    },
+    "merchant-2": {
+      "id": "merchant-2",
+      "name": "Serenity Spa & Wellness",
+      "businessType": "Spa & Beauty",
+      "location": "Chicago, IL",
+      "contactName": "Jennifer Chen",
+      "contactEmail": "jen@serenityspa.com",
+      "phone": "(555) 234-5678",
+      "website": "www.serenityspa.com",
+      "description": "Luxury spa offering massage therapy, facials, and wellness treatments",
+      "status": "active",
+      "dealsCount": 5,
+      "createdDate": "2023-03-22",
+      "potential": "mid",
+      "potentialAnalysis": {
+        "overall": "mid",
+        "score": 68,
+        "factors": {
+          "marketDemand": {
+            "score": 75,
+            "notes": "Moderate demand in competitive Chicago spa market. Seasonal variations affect booking rates."
+          },
+          "historicalPerformance": {
+            "score": 65,
+            "notes": "Deal performance at 95% of category benchmark. Room for improvement in conversion rates."
+          },
+          "competitivePosition": {
+            "score": 70,
+            "notes": "Strong service quality but facing competition from larger spa chains in the area."
+          },
+          "growthTrend": {
+            "score": 60,
+            "notes": "Stable but modest growth of 12% YoY. Limited expansion potential in current location."
+          },
+          "customerSatisfaction": {
+            "score": 72,
+            "notes": "4.2-star rating with generally positive feedback. Some concerns about pricing and availability."
+          }
+        },
+        "recommendations": [
+          "Introduce off-peak hour deals to increase bookings during slower periods",
+          "Develop loyalty program to encourage repeat visits",
+          "Bundle services to increase average transaction value",
+          "Enhance social media presence to reach younger demographics"
+        ],
+        "insights": "Serenity Spa shows solid performance with room for optimization. The competitive market requires strategic positioning. Focus on differentiation and customer retention to unlock growth potential."
+      }
+    },
+    "merchant-3": {
+      "id": "merchant-3",
+      "name": "Bella Italia Ristorante",
+      "businessType": "Restaurant",
+      "location": "New York, NY",
+      "contactName": "Giovanni Rossi",
+      "contactEmail": "giovanni@bellaitalia.com",
+      "phone": "(555) 345-6789",
+      "website": "www.bellaitalia.com",
+      "description": "Fine Italian dining with homemade pasta and authentic regional cuisine",
+      "status": "active",
+      "dealsCount": 7,
+      "createdDate": "2022-11-08",
+      "potential": "high",
+      "potentialAnalysis": {
+        "overall": "high",
+        "score": 92,
+        "factors": {
+          "marketDemand": {
+            "score": 95,
+            "notes": "Exceptional demand in NYC fine dining market. Premium location with high foot traffic."
+          },
+          "historicalPerformance": {
+            "score": 90,
+            "notes": "Outstanding deal performance at 145% vs. benchmark. High redemption and repeat purchase rates."
+          },
+          "competitivePosition": {
+            "score": 92,
+            "notes": "Premium brand with authentic Italian cuisine. Strong reputation and established customer base."
+          },
+          "growthTrend": {
+            "score": 88,
+            "notes": "Consistent growth of 35% YoY. Strong potential for special events and seasonal offerings."
+          },
+          "customerSatisfaction": {
+            "score": 95,
+            "notes": "4.8-star rating with exceptional reviews. Customers praise authenticity and ambiance."
+          }
+        },
+        "recommendations": [
+          "Launch exclusive wine pairing dinner deals",
+          "Create seasonal tasting menu experiences",
+          "Partner for corporate dining packages",
+          "Expand to weekend brunch offerings with targeted deals"
+        ],
+        "insights": "Bella Italia represents a top-tier partnership opportunity. Exceptional performance across all metrics with strong brand equity and customer loyalty. Prime candidate for featured campaigns and premium deal structures."
+      }
+    },
+    "merchant-4": {
+      "id": "merchant-4",
+      "name": "FitZone Performance Gym",
+      "businessType": "Fitness & Health",
+      "location": "Los Angeles, CA",
+      "contactName": "Marcus Johnson",
+      "contactEmail": "marcus@fitzone.com",
+      "phone": "(555) 456-7890",
+      "website": "www.fitzone.com",
+      "description": "State-of-the-art fitness facility with personal training and group classes",
+      "status": "active",
+      "dealsCount": 12,
+      "createdDate": "2023-02-14",
+      "potential": "high",
+      "potentialAnalysis": {
+        "overall": "high",
+        "score": 86,
+        "factors": {
+          "marketDemand": {
+            "score": 90,
+            "notes": "High demand for fitness services in LA market. Strong New Year and summer seasonality."
+          },
+          "historicalPerformance": {
+            "score": 85,
+            "notes": "Strong deal performance at 125% of benchmark. High volume with good margin contribution."
+          },
+          "competitivePosition": {
+            "score": 82,
+            "notes": "Well-equipped facility with experienced trainers. Competing with boutique studios and chain gyms."
+          },
+          "growthTrend": {
+            "score": 88,
+            "notes": "Impressive growth of 50% YoY. Expanding class offerings and personal training services."
+          },
+          "customerSatisfaction": {
+            "score": 85,
+            "notes": "4.6-star rating. Members appreciate modern equipment and variety of classes."
+          }
+        },
+        "recommendations": [
+          "Launch New Year resolution packages (January focus)",
+          "Create couples and group training deals",
+          "Develop summer body transformation programs",
+          "Add virtual training options for broader reach"
+        ],
+        "insights": "FitZone demonstrates strong growth trajectory with excellent market positioning. High deal volume and consistent performance make it a valuable long-term partner. Opportunity to test new fitness deal formats and seasonal campaigns."
+      }
+    },
+    "merchant-5": {
+      "id": "merchant-5",
+      "name": "Glam Studio Hair & Beauty",
+      "businessType": "Salon",
+      "location": "Miami, FL",
+      "contactName": "Sofia Martinez",
+      "contactEmail": "sofia@glamstudio.com",
+      "phone": "(555) 567-8901",
+      "website": "www.glamstudio.com",
+      "description": "Full-service hair salon and beauty bar with expert stylists",
+      "status": "active",
+      "dealsCount": 4,
+      "createdDate": "2023-04-05",
+      "potential": "mid",
+      "potentialAnalysis": {
+        "overall": "mid",
+        "score": 62,
+        "factors": {
+          "marketDemand": {
+            "score": 70,
+            "notes": "Steady demand for salon services. Competitive Miami beauty market with many alternatives."
+          },
+          "historicalPerformance": {
+            "score": 58,
+            "notes": "Below-benchmark performance at 85%. Lower redemption rates indicate pricing or service concerns."
+          },
+          "competitivePosition": {
+            "score": 65,
+            "notes": "Good stylist talent but limited brand differentiation. Mid-range pricing in crowded market."
+          },
+          "growthTrend": {
+            "score": 55,
+            "notes": "Modest 8% YoY growth. Need to address customer acquisition and retention challenges."
+          },
+          "customerSatisfaction": {
+            "score": 62,
+            "notes": "4.0-star rating with mixed reviews. Inconsistent service quality reported by some customers."
+          }
+        },
+        "recommendations": [
+          "Focus on service consistency and staff training",
+          "Implement quality control measures",
+          "Create first-time customer incentives",
+          "Offer package deals for multiple services",
+          "Improve online presence and review management"
+        ],
+        "insights": "Glam Studio has potential but needs operational improvements to compete effectively. Address service quality concerns and enhance customer experience to improve deal performance. Consider additional training and quality assurance programs."
+      }
+    },
+    "merchant-6": {
+      "id": "merchant-6",
+      "name": "Adventure Escapes",
+      "businessType": "Activities & Entertainment",
+      "location": "Denver, CO",
+      "contactName": "Ryan Thompson",
+      "contactEmail": "ryan@adventureescapes.com",
+      "phone": "(555) 678-9012",
+      "website": "www.adventureescapes.com",
+      "description": "Outdoor adventure experiences including zip-lining, rock climbing, and guided tours",
+      "status": "active",
+      "dealsCount": 8,
+      "createdDate": "2023-05-20",
+      "potential": "high",
+      "potentialAnalysis": {
+        "overall": "high",
+        "score": 88,
+        "factors": {
+          "marketDemand": {
+            "score": 92,
+            "notes": "Strong demand for adventure activities in Denver area. Popular tourist and local destination."
+          },
+          "historicalPerformance": {
+            "score": 85,
+            "notes": "Excellent deal performance at 135% vs. benchmark. High conversion rates and customer engagement."
+          },
+          "competitivePosition": {
+            "score": 88,
+            "notes": "Unique experiences with professional guides. Limited direct competition for comprehensive offerings."
+          },
+          "growthTrend": {
+            "score": 90,
+            "notes": "Robust growth of 55% YoY. Expanding activity portfolio and seasonal offerings."
+          },
+          "customerSatisfaction": {
+            "score": 85,
+            "notes": "4.7-star rating with enthusiastic reviews. Customers highlight memorable experiences and safety."
+          }
+        },
+        "recommendations": [
+          "Create seasonal packages (summer hiking, winter snowshoeing)",
+          "Develop team-building corporate packages",
+          "Launch photography add-on services",
+          "Offer multi-activity combo deals"
+        ],
+        "insights": "Adventure Escapes shows exceptional potential in the high-demand activities category. Strong performance and unique offerings make it ideal for featured campaigns. Excellent opportunity for seasonal promotions and corporate partnerships."
+      }
+    },
+    "merchant-7": {
+      "id": "merchant-7",
+      "name": "The Coffee House",
+      "businessType": "Cafe",
+      "location": "Seattle, WA",
+      "contactName": "Emma Davis",
+      "contactEmail": "emma@thecoffeehouse.com",
+      "phone": "(555) 789-0123",
+      "website": "www.thecoffeehouse.com",
+      "description": "Artisan coffee shop with fresh pastries and light breakfast options",
+      "status": "active",
+      "dealsCount": 2,
+      "createdDate": "2023-06-10",
+      "potential": "low",
+      "potentialAnalysis": {
+        "overall": "low",
+        "score": 45,
+        "factors": {
+          "marketDemand": {
+            "score": 50,
+            "notes": "Saturated Seattle coffee market with intense competition from established brands."
+          },
+          "historicalPerformance": {
+            "score": 42,
+            "notes": "Underperforming at 65% of benchmark. Low deal volume and poor conversion rates."
+          },
+          "competitivePosition": {
+            "score": 48,
+            "notes": "Limited differentiation in highly competitive market. Struggling against major chains and local favorites."
+          },
+          "growthTrend": {
+            "score": 38,
+            "notes": "Minimal growth of 3% YoY. Challenges in customer acquisition and brand awareness."
+          },
+          "customerSatisfaction": {
+            "score": 47,
+            "notes": "3.6-star rating with inconsistent feedback. Quality and service issues reported."
+          }
+        },
+        "recommendations": [
+          "Reassess deal strategy and pricing structure",
+          "Focus on unique product offerings to differentiate",
+          "Improve service consistency and customer experience",
+          "Consider pivoting to specialty items or catering services",
+          "Evaluate market positioning and target audience"
+        ],
+        "insights": "The Coffee House faces significant challenges in a saturated market. Current performance indicators suggest limited growth potential. Recommend close monitoring and strategic review. May benefit from operational improvements before scaling deal offerings."
+      }
+    },
+    "merchant-8": {
+      "id": "merchant-8",
+      "name": "Ocean View Resort",
+      "businessType": "Hotel & Lodging",
+      "location": "San Diego, CA",
+      "contactName": "David Park",
+      "contactEmail": "david@oceanviewresort.com",
+      "phone": "(555) 890-1234",
+      "website": "www.oceanviewresort.com",
+      "description": "Beachfront resort with luxury accommodations and full-service amenities",
+      "status": "active",
+      "dealsCount": 6,
+      "createdDate": "2022-12-01",
+      "potential": "mid",
+      "potentialAnalysis": {
+        "overall": "mid",
+        "score": 72,
+        "factors": {
+          "marketDemand": {
+            "score": 78,
+            "notes": "Strong tourism demand in San Diego. Seasonal variations with peak summer and holiday periods."
+          },
+          "historicalPerformance": {
+            "score": 70,
+            "notes": "Solid performance at 105% of category benchmark. Good weekend package sales."
+          },
+          "competitivePosition": {
+            "score": 75,
+            "notes": "Premium location with beachfront access. Competing with larger hotel chains and boutique properties."
+          },
+          "growthTrend": {
+            "score": 68,
+            "notes": "Moderate growth of 18% YoY. Opportunity to expand spa and dining packages."
+          },
+          "customerSatisfaction": {
+            "score": 70,
+            "notes": "4.3-star rating with positive feedback on location. Some concerns about amenity updates needed."
+          }
+        },
+        "recommendations": [
+          "Bundle room packages with spa and dining experiences",
+          "Create romantic getaway and anniversary packages",
+          "Develop mid-week deals to fill occupancy gaps",
+          "Partner with local attractions for exclusive experiences"
+        ],
+        "insights": "Ocean View Resort shows steady performance with opportunity for enhancement. Strong location advantage provides foundation for growth. Focus on package bundling and facility updates to maximize potential and compete with premium properties."
+      }
+    },
+    "merchant-9": {
+      "id": "merchant-9",
+      "name": "Tokyo Kitchen",
+      "businessType": "Restaurant",
+      "location": "San Francisco, CA",
+      "contactName": "Hiroshi Tanaka",
+      "contactEmail": "hiroshi@tokyokitchen.com",
+      "phone": "(555) 901-2345",
+      "website": "www.tokyokitchen.com",
+      "description": "Authentic Japanese restaurant and cooking school specializing in traditional sushi and ramen",
+      "status": "active",
+      "dealsCount": 9,
+      "createdDate": "2023-01-30",
+      "potential": "high",
+      "potentialAnalysis": {
+        "overall": "high",
+        "score": 89,
+        "factors": {
+          "marketDemand": {
+            "score": 92,
+            "notes": "High demand for authentic Japanese cuisine in SF. Strong interest in cooking classes and cultural experiences."
+          },
+          "historicalPerformance": {
+            "score": 88,
+            "notes": "Excellent deal performance at 140% vs. benchmark. High engagement with cooking class offerings."
+          },
+          "competitivePosition": {
+            "score": 90,
+            "notes": "Unique combination of restaurant and cooking school. Authentic Japanese techniques and premium ingredients."
+          },
+          "growthTrend": {
+            "score": 87,
+            "notes": "Strong growth of 42% YoY. Expanding class offerings and seasonal menu items."
+          },
+          "customerSatisfaction": {
+            "score": 89,
+            "notes": "4.7-star rating with exceptional reviews. Customers praise authenticity and educational value."
+          }
+        },
+        "recommendations": [
+          "Launch seasonal omakase experiences",
+          "Create corporate team-building cooking classes",
+          "Develop sake pairing dinner events",
+          "Expand virtual cooking class offerings"
+        ],
+        "insights": "Tokyo Kitchen represents a premium partnership opportunity with unique educational component. Strong performance in both dining and experiential categories. Excellent candidate for featured campaigns and cultural event partnerships."
+      }
+    },
+    "merchant-10": {
+      "id": "merchant-10",
+      "name": "Napa Valley Cellars",
+      "businessType": "Winery",
+      "location": "Napa, CA",
+      "contactName": "Robert Chen",
+      "contactEmail": "robert@napavalleycellars.com",
+      "phone": "(555) 012-3456",
+      "website": "www.napavalleycellars.com",
+      "description": "Premium winery offering wine tastings, vineyard tours, and gourmet food pairings",
+      "status": "active",
+      "dealsCount": 11,
+      "createdDate": "2022-09-15",
+      "potential": "high",
+      "potentialAnalysis": {
+        "overall": "high",
+        "score": 91,
+        "factors": {
+          "marketDemand": {
+            "score": 94,
+            "notes": "Exceptional demand for wine experiences in Napa Valley. Strong tourist and local market with premium positioning."
+          },
+          "historicalPerformance": {
+            "score": 89,
+            "notes": "Outstanding deal performance at 150% vs. benchmark. High-value transactions with excellent margins."
+          },
+          "competitivePosition": {
+            "score": 88,
+            "notes": "Premium winery with award-winning vintages. Strong reputation and established customer base."
+          },
+          "growthTrend": {
+            "score": 92,
+            "notes": "Robust growth of 48% YoY. Expanding tasting experiences and seasonal offerings."
+          },
+          "customerSatisfaction": {
+            "score": 93,
+            "notes": "4.9-star rating with exceptional reviews. Customers highlight wine quality and educational experiences."
+          }
+        },
+        "recommendations": [
+          "Launch exclusive barrel tasting experiences",
+          "Create seasonal harvest festival packages",
+          "Develop corporate retreat and team-building programs",
+          "Partner with local restaurants for wine dinner events"
+        ],
+        "insights": "Napa Valley Cellars represents a premium partnership with exceptional growth potential. Strong performance across all metrics with high-value customer base. Ideal for luxury campaigns and exclusive experiences."
+      }
+    }
+  }
+}

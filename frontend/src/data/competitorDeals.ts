@@ -1,0 +1,363 @@
+import { Deal, generateMockChartData } from "./mockDeals";
+
+// Mock competitor deals - similar businesses in the same area
+export const getCompetitorDeals = (currentDeal: Deal): Deal[] => {
+  const category = currentDeal.category;
+  const subcategory = currentDeal.subcategory;
+  
+  // Generate mock competitor deals based on the current deal's category
+  const competitorDeals: Deal[] = [];
+
+  if (category === "Food & Drink" && subcategory === "Restaurant") {
+    competitorDeals.push(
+      {
+        id: "competitor-1",
+        title: "Authentic Mexican Dinner - $40 Value for Just $25 at Los Tacos",
+        galleryTitle: "Authentic Mexican Dinner at Los Tacos",
+        shortDescriptor: "Traditional Mexican cuisine",
+        descriptor: "Authentic Mexican Dinner at Los Tacos",
+        isGalleryTitleAuto: true,
+        isDescriptorAuto: true,
+        location: "Los Tacos, Chicago",
+        accountId: "competitor-merchant-1",
+        category: "Food & Drink",
+        subcategory: "Restaurant",
+        division: "Dayton (USA)",
+        pos: "Mexican",
+        web: "lostacos.com",
+        dealStart: "20. 8. 2024",
+        dealEnd: "20. 4. 2026",
+        quality: "Good",
+        status: "Live",
+        campaignStage: "won",
+        wonSubStage: "live",
+        options: [
+          {
+            id: "1",
+            name: "$40 Toward Dinner",
+            regularPrice: 40,
+            grouponPrice: 25,
+            merchantPayout: 20,
+            status: "Live",
+            discount: 37,
+            enabled: true,
+            validity: "Valid for 90 days",
+            monthlyCapacity: 150,
+            merchantMargin: 50,
+            grouponMargin: 50,
+          },
+        ],
+        stats: {
+          revenue: 8500,
+          purchases: 340,
+          revenuePerView: 1.89,
+          conversionRate: 2.8,
+          views: 98000,
+          likes: 28,
+          chartData: generateMockChartData(),
+        },
+        roles: {
+          accountOwner: "Competitor Account Manager",
+          writer: "Jane Smith",
+          imageDesigner: "Bob Designer",
+          opportunityOwner: "Sarah Wilson",
+        },
+        recommendations: [],
+        content: {
+          description: "<p>Traditional Mexican dining experience</p>",
+          media: [
+            {
+              id: "1",
+              url: "/images/pasta-dish.jpg",
+              isFeatured: true,
+              type: "image",
+            },
+          ],
+          highlights: [],
+          finePoints: [],
+        },
+      },
+      {
+        id: "competitor-2",
+        title: "Mexican Fiesta - $50 Dining Credit for $32 at Cantina Azteca",
+        galleryTitle: "Mexican Fiesta at Cantina Azteca",
+        shortDescriptor: "Family-style Mexican dining",
+        descriptor: "Mexican Fiesta at Cantina Azteca",
+        isGalleryTitleAuto: true,
+        isDescriptorAuto: true,
+        location: "Cantina Azteca, Chicago",
+        accountId: "competitor-merchant-2",
+        category: "Food & Drink",
+        subcategory: "Restaurant",
+        division: "Dayton (USA)",
+        pos: "Mexican",
+        web: "cantinaazteca.com",
+        dealStart: "1. 9. 2024",
+        dealEnd: "1. 5. 2026",
+        quality: "Ace",
+        status: "Live",
+        campaignStage: "won",
+        wonSubStage: "live",
+        options: [
+          {
+            id: "1",
+            name: "$50 Dining Credit",
+            regularPrice: 50,
+            grouponPrice: 32,
+            merchantPayout: 25.6,
+            status: "Live",
+            discount: 36,
+            enabled: true,
+            validity: "Valid for 120 days",
+            monthlyCapacity: 200,
+            merchantMargin: 50,
+            grouponMargin: 50,
+          },
+        ],
+        stats: {
+          revenue: 15200,
+          purchases: 475,
+          revenuePerView: 2.45,
+          conversionRate: 3.2,
+          views: 145000,
+          likes: 42,
+          chartData: generateMockChartData(),
+        },
+        roles: {
+          accountOwner: "Competitor Account Manager",
+          writer: "Mike Johnson",
+          imageDesigner: "Lisa Designer",
+          opportunityOwner: "Tom Anderson",
+        },
+        recommendations: [],
+        content: {
+          description: "<p>Family-style Mexican dining with live music</p>",
+          media: [
+            {
+              id: "1",
+              url: "/images/burger-fries.jpg",
+              isFeatured: true,
+              type: "image",
+            },
+          ],
+          highlights: [],
+          finePoints: [],
+        },
+      },
+      {
+        id: "competitor-3",
+        title: "Taco Tuesday Every Day - $20 for $35 Worth at El Sombrero",
+        galleryTitle: "Taco Tuesday Every Day at El Sombrero",
+        shortDescriptor: "Best tacos in town",
+        descriptor: "Taco Tuesday Every Day at El Sombrero",
+        isGalleryTitleAuto: true,
+        isDescriptorAuto: true,
+        location: "El Sombrero, Chicago",
+        accountId: "competitor-merchant-3",
+        category: "Food & Drink",
+        subcategory: "Restaurant",
+        division: "Dayton (USA)",
+        pos: "Mexican",
+        web: "elsombrero.com",
+        dealStart: "15. 8. 2024",
+        dealEnd: "15. 4. 2026",
+        quality: "Fair",
+        status: "Live",
+        campaignStage: "won",
+        wonSubStage: "live",
+        options: [
+          {
+            id: "1",
+            name: "$35 Worth of Food",
+            regularPrice: 35,
+            grouponPrice: 20,
+            merchantPayout: 16,
+            status: "Live",
+            discount: 43,
+            enabled: true,
+            validity: "Valid for 90 days",
+            monthlyCapacity: 120,
+            merchantMargin: 45,
+            grouponMargin: 55,
+          },
+        ],
+        stats: {
+          revenue: 6800,
+          purchases: 340,
+          revenuePerView: 1.25,
+          conversionRate: 2.1,
+          views: 75000,
+          likes: 18,
+          chartData: generateMockChartData(),
+        },
+        roles: {
+          accountOwner: "Competitor Account Manager",
+          writer: "Carlos Martinez",
+          imageDesigner: "Anna Designer",
+          opportunityOwner: "David Lee",
+        },
+        recommendations: [],
+        content: {
+          description: "<p>Famous for our tacos and margaritas</p>",
+          media: [
+            {
+              id: "1",
+              url: "/images/fresh-salad.jpg",
+              isFeatured: true,
+              type: "image",
+            },
+          ],
+          highlights: [],
+          finePoints: [],
+        },
+      }
+    );
+  } else if (category === "Health & Beauty" && subcategory === "Spa") {
+    competitorDeals.push(
+      {
+        id: "competitor-spa-1",
+        title: "Relaxation Package - Massage & Facial for $89 at Bliss Spa",
+        galleryTitle: "Relaxation Package at Bliss Spa",
+        shortDescriptor: "Ultimate spa relaxation",
+        descriptor: "Relaxation Package at Bliss Spa",
+        isGalleryTitleAuto: true,
+        isDescriptorAuto: true,
+        location: "Bliss Spa, Chicago",
+        accountId: "competitor-spa-1",
+        category: "Health & Beauty",
+        subcategory: "Spa",
+        division: "Chicago (USA)",
+        pos: "Spa Services",
+        web: "blissspa.com",
+        dealStart: "1. 9. 2024",
+        dealEnd: "1. 12. 2024",
+        quality: "Ace",
+        status: "Live",
+        campaignStage: "won",
+        wonSubStage: "live",
+        options: [
+          {
+            id: "1",
+            name: "Massage & Facial Package",
+            regularPrice: 150,
+            grouponPrice: 89,
+            merchantPayout: 71.2,
+            status: "Live",
+            discount: 41,
+            enabled: true,
+            validity: "Valid for 6 months",
+            monthlyCapacity: 60,
+            merchantMargin: 50,
+            grouponMargin: 50,
+          },
+        ],
+        stats: {
+          revenue: 18500,
+          purchases: 208,
+          revenuePerView: 2.1,
+          conversionRate: 2.5,
+          views: 125000,
+          likes: 35,
+          chartData: generateMockChartData(),
+        },
+        roles: {
+          accountOwner: "Spa Account Manager",
+          writer: "Emily Chen",
+          imageDesigner: "Mark Designer",
+          opportunityOwner: "Rachel Green",
+        },
+        recommendations: [],
+        content: {
+          description: "<p>Luxury spa treatments in serene environment</p>",
+          media: [
+            {
+              id: "1",
+              url: "/images/spa/spa-treatment.jpg",
+              isFeatured: true,
+              type: "image",
+            },
+          ],
+          highlights: [],
+          finePoints: [],
+        },
+      }
+    );
+  } else if (category === "Food & Drink" && subcategory === "Restaurant") {
+    // Italian restaurant competitors
+    competitorDeals.push(
+      {
+        id: "competitor-italian-1",
+        title: "Italian Feast - 4-Course Dinner for Two $99 at Trattoria Roma",
+        galleryTitle: "Italian Feast at Trattoria Roma",
+        shortDescriptor: "Authentic Italian dining",
+        descriptor: "Italian Feast at Trattoria Roma",
+        isGalleryTitleAuto: true,
+        isDescriptorAuto: true,
+        location: "Trattoria Roma, Chicago",
+        accountId: "competitor-italian-1",
+        category: "Food & Drink",
+        subcategory: "Restaurant",
+        division: "New York (USA)",
+        pos: "Italian",
+        web: "trattoriaroma.com",
+        dealStart: "5. 9. 2024",
+        dealEnd: "5. 12. 2024",
+        quality: "Ace",
+        status: "Live",
+        campaignStage: "won",
+        wonSubStage: "live",
+        options: [
+          {
+            id: "1",
+            name: "4-Course Dinner for Two",
+            regularPrice: 160,
+            grouponPrice: 99,
+            merchantPayout: 79.2,
+            status: "Live",
+            discount: 38,
+            enabled: true,
+            validity: "Valid for 3 months",
+            monthlyCapacity: 40,
+            merchantMargin: 50,
+            grouponMargin: 50,
+          },
+        ],
+        stats: {
+          revenue: 19800,
+          purchases: 200,
+          revenuePerView: 2.8,
+          conversionRate: 3.1,
+          views: 185000,
+          likes: 48,
+          chartData: generateMockChartData(),
+        },
+        roles: {
+          accountOwner: "Restaurant Account Manager",
+          writer: "Giovanni Rossi",
+          imageDesigner: "Maria Designer",
+          opportunityOwner: "Antonio Bianchi",
+        },
+        recommendations: [],
+        content: {
+          description: "<p>Traditional Italian cuisine in elegant setting</p>",
+          media: [
+            {
+              id: "1",
+              url: "/images/pasta-dish.jpg",
+              isFeatured: true,
+              type: "image",
+            },
+          ],
+          highlights: [],
+          finePoints: [],
+        },
+      }
+    );
+  }
+
+  // Return up to 3 competitor deals
+  return competitorDeals.slice(0, 3);
+};
+
+
+

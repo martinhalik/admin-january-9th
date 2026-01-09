@@ -1,0 +1,467 @@
+{
+  "users": [
+    {
+      "id": "system",
+      "name": "System",
+      "avatar": "https://api.dicebear.com/7.x/initials/svg?seed=System&backgroundColor=1890ff"
+    },
+    {
+      "id": "user-1",
+      "name": "Samuel Garcia Rio",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+    },
+    {
+      "id": "user-2",
+      "name": "Jane Smith",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Jane"
+    },
+    {
+      "id": "user-3",
+      "name": "Alex Johnson",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex"
+    },
+    {
+      "id": "user-4",
+      "name": "Sarah Williams",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah"
+    },
+    {
+      "id": "user-5",
+      "name": "Michael Chen",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael"
+    },
+    {
+      "id": "user-6",
+      "name": "John Doe",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=John"
+    }
+  ],
+  "templates": [
+    {
+      "id": "built-in-1",
+      "name": "Walk-in Only",
+      "type": "built-in",
+      "content": "<p><strong>How to redeem:</strong></p><ol><li>Visit the location during business hours</li><li>Present your voucher at the front desk or to staff</li><li>Enjoy your experience!</li></ol><p>📍 <strong>Location:</strong> $location_address</p><p>📞 <strong>Contact:</strong> $phone</p><p>⏰ <strong>Hours:</strong> $business_hours</p>",
+      "description": "For deals that require customers to walk into a physical location",
+      "status": "active",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-09-15T14:30:00.000Z",
+      "createdBy": {
+        "id": "user-1",
+        "name": "Samuel Garcia Rio",
+        "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+      },
+      "variables": ["$location_address", "$phone", "$business_hours"],
+      "history": [
+        {
+          "id": "h1",
+          "action": "created",
+          "user": {
+            "id": "user-1",
+            "name": "Samuel Garcia Rio",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+          },
+          "timestamp": "2025-11-14T10:00:00.000Z",
+          "changes": "Initial template created"
+        },
+        {
+          "id": "h1-1",
+          "action": "updated",
+          "user": {
+            "id": "user-1",
+            "name": "Samuel Garcia Rio",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+          },
+          "timestamp": "2024-09-15T14:30:00.000Z",
+          "changes": "Updated business hours formatting"
+        }
+      ]
+    },
+    {
+      "id": "built-in-2",
+      "name": "Booking Required",
+      "type": "built-in",
+      "content": "<p><strong>How to redeem:</strong></p><ol><li>Call $phone or visit $booking_url to schedule your appointment</li><li>Mention your Groupon voucher when booking</li><li>Arrive at your scheduled time and present your voucher</li></ol><p>📍 <strong>Location:</strong> $location_address</p><p>📧 <strong>Email:</strong> $email</p><p><em>*Booking required - please schedule in advance</em></p>",
+      "description": "For deals that require advance booking or reservation",
+      "status": "active",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-10-22T09:15:00.000Z",
+      "createdBy": {
+        "id": "user-1",
+        "name": "Samuel Garcia Rio",
+        "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+      },
+      "variables": ["$phone", "$booking_url", "$location_address", "$email"],
+      "history": [
+        {
+          "id": "h2",
+          "action": "created",
+          "user": {
+            "id": "user-1",
+            "name": "Samuel Garcia Rio",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+          },
+          "timestamp": "2025-11-14T10:00:00.000Z",
+          "changes": "Initial template created"
+        },
+        {
+          "id": "h2-1",
+          "action": "updated",
+          "user": {
+            "id": "user-1",
+            "name": "Samuel Garcia Rio",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+          },
+          "timestamp": "2024-06-10T11:20:00.000Z",
+          "changes": "Added email contact option"
+        },
+        {
+          "id": "h2-2",
+          "action": "updated",
+          "user": {
+            "id": "user-3",
+            "name": "Alex Johnson",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex"
+          },
+          "timestamp": "2024-10-22T09:15:00.000Z",
+          "changes": "Clarified booking requirement in footer"
+        }
+      ]
+    },
+    {
+      "id": "built-in-3",
+      "name": "Online Checkout",
+      "type": "built-in",
+      "content": "<p><strong>How to redeem:</strong></p><ol><li>Visit $merchant_name website: $website</li><li>Select your items and add to cart</li><li>Enter your Groupon code at checkout</li><li>Complete your purchase</li></ol><p>💻 <strong>Website:</strong> $website</p><p>❓ <strong>Questions?</strong> Contact $email or call $phone</p>",
+      "description": "For online purchases with checkout code",
+      "status": "active",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-11-01T16:45:00.000Z",
+      "createdBy": {
+        "id": "user-1",
+        "name": "Samuel Garcia Rio",
+        "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+      },
+      "variables": ["$merchant_name", "$website", "$email", "$phone"],
+      "history": [
+        {
+          "id": "h3",
+          "action": "created",
+          "user": {
+            "id": "user-1",
+            "name": "Samuel Garcia Rio",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+          },
+          "timestamp": "2025-11-14T10:00:00.000Z",
+          "changes": "Initial template created"
+        },
+        {
+          "id": "h3-1",
+          "action": "updated",
+          "user": {
+            "id": "user-4",
+            "name": "Sarah Williams",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah"
+          },
+          "timestamp": "2024-07-18T13:30:00.000Z",
+          "changes": "Added support contact information"
+        },
+        {
+          "id": "h3-2",
+          "action": "updated",
+          "user": {
+            "id": "user-5",
+            "name": "Michael Chen",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael"
+          },
+          "timestamp": "2024-11-01T16:45:00.000Z",
+          "changes": "Improved checkout instructions clarity"
+        }
+      ]
+    },
+    {
+      "id": "built-in-4",
+      "name": "Online Direct Link",
+      "type": "built-in",
+      "content": "<p><strong>How to redeem:</strong></p><ol><li>Click on your redemption link in your voucher email</li><li>Follow the instructions to complete your booking/purchase</li><li>You'll receive a confirmation email</li></ol><p>🔗 <strong>Redemption Link:</strong> $custom_url</p><p>✉️ <strong>Support:</strong> $email</p><p><em>*Link is unique to your voucher</em></p>",
+      "description": "For deals with unique redemption URLs",
+      "status": "active",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-08-05T10:00:00.000Z",
+      "createdBy": {
+        "id": "user-1",
+        "name": "Samuel Garcia Rio",
+        "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+      },
+      "variables": ["$custom_url", "$email"],
+      "history": [
+        {
+          "id": "h4",
+          "action": "created",
+          "user": {
+            "id": "user-1",
+            "name": "Samuel Garcia Rio",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+          },
+          "timestamp": "2025-11-14T10:00:00.000Z",
+          "changes": "Initial template created"
+        },
+        {
+          "id": "h4-1",
+          "action": "updated",
+          "user": {
+            "id": "user-2",
+            "name": "Jane Smith",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Jane"
+          },
+          "timestamp": "2024-08-05T10:00:00.000Z",
+          "changes": "Added unique link disclaimer"
+        }
+      ]
+    },
+    {
+      "id": "built-in-5",
+      "name": "At Customer's Location",
+      "type": "built-in",
+      "content": "<p><strong>How to redeem:</strong></p><ol><li>Call $phone or email $email to schedule your service</li><li>Provide your voucher code when booking</li><li>Confirm your address and preferred date/time</li><li>Service provider will arrive at your location</li></ol><p>📞 <strong>Booking:</strong> $phone</p><p>📧 <strong>Email:</strong> $email</p><p><em>*Available within service area - please inquire</em></p>",
+      "description": "For services provided at customer location (mobile services)",
+      "status": "active",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-10-10T15:20:00.000Z",
+      "createdBy": {
+        "id": "user-1",
+        "name": "Samuel Garcia Rio",
+        "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+      },
+      "variables": ["$phone", "$email"],
+      "history": [
+        {
+          "id": "h5",
+          "action": "created",
+          "user": {
+            "id": "user-1",
+            "name": "Samuel Garcia Rio",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+          },
+          "timestamp": "2025-11-14T10:00:00.000Z",
+          "changes": "Initial template created"
+        },
+        {
+          "id": "h5-1",
+          "action": "updated",
+          "user": {
+            "id": "user-3",
+            "name": "Alex Johnson",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex"
+          },
+          "timestamp": "2024-05-22T08:45:00.000Z",
+          "changes": "Added address confirmation step"
+        },
+        {
+          "id": "h5-2",
+          "action": "updated",
+          "user": {
+            "id": "user-1",
+            "name": "Samuel Garcia Rio",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+          },
+          "timestamp": "2024-10-10T15:20:00.000Z",
+          "changes": "Added service area disclaimer"
+        }
+      ]
+    },
+    {
+      "id": "custom-1",
+      "name": "Multiple Locations (2-10)",
+      "type": "custom",
+      "content": "<p><strong>How to redeem:</strong></p><ol><li>Choose from one of our convenient locations below</li><li>Call ahead to ensure availability: $phone</li><li>Visit during business hours and present your voucher</li></ol><p>📍 <strong>Locations:</strong></p><p>See full location list below with addresses and hours.</p><p>💡 <strong>Tip:</strong> Call ahead to confirm availability at your preferred location.</p>",
+      "description": "For merchants with 2-10 locations",
+      "status": "active",
+      "createdAt": "2024-01-15T09:00:00.000Z",
+      "updatedAt": "2024-10-28T11:30:00.000Z",
+      "createdBy": {
+        "id": "user-1",
+        "name": "Samuel Garcia Rio",
+        "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+      },
+      "variables": ["$phone"],
+      "rules": [
+        {
+          "id": "rule-1",
+          "parameter": "location_count",
+          "operator": "between",
+          "value": 2,
+          "secondValue": 10
+        }
+      ],
+      "priority": 10,
+      "history": [
+        {
+          "id": "h6",
+          "action": "created",
+          "user": {
+            "id": "user-1",
+            "name": "Samuel Garcia Rio",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+          },
+          "timestamp": "2024-01-15T09:00:00.000Z",
+          "changes": "Created custom template for multi-location merchants"
+        },
+        {
+          "id": "h7",
+          "action": "updated",
+          "user": {
+            "id": "user-2",
+            "name": "Jane Smith",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Jane"
+          },
+          "timestamp": "2024-03-10T14:15:00.000Z",
+          "changes": "Updated wording and added tip section"
+        },
+        {
+          "id": "h8",
+          "action": "updated",
+          "user": {
+            "id": "user-3",
+            "name": "Alex Johnson",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex"
+          },
+          "timestamp": "2024-10-28T11:30:00.000Z",
+          "changes": "Added auto-selection rules based on location count"
+        }
+      ]
+    },
+    {
+      "id": "custom-2",
+      "name": "10+ Locations",
+      "type": "custom",
+      "content": "<p><strong>How to redeem:</strong></p><ol><li>Find your nearest location using our store locator: $website</li><li>Call ahead to confirm: $phone</li><li>Visit during business hours and present your voucher</li></ol><p>🔍 <strong>Find a Location:</strong> Visit $website or call $phone</p><p>📋 <strong>All locations:</strong> See complete list below</p>",
+      "description": "For large chains with 10+ locations",
+      "status": "active",
+      "createdAt": "2024-01-15T09:30:00.000Z",
+      "updatedAt": "2024-10-30T16:00:00.000Z",
+      "createdBy": {
+        "id": "user-1",
+        "name": "Samuel Garcia Rio",
+        "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+      },
+      "variables": ["$website", "$phone"],
+      "rules": [
+        {
+          "id": "rule-2",
+          "parameter": "location_count",
+          "operator": "greater_than",
+          "value": 10
+        }
+      ],
+      "priority": 20,
+      "history": [
+        {
+          "id": "h9",
+          "action": "created",
+          "user": {
+            "id": "user-1",
+            "name": "Samuel Garcia Rio",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+          },
+          "timestamp": "2024-01-15T09:30:00.000Z",
+          "changes": "Created template for large chains"
+        },
+        {
+          "id": "h9-1",
+          "action": "updated",
+          "user": {
+            "id": "user-4",
+            "name": "Sarah Williams",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah"
+          },
+          "timestamp": "2024-04-20T10:30:00.000Z",
+          "changes": "Added store locator reference"
+        },
+        {
+          "id": "h10",
+          "action": "updated",
+          "user": {
+            "id": "user-2",
+            "name": "Jane Smith",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Jane"
+          },
+          "timestamp": "2024-10-30T16:00:00.000Z",
+          "changes": "Increased priority and refined rules"
+        }
+      ]
+    },
+    {
+      "id": "custom-3",
+      "name": "Buy Now / Book Later (Mindbody/Booker)",
+      "type": "custom",
+      "content": "<p><strong>How to redeem:</strong></p><ol><li>Purchase your voucher today</li><li>When ready to book, visit $booking_url</li><li>Use your unique booking code from your voucher email</li><li>Select your preferred date and time</li></ol><p>🗓️ <strong>Booking Portal:</strong> $booking_url</p><p>📞 <strong>Need help?</strong> Call $phone or email $email</p><p><em>*Valid for $validity_days days from purchase</em></p>",
+      "description": "For booking systems like Mindbody, Booker, or Square",
+      "status": "active",
+      "createdAt": "2024-01-20T10:00:00.000Z",
+      "updatedAt": "2024-11-05T09:45:00.000Z",
+      "createdBy": {
+        "id": "user-1",
+        "name": "Samuel Garcia Rio",
+        "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+      },
+      "variables": ["$booking_url", "$phone", "$email", "$validity_days"],
+      "rules": [
+        {
+          "id": "rule-3",
+          "parameter": "booking_system",
+          "operator": "in",
+          "value": ["mindbody", "booker", "square"]
+        }
+      ],
+      "priority": 15,
+      "history": [
+        {
+          "id": "h11",
+          "action": "created",
+          "user": {
+            "id": "user-1",
+            "name": "Samuel Garcia Rio",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+          },
+          "timestamp": "2025-11-14T10:00:00.000Z",
+          "changes": "Created template for booking system integrations"
+        },
+        {
+          "id": "h12",
+          "action": "updated",
+          "user": {
+            "id": "user-3",
+            "name": "Alex Johnson",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex"
+          },
+          "timestamp": "2024-02-14T15:20:00.000Z",
+          "changes": "Added Square to supported booking systems"
+        },
+        {
+          "id": "h12-1",
+          "action": "updated",
+          "user": {
+            "id": "user-5",
+            "name": "Michael Chen",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael"
+          },
+          "timestamp": "2024-08-15T12:00:00.000Z",
+          "changes": "Enhanced booking portal instructions"
+        },
+        {
+          "id": "h13",
+          "action": "updated",
+          "user": {
+            "id": "user-1",
+            "name": "Samuel Garcia Rio",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=SamuelGarciaRio"
+          },
+          "timestamp": "2024-11-05T09:45:00.000Z",
+          "changes": "Updated validity period wording"
+        }
+      ]
+    }
+  ]
+}
+

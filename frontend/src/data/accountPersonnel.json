@@ -1,0 +1,286 @@
+{
+  "divisions": [
+    {
+      "id": "div-1",
+      "name": "Restaurant & Food Services",
+      "description": "Handles all restaurant, cafe, and food service merchant accounts",
+      "color": "#ff6b6b"
+    },
+    {
+      "id": "div-2",
+      "name": "Health & Wellness",
+      "description": "Manages spa, fitness, beauty, and wellness merchant accounts",
+      "color": "#4ecdc4"
+    },
+    {
+      "id": "div-3",
+      "name": "Entertainment & Activities",
+      "description": "Oversees entertainment venues, activities, and experience-based merchants",
+      "color": "#45b7d1"
+    },
+    {
+      "id": "div-4",
+      "name": "Travel & Hospitality",
+      "description": "Manages hotels, resorts, and travel-related merchant accounts",
+      "color": "#96ceb4"
+    },
+    {
+      "id": "div-5",
+      "name": "Retail & Services",
+      "description": "Handles retail stores and various service-based merchant accounts",
+      "color": "#feca57"
+    }
+  ],
+  "accountManagers": [
+    {
+      "id": "manager-1",
+      "name": "Sarah Johnson",
+      "email": "sarah.johnson@groupon.com",
+      "phone": "(555) 123-4567",
+      "role": "Senior Account Manager",
+      "division": "div-1",
+      "divisionName": "Restaurant & Food Services",
+      "avatar": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+      "hireDate": "2021-03-15",
+      "specialties": ["Mexican Cuisine", "Fine Dining", "Cafe Operations"],
+      "accountsManaged": 12,
+      "performanceRating": 4.8
+    },
+    {
+      "id": "manager-2",
+      "name": "Michael Chen",
+      "email": "michael.chen@groupon.com",
+      "phone": "(555) 234-5678",
+      "role": "Account Manager",
+      "division": "div-2",
+      "divisionName": "Health & Wellness",
+      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      "hireDate": "2022-01-10",
+      "specialties": ["Spa Services", "Fitness Centers", "Beauty Salons"],
+      "accountsManaged": 8,
+      "performanceRating": 4.6
+    },
+    {
+      "id": "manager-3",
+      "name": "Emily Rodriguez",
+      "email": "emily.rodriguez@groupon.com",
+      "phone": "(555) 345-6789",
+      "role": "Senior Account Manager",
+      "division": "div-1",
+      "divisionName": "Restaurant & Food Services",
+      "avatar": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      "hireDate": "2020-08-22",
+      "specialties": ["Italian Cuisine", "Fine Dining", "Wine Pairing"],
+      "accountsManaged": 15,
+      "performanceRating": 4.9
+    },
+    {
+      "id": "manager-4",
+      "name": "David Park",
+      "email": "david.park@groupon.com",
+      "phone": "(555) 456-7890",
+      "role": "Account Manager",
+      "division": "div-2",
+      "divisionName": "Health & Wellness",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      "hireDate": "2021-11-05",
+      "specialties": [
+        "Fitness Training",
+        "Gym Operations",
+        "Personal Training"
+      ],
+      "accountsManaged": 10,
+      "performanceRating": 4.7
+    },
+    {
+      "id": "manager-5",
+      "name": "Lisa Thompson",
+      "email": "lisa.thompson@groupon.com",
+      "phone": "(555) 567-8901",
+      "role": "Senior Account Manager",
+      "division": "div-3",
+      "divisionName": "Entertainment & Activities",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
+      "hireDate": "2019-06-12",
+      "specialties": [
+        "Adventure Sports",
+        "Team Building",
+        "Outdoor Activities"
+      ],
+      "accountsManaged": 18,
+      "performanceRating": 4.8
+    },
+    {
+      "id": "manager-6",
+      "name": "James Wilson",
+      "email": "james.wilson@groupon.com",
+      "phone": "(555) 678-9012",
+      "role": "Account Manager",
+      "division": "div-4",
+      "divisionName": "Travel & Hospitality",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
+      "hireDate": "2022-04-18",
+      "specialties": [
+        "Resort Management",
+        "Hotel Operations",
+        "Travel Packages"
+      ],
+      "accountsManaged": 6,
+      "performanceRating": 4.5
+    },
+    {
+      "id": "manager-7",
+      "name": "Amanda Davis",
+      "email": "amanda.davis@groupon.com",
+      "phone": "(555) 789-0123",
+      "role": "Account Manager",
+      "division": "div-5",
+      "divisionName": "Retail & Services",
+      "avatar": "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150&h=150&fit=crop&crop=face",
+      "hireDate": "2021-09-30",
+      "specialties": ["Beauty Retail", "Salon Services", "Customer Experience"],
+      "accountsManaged": 9,
+      "performanceRating": 4.4
+    },
+    {
+      "id": "manager-8",
+      "name": "Robert Kim",
+      "email": "robert.kim@groupon.com",
+      "phone": "(555) 890-1234",
+      "role": "Senior Account Manager",
+      "division": "div-1",
+      "divisionName": "Restaurant & Food Services",
+      "avatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face",
+      "hireDate": "2020-02-14",
+      "specialties": ["Coffee Shops", "Cafe Operations", "Local Business"],
+      "accountsManaged": 14,
+      "performanceRating": 4.2
+    }
+  ],
+  "accountOwners": [
+    {
+      "id": "owner-1",
+      "name": "Maria Rodriguez",
+      "email": "maria@chimisfreshmex.com",
+      "phone": "(555) 123-4567",
+      "role": "Owner",
+      "businessName": "Chimi's Fresh-Mex",
+      "businessType": "Restaurant",
+      "location": "Wentzville, MO",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face",
+      "joinDate": "2023-01-15",
+      "yearsInBusiness": 8,
+      "specialties": ["Mexican Cuisine", "Fresh Ingredients", "Family Recipes"]
+    },
+    {
+      "id": "owner-2",
+      "name": "Jennifer Chen",
+      "email": "jen@serenityspa.com",
+      "phone": "(555) 234-5678",
+      "role": "Owner",
+      "businessName": "Serenity Spa & Wellness",
+      "businessType": "Spa & Beauty",
+      "location": "Chicago, IL",
+      "avatar": "https://images.unsplash.com/photo-1489424731084-a5ab8e308d35?w=150&h=150&fit=crop&crop=face",
+      "joinDate": "2023-03-22",
+      "yearsInBusiness": 12,
+      "specialties": [
+        "Luxury Spa Services",
+        "Wellness Treatments",
+        "Massage Therapy"
+      ]
+    },
+    {
+      "id": "owner-3",
+      "name": "Giovanni Rossi",
+      "email": "giovanni@bellaitalia.com",
+      "phone": "(555) 345-6789",
+      "role": "Owner",
+      "businessName": "Bella Italia Ristorante",
+      "businessType": "Restaurant",
+      "location": "New York, NY",
+      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      "joinDate": "2022-11-08",
+      "yearsInBusiness": 15,
+      "specialties": ["Italian Cuisine", "Fine Dining", "Wine Selection"]
+    },
+    {
+      "id": "owner-4",
+      "name": "Marcus Johnson",
+      "email": "marcus@fitzone.com",
+      "phone": "(555) 456-7890",
+      "role": "Owner",
+      "businessName": "FitZone Performance Gym",
+      "businessType": "Fitness & Health",
+      "location": "Los Angeles, CA",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      "joinDate": "2023-02-14",
+      "yearsInBusiness": 6,
+      "specialties": [
+        "Personal Training",
+        "Group Fitness",
+        "Nutrition Coaching"
+      ]
+    },
+    {
+      "id": "owner-5",
+      "name": "Sofia Martinez",
+      "email": "sofia@glamstudio.com",
+      "phone": "(555) 567-8901",
+      "role": "Owner",
+      "businessName": "Glam Studio Hair & Beauty",
+      "businessType": "Salon",
+      "location": "Miami, FL",
+      "avatar": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+      "joinDate": "2023-04-05",
+      "yearsInBusiness": 10,
+      "specialties": ["Hair Styling", "Beauty Treatments", "Color Specialist"]
+    },
+    {
+      "id": "owner-6",
+      "name": "Ryan Thompson",
+      "email": "ryan@adventureescapes.com",
+      "phone": "(555) 678-9012",
+      "role": "Owner",
+      "businessName": "Adventure Escapes",
+      "businessType": "Activities & Entertainment",
+      "location": "Denver, CO",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
+      "joinDate": "2023-05-20",
+      "yearsInBusiness": 5,
+      "specialties": ["Outdoor Adventures", "Team Building", "Safety Training"]
+    },
+    {
+      "id": "owner-7",
+      "name": "Emma Davis",
+      "email": "emma@thecoffeehouse.com",
+      "phone": "(555) 789-0123",
+      "role": "Owner",
+      "businessName": "The Coffee House",
+      "businessType": "Cafe",
+      "location": "Seattle, WA",
+      "avatar": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      "joinDate": "2023-06-10",
+      "yearsInBusiness": 3,
+      "specialties": ["Artisan Coffee", "Pastry Making", "Local Sourcing"]
+    },
+    {
+      "id": "owner-8",
+      "name": "David Park",
+      "email": "david@oceanviewresort.com",
+      "phone": "(555) 890-1234",
+      "role": "Owner",
+      "businessName": "Ocean View Resort",
+      "businessType": "Hotel & Lodging",
+      "location": "San Diego, CA",
+      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      "joinDate": "2022-12-01",
+      "yearsInBusiness": 20,
+      "specialties": [
+        "Luxury Hospitality",
+        "Event Planning",
+        "Resort Management"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "samsclub": {
+    "account": {
+      "id": "001C000017FYyMIAW",
+      "name": "Sam's Club **NAT**",
+      "created": "22 Jul 2025",
+      "lastModified": "18 Oct 2025",
+      "lastModifiedBy": "Encore Service Account",
+      "salesforceUrl": "001C000017FYyMIAW",
+      "accountOwner": {
+        "name": "Kaitlin Kratzmeyer",
+        "initial": "K",
+        "color": "#FF8C42"
+      },
+      "parentAccount": "5f4f15ec-5958-4e42-86dc-90475db83074",
+      "brand": "Sam's Club **Nat**"
+    },
+    "assignedDeals": [
+      {
+        "id": "1",
+        "image": "/images/burger-fries.jpg",
+        "title": "Save Up to 36% $45 towards Dinner at Chimi's Fresh-Mex – Authentic Mexican Food & Margaritas",
+        "orders30d": 1247,
+        "views30d": 45832,
+        "gp": "US$18,705.00",
+        "gpViews30d": "US$0.41",
+        "cr30d": "2.72%",
+        "margin": "15%",
+        "dealStart": "26 Jul 2024"
+      },
+      {
+        "id": "2",
+        "image": "/images/spa/spa-treatment.jpg",
+        "title": "Luxury Spa Day Package - 60-Minute Massage & Facial Treatment",
+        "orders30d": 3891,
+        "views30d": 89421,
+        "gp": "US$38,910.00",
+        "gpViews30d": "US$0.44",
+        "cr30d": "4.35%",
+        "margin": "10%",
+        "dealStart": "15 Aug 2024"
+      },
+      {
+        "id": "3",
+        "image": "/images/pasta-dish.jpg",
+        "title": "$50 for $100 Worth of Authentic Italian Cuisine and Wine at Bella Italia Ristorante",
+        "orders30d": 892,
+        "views30d": 32145,
+        "gp": "US$13,380.00",
+        "gpViews30d": "US$0.42",
+        "cr30d": "2.77%",
+        "margin": "15%",
+        "dealStart": "03 Sep 2024"
+      },
+      {
+        "id": "4",
+        "image": "/images/fitness/gym-workout.jpg",
+        "title": "3-Month Gym Membership with Personal Training Sessions at FitZone Performance Gym",
+        "orders30d": 567,
+        "views30d": 28750,
+        "gp": "US$8,505.00",
+        "gpViews30d": "US$0.30",
+        "cr30d": "1.97%",
+        "margin": "15%",
+        "dealStart": "10 Oct 2024"
+      }
+    ],
+    "auditLog": [
+      {
+        "id": "1",
+        "user": "Encore Service Account",
+        "action": "updated the account \"Sam's Club **NAT**\"",
+        "timestamp": "18 Oct 2025 at 08:10:02",
+        "changes": [
+          {
+            "field": "Account manager salesforce id",
+            "value": "005C000000A61eXIAR"
+          },
+          {
+            "field": "Account owner id",
+            "value": "3a05ed4b-99dd-4451-ba6e-334d10ed0c48"
+          },
+          {
+            "field": "Account owner salesforce id",
+            "value": "005C000000045AE7IAM"
+          },
+          {
+            "field": "Brand id",
+            "value": "1a6c5272-f676-4c4a-8b8f-14e3e2b44f8f"
+          },
+          {
+            "field": "Created by",
+            "value": "302f0b1d-1d1c-4ba3-b262-d3076dadfbf6"
+          }
+        ]
+      },
+      {
+        "id": "2",
+        "user": "Encore Service Account",
+        "action": "updated the account \"Sam's Club **NAT**\"",
+        "timestamp": "16 Oct 2025 at 08:18:32",
+        "changes": [
+          {
+            "field": "Account manager salesforce id",
+            "value": "005C000000A61eXIAR"
+          },
+          {
+            "field": "Account owner id",
+            "value": "3a05ed4b-99dd-4451-ba6e-334d10ed0c48"
+          },
+          {
+            "field": "Account owner salesforce id",
+            "value": "005C000000045AE7IAM"
+          },
+          {
+            "field": "Brand id",
+            "value": "1a6c5272-f676-4c4a-8b8f-14e3e2b44f8f"
+          },
+          {
+            "field": "Created by",
+            "value": "302f0b1d-1d1c-4ba3-b262-d3076dadfbf6"
+          }
+        ]
+      }
+    ],
+    "subAccounts": [
+      {
+        "id": "1e602716-bd01-434e-831b-da49f656e01c",
+        "name": "Sam's Club"
+      },
+      {
+        "id": "78648ce2-7086-4b2c-a245-46808f919843",
+        "name": "Sam's Club - Goods"
+      }
+    ]
+  }
+}

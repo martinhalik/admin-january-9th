@@ -1,0 +1,26 @@
+{
+  "name": "groupon-admin",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm install && npm run build",
+    "preview": "cd frontend && npm run preview",
+    "start": "cd frontend && npm run dev",
+    "sync:salesforce": "npx tsx scripts/syncSalesforceToSupabase.ts",
+    "sync:salesforce:dry": "npx tsx scripts/syncSalesforceToSupabase.ts --dry-run",
+    "sync:salesforce:full": "npx tsx scripts/syncSalesforceToSupabase.ts --full",
+    "sync:salesforce:reset": "npx tsx scripts/syncSalesforceToSupabase.ts --reset"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.89.0",
+    "@types/node": "^20.0.0",
+    "dotenv": "^17.2.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "csv-parser": "^3.2.0",
+    "jsforce": "^3.4.1"
+  }
+}

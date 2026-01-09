@@ -1,0 +1,38 @@
+# Development files
+node_modules
+*.log
+.DS_Store
+.env.local
+.env*.local
+
+# Documentation
+*.md
+!README.md
+
+# Scripts and tooling
+scripts
+supabase
+*.sh
+
+# Test files
+frontend/src/test
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Build artifacts
+frontend/dist
+.cache
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Sample data
+*.csv
+*.xlsx
+bowlero-deal.json
+create-excel-sample.js
