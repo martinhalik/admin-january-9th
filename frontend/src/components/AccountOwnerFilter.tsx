@@ -25,10 +25,14 @@ interface AccountOwnerFilterProps {
   selectedOwnerId?: string | null;
   showUnassigned?: boolean;
   onShowUnassignedChange?: (show: boolean) => void;
-  /** Array of items with accountOwnerId field to count per owner */
-  items: Array<{ accountOwnerId?: string | null }>;
+  /** Array of items with accountOwnerId field to count per owner (DEPRECATED - use accountCounts) */
+  items?: Array<{ accountOwnerId?: string | null }>;
+  /** Pre-calculated account counts per employee ID (preferred) */
+  accountCounts?: Record<string, number>;
   /** Whether we're filtering accounts or deals (for display purposes) */
   context: 'accounts' | 'deals';
+  /** Whether the parent component is still loading data */
+  isLoadingData?: boolean;
 }
 
 const ITEMS_PER_PAGE = 20;
@@ -39,8 +43,10 @@ export const AccountOwnerFilter: React.FC<AccountOwnerFilterProps> = ({
   selectedOwnerId,
   showUnassigned = false,
   onShowUnassignedChange,
-  items,
+  items = [],
+  accountCounts,
   context,
+  isLoadingData = false,
 }) => {
   const { token } = useToken();
   const { currentRole, currentUser } = useRoleView();
@@ -169,10 +175,20 @@ export const AccountOwnerFilter: React.FC<AccountOwnerFilterProps> = ({
   };
 
   const getCountForOwner = (ownerId: string) => {
+    // Use pre-calculated counts if available (preferred for performance)
+    if (accountCounts) {
+      return accountCounts[ownerId] || 0;
+    }
+    // Fallback to counting from items array
     return items.filter((item: any) => item.accountOwnerId === ownerId).length;
   };
 
   const getCountForTeam = (teamMemberIds: string[]) => {
+    // Use pre-calculated counts if available
+    if (accountCounts) {
+      return teamMemberIds.reduce((sum, id) => sum + (accountCounts[id] || 0), 0);
+    }
+    // Fallback to counting from items array
     return items.filter((item: any) => item.accountOwnerId && teamMemberIds.includes(item.accountOwnerId)).length;
   };
 
@@ -618,27 +634,31 @@ export const AccountOwnerFilter: React.FC<AccountOwnerFilterProps> = ({
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        loading={isLoadingData}
+        disabled={isLoadingData}
       >
-        {renderButtonContent()}
-        {isFiltered && isHovered && !dropdownOpen ? (
-          <X
-            size={14}
-            style={{ color: token.colorTextSecondary, cursor: 'pointer' }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onFilterChange?.(null);
-              onShowUnassignedChange?.(false);
-            }}
-          />
-        ) : (
-          <ChevronDown
-            size={14}
-            style={{
-              color: token.colorTextSecondary,
-              transition: 'transform 0.2s',
-              transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            }}
-          />
+        {!isLoadingData && renderButtonContent()}
+        {!isLoadingData && (
+          isFiltered && isHovered && !dropdownOpen ? (
+            <X
+              size={14}
+              style={{ color: token.colorTextSecondary, cursor: 'pointer' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onFilterChange?.(null);
+                onShowUnassignedChange?.(false);
+              }}
+            />
+          ) : (
+            <ChevronDown
+              size={14}
+              style={{
+                color: token.colorTextSecondary,
+                transition: 'transform 0.2s',
+                transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              }}
+            />
+          )
         )}
       </Button>
     </Dropdown>

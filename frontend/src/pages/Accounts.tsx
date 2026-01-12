@@ -21,13 +21,11 @@ import {
   Filter,
   X,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { merchantAccounts } from "../data/merchantAccounts";
 import { 
-  merchantAccountsWithOwners, 
-  loadMerchantAccounts, 
-  updateMerchantAccountsData,
-  getMerchantAccountsWithOwners 
+  loadMerchantAccountsIncremental,
+  getTotalAccountsCount 
 } from "../data/accountOwnerAssignments";
 import { deals } from "../data/mockDeals";
 import { theme } from "antd";
@@ -79,30 +77,68 @@ const Accounts = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Load data if not already loaded
+  // State for merchant accounts
+  const [merchantAccountsList, setMerchantAccountsList] = useState<typeof merchantAccounts>([]);
+  const [totalAccountsCount, setTotalAccountsCount] = useState(0);
+  const hasLoadedDataRef = useRef(false);
+
+  // Load data ONCE on mount
   useEffect(() => {
-    async function ensureDataLoaded() {
-      const currentAccounts = getMerchantAccountsWithOwners();
-      if (currentAccounts.length === 0) {
-        setDataLoading(true);
-        try {
-          // Load both employees and accounts
-          const [employees, accounts] = await Promise.all([
-            loadEmployees(),
-            loadMerchantAccounts()
-          ]);
-          updateHierarchyData(employees);
-          updateMerchantAccountsData(accounts);
-          console.log(`[Accounts] Loaded ${employees.length} employees and ${accounts.length} accounts`);
-        } catch (error) {
-          console.error('[Accounts] Error loading data:', error);
-        } finally {
-          setDataLoading(false);
+    // Prevent multiple loads
+    if (hasLoadedDataRef.current) return;
+    hasLoadedDataRef.current = true;
+    
+    async function loadData() {
+      setDataLoading(true);
+      try {
+        // Load employees first (needed for filtering)
+        const employees = await loadEmployees();
+        updateHierarchyData(employees);
+        
+        // Determine if we should filter by owner (BD/MD roles)
+        const shouldFilterByOwner = (currentRole === 'bd' || currentRole === 'md');
+        const filterOwnerId = shouldFilterByOwner ? currentUser.employeeId : null;
+        
+        // Get total count
+        const totalCount = await getTotalAccountsCount(filterOwnerId);
+        setTotalAccountsCount(totalCount);
+        
+        // Smart batch sizing for large datasets
+        // For BD/MD: Load all their accounts (manageable set)
+        // For others: Load initial working set
+        let BATCH_SIZE: number;
+        if (shouldFilterByOwner) {
+          // Load all for filtered users
+          BATCH_SIZE = Math.min(totalCount, 1000);
+        } else if (totalCount > 10000) {
+          // Large dataset: Load first 1000, use pagination/search
+          BATCH_SIZE = 1000;
+        } else {
+          // Smaller dataset: Load more
+          BATCH_SIZE = Math.min(totalCount, 5000);
         }
+        
+        const result = await loadMerchantAccountsIncremental(BATCH_SIZE, 0, filterOwnerId);
+        
+        setMerchantAccountsList(result.accounts);
+        
+        if (totalCount > BATCH_SIZE) {
+          console.log(
+            `[Accounts] Loaded ${employees.length} employees and ${result.accounts.length} of ${totalCount} accounts. ` +
+            `Use search/filters to narrow results.`
+          );
+        } else {
+          console.log(`[Accounts] Loaded ${employees.length} employees and all ${result.accounts.length} accounts`);
+        }
+      } catch (error) {
+        console.error('[Accounts] Error loading data:', error);
+        setMerchantAccountsList([]);
+      } finally {
+        setDataLoading(false);
       }
     }
-    ensureDataLoaded();
-  }, []);
+    loadData();
+  }, []); // Empty deps - load only once
 
   // Update filter when role changes
   useEffect(() => {
@@ -147,42 +183,42 @@ const Accounts = () => {
 
   // Apply account owner filtering based on role
   const baseAccounts = (() => {
+    // Helper to check if account is unassigned (includes House Account)
+    const isUnassigned = (acc: any) => !acc.accountOwner || acc.accountOwner.name === 'House Account';
+    
     if (accountOwnerFilter === 'unassigned') {
       // Show only unassigned accounts (House Account or null)
-      const unassigned = merchantAccountsWithOwners.filter(acc => 
-        !acc.accountOwner || acc.accountOwner.name === 'House Account'
-      );
-      console.log('[Accounts] Unassigned filter - Total accounts:', merchantAccountsWithOwners.length, 'Unassigned:', unassigned.length);
+      const unassigned = merchantAccountsList.filter(isUnassigned);
+      console.log('[Accounts] Unassigned filter - Total accounts:', merchantAccountsList.length, 'Unassigned:', unassigned.length);
       return unassigned;
     } else if (accountOwnerFilter === 'team') {
       // DSM: Show accounts owned by anyone on their team
       const teamMembers = getAllTeamMembers(currentUser.employeeId);
       const teamMemberIds = teamMembers.map(m => m.id);
-      const filteredAccounts = merchantAccountsWithOwners.filter(acc => 
-        acc.accountOwner && teamMemberIds.includes(acc.accountOwner.id)
+      const filteredAccounts = merchantAccountsList.filter(acc => 
+        acc.accountOwner && acc.accountOwner.name !== 'House Account' && teamMemberIds.includes(acc.accountOwner.id)
       );
       // Add unassigned accounts if the toggle is on
       if (showUnassignedAccounts) {
-        const unassignedAccounts = merchantAccountsWithOwners.filter(acc => 
-          !acc.accountOwner || acc.accountOwner.name === 'House Account'
-        );
+        const unassignedAccounts = merchantAccountsList.filter(isUnassigned);
         return [...filteredAccounts, ...unassignedAccounts];
       }
       return filteredAccounts;
     } else if (accountOwnerFilter) {
       // BD/MD or specific owner selected: Show accounts for that owner
-      const filteredAccounts = merchantAccountsWithOwners.filter(acc => acc.accountOwner?.id === accountOwnerFilter);
+      const filteredAccounts = merchantAccountsList.filter(acc => 
+        acc.accountOwner && acc.accountOwner.name !== 'House Account' && acc.accountOwner.id === accountOwnerFilter
+      );
       // Add unassigned accounts if the toggle is on
       if (showUnassignedAccounts) {
-        const unassignedAccounts = merchantAccountsWithOwners.filter(acc => 
-          !acc.accountOwner || acc.accountOwner.name === 'House Account'
-        );
+        const unassignedAccounts = merchantAccountsList.filter(isUnassigned);
         return [...filteredAccounts, ...unassignedAccounts];
       }
       return filteredAccounts;
     } else {
       // MM, Admin, Executive: Show all accounts
-      return merchantAccountsWithOwners;
+      console.log('[Accounts] Showing all accounts:', merchantAccountsList.length);
+      return merchantAccountsList;
     }
   })();
 
@@ -439,12 +475,38 @@ const Accounts = () => {
                 onFilterChange={setAccountOwnerFilter}
                 showUnassigned={showUnassignedAccounts}
                 onShowUnassignedChange={setShowUnassignedAccounts}
-                items={merchantAccountsWithOwners.map(acc => ({ accountOwnerId: acc.accountOwner?.id }))}
+                items={merchantAccountsList.map(acc => ({ 
+                  accountOwnerId: acc.accountOwner && acc.accountOwner.name !== 'House Account' 
+                    ? acc.accountOwner.id 
+                    : null 
+                }))}
                 context="accounts"
+                isLoadingData={dataLoading}
               />
             </>
           }
         />
+
+        {/* Info banner for large datasets */}
+        {totalAccountsCount > merchantAccountsList.length && !searchText && (
+          <Card
+            style={{
+              marginBottom: token.marginMD,
+              background: token.colorInfoBg,
+              borderColor: token.colorInfoBorder,
+            }}
+          >
+            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <Text>
+                <strong>Note:</strong> Showing first {merchantAccountsList.length.toLocaleString()} of{' '}
+                {totalAccountsCount.toLocaleString()} total accounts.
+              </Text>
+              <Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+                Use search and filters above to find specific accounts. The system loads a working set for better performance.
+              </Text>
+            </Space>
+          </Card>
+        )}
 
         {/* Accounts Table */}
         <Card>

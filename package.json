@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "cd frontend && npm run dev",
+    "dev": "cd frontend && npm run dev -- --port 3010",
     "build": "cd frontend && npm install && npm run build",
-    "preview": "cd frontend && npm run preview",
-    "start": "cd frontend && npm run dev",
+    "preview": "cd frontend && npm run preview -- --port 3010",
+    "start": "cd frontend && npm run dev -- --port 3010",
     "sync:salesforce": "npx tsx scripts/syncSalesforceToSupabase.ts",
     "sync:salesforce:dry": "npx tsx scripts/syncSalesforceToSupabase.ts --dry-run",
     "sync:salesforce:full": "npx tsx scripts/syncSalesforceToSupabase.ts --full",

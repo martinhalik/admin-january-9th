@@ -98,7 +98,7 @@ const EntityAvatar: React.FC<EntityAvatarProps> = ({
         height: size,
         borderRadius,
         objectFit: "cover",
-        border: `1px solid ${token.colorBorder}`,
+        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
         flexShrink: 0,
         ...style,
       }}

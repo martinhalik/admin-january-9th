@@ -46,7 +46,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (window as any).__PLAYWRIGHT_TEST_MODE__ === true;
 
     if (isLocalhost || isTestMode) {
-      console.log(`[Auth] ${isLocalhost ? 'Localhost' : 'Test mode'} detected - bypassing authentication`);
       // Create a mock user for local development - using CEO employee ID that exists in hierarchy
       const mockUser = {
         id: 'emp-ceo-1',  // Use actual employee ID from company hierarchy

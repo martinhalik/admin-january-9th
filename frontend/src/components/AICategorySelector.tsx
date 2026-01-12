@@ -541,7 +541,7 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
         <div style={{ 
           maxWidth: 1200, 
           margin: "0 auto",
-          padding: "0 0px 100px 0px",
+          padding: "0 clamp(8px, 2vw, 0px) clamp(80px, 12vh, 100px) clamp(8px, 2vw, 0px)",
         }}>
           {/* Compact Loading */}
           <Alert
@@ -601,8 +601,8 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
          />
 
         {/* Skeleton Loaders */}
-        <Row gutter={[20, 20]}>
-          <Col xs={24} lg={10}>
+        <Row gutter={[{ xs: 12, sm: 16, md: 20 }, { xs: 12, sm: 16, md: 20 }]}>
+          <Col xs={24} sm={24} md={24} lg={10} xl={10}>
             <Card 
               size="small" 
               title="Category Recommendations"
@@ -616,7 +616,7 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
             </Card>
           </Col>
           
-          <Col xs={24} lg={14}>
+          <Col xs={24} sm={24} md={24} lg={14} xl={14}>
             <Card 
               size="small" 
               title="Deal Options"
@@ -645,21 +645,31 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
         style={{ 
           maxWidth: 1200, 
           margin: "0 auto",
-          padding: "0 0px 100px 0px",
+          padding: "0 clamp(8px, 2vw, 0px) clamp(80px, 12vh, 100px) clamp(8px, 2vw, 0px)",
         }}>
         {/* Header with Debug Controller */}
         <div style={{ 
-          marginBottom: 24, 
+          marginBottom: "clamp(16px, 3vh, 24px)", 
           display: 'flex', 
           justifyContent: 'space-between', 
-          alignItems: 'center',
+          alignItems: 'flex-start',
           gap: 16,
+          flexWrap: 'wrap',
         }}>
-          <div>
-            <Title level={3} style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>
+          <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+            <Title level={3} style={{ 
+              margin: 0, 
+              fontSize: "clamp(18px, 3vw, 20px)", 
+              fontWeight: 600,
+              wordBreak: 'break-word',
+            }}>
               Generate Deal
             </Title>
-            <Text type="secondary" style={{ fontSize: 13, marginTop: 4, display: 'block' }}>
+            <Text type="secondary" style={{ 
+              fontSize: "clamp(12px, 1.8vw, 13px)", 
+              marginTop: 4, 
+              display: 'block',
+            }}>
               Select category, review options, and create
             </Text>
           </div>
@@ -693,9 +703,9 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
         </div>
 
       {/* Main Layout - 2 Columns */}
-      <Row gutter={[20, 20]}>
+      <Row gutter={[{ xs: 12, sm: 16, md: 20 }, { xs: 12, sm: 16, md: 20 }]}>
         {/* COLUMN 1: Category Recommendations */}
-        <Col xs={24} lg={10}>
+        <Col xs={24} sm={24} md={24} lg={10} xl={10}>
           <Card
             title={
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -717,10 +727,10 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
                   {selectedPDS ? '✓' : '1'}
                 </div>
                 <div>
-                  <Text strong style={{ fontSize: 16, display: 'block', lineHeight: 1.3 }}>
+                  <Text strong style={{ fontSize: "clamp(14px, 2.5vw, 16px)", display: 'block', lineHeight: 1.3 }}>
                     Select Category
                   </Text>
-                  <Text type="secondary" style={{ fontSize: 12 }}>
+                  <Text type="secondary" style={{ fontSize: "clamp(11px, 1.8vw, 12px)" }}>
                     Choose a deal type
                   </Text>
                 </div>
@@ -734,10 +744,10 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
             }}
             styles={{
               header: { 
-                padding: "16px 20px",
+                padding: "clamp(12px, 2vh, 16px) clamp(12px, 3vw, 20px)",
                 borderBottom: '1px solid #f0f0f0',
               },
-              body: { padding: "16px" },
+              body: { padding: "clamp(12px, 2vw, 16px)" },
             }}
           >
             {availablePDS.length === 0 ? (
@@ -840,9 +850,9 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
                 onClick={() => setDisplayLimit(prev => prev + 10)}
                 block
                 style={{ 
-                  marginTop: 12, 
-                  fontSize: 13,
-                  height: 36,
+                  marginTop: "clamp(8px, 1.5vh, 12px)", 
+                  fontSize: "clamp(12px, 1.8vw, 13px)",
+                  height: "clamp(32px, 5vh, 36px)",
                   borderRadius: 6,
                   fontWeight: 500,
                 }}
@@ -857,9 +867,9 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
               onClick={() => setShowServiceSelector(true)}
               block
               style={{ 
-                marginTop: 12, 
-                fontSize: 13,
-                height: 36,
+                marginTop: "clamp(8px, 1.5vh, 12px)", 
+                fontSize: "clamp(12px, 1.8vw, 13px)",
+                height: "clamp(32px, 5vh, 36px)",
                 borderRadius: 6,
                 fontWeight: 500,
               }}
@@ -870,7 +880,7 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
         </Col>
 
         {/* COLUMN 2: Deal Options */}
-        <Col xs={24} lg={14}>
+        <Col xs={24} sm={24} md={24} lg={14} xl={14}>
           <Card
               title={
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -893,10 +903,10 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
                       {generatedOptions.length > 0 ? '✓' : '2'}
                     </div>
                     <div>
-                      <Text strong style={{ fontSize: 16, display: 'block', lineHeight: 1.3 }}>
+                      <Text strong style={{ fontSize: "clamp(14px, 2.5vw, 16px)", display: 'block', lineHeight: 1.3 }}>
                         Review Options
                       </Text>
-                      <Text type="secondary" style={{ fontSize: 12 }}>
+                      <Text type="secondary" style={{ fontSize: "clamp(11px, 1.8vw, 12px)" }}>
                         Verify pricing and edit as needed
                       </Text>
                     </div>
@@ -922,10 +932,10 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
               }}
               styles={{
                 header: { 
-                  padding: "16px 20px",
+                  padding: "clamp(12px, 2vh, 16px) clamp(12px, 3vw, 20px)",
                   borderBottom: '1px solid #f0f0f0',
                 },
-                body: { padding: "16px" },
+                body: { padding: "clamp(12px, 2vw, 16px)" },
               }}
             >
               {isLoadingOptions ? (
@@ -1184,10 +1194,10 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
                     icon={<Plus size={16} />}
                     onClick={handleAddOption}
                     style={{ 
-                      marginTop: 12,
+                      marginTop: "clamp(8px, 1.5vh, 12px)",
                       borderRadius: 6,
-                      height: 40,
-                      fontSize: 13,
+                      height: "clamp(36px, 5vh, 40px)",
+                      fontSize: "clamp(12px, 1.8vw, 13px)",
                       fontWeight: 500,
                       color: '#595959',
                       borderColor: '#d9d9d9',
@@ -1212,8 +1222,8 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
           background: '#ffffff',
           borderTop: `1px solid #e8e8e8`,
           boxShadow: "0 -2px 8px rgba(0, 0, 0, 0.06)",
-          paddingLeft: 24,
-          paddingRight: sidebarWidth > 0 ? `${sidebarWidth + 24}px` : 24,
+          paddingLeft: "clamp(12px, 3vw, 24px)",
+          paddingRight: sidebarWidth > 0 ? `${sidebarWidth + 24}px` : "clamp(12px, 3vw, 24px)",
           transition: "padding-right 0.3s ease",
         }}
       >
@@ -1221,49 +1231,77 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
           style={{
             maxWidth: 1200,
             margin: "0 auto",
-            padding: "20px 24px",
+            padding: "clamp(12px, 2vh, 20px) clamp(12px, 2vw, 24px)",
             display: "flex",
+            flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
+            gap: 16,
+            flexWrap: "wrap",
           }}
         >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: "clamp(8px, 2vw, 16px)",
+          minWidth: "min-content",
+          flex: "1 1 auto",
+        }}>
           <div
             style={{
-              width: 40,
-              height: 40,
+              width: "clamp(32px, 5vw, 40px)",
+              height: "clamp(32px, 5vw, 40px)",
               borderRadius: 6,
               background: (!selectedPDS || generatedOptions.length === 0) ? '#f5f5f5' : '#52c41a',
               color: (!selectedPDS || generatedOptions.length === 0) ? '#8c8c8c' : "white",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 16,
+              fontSize: "clamp(14px, 2vw, 16px)",
               fontWeight: 600,
               flexShrink: 0,
             }}
           >
             {(!selectedPDS || generatedOptions.length === 0) ? '3' : '✓'}
           </div>
-          <div>
-            <Text strong style={{ fontSize: 15, display: 'block', color: '#262626' }}>
+          <div style={{ minWidth: 0 }}>
+            <Text strong style={{ 
+              fontSize: "clamp(13px, 2vw, 15px)", 
+              display: 'block', 
+              color: '#262626',
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}>
               {(!selectedPDS || generatedOptions.length === 0) ? 'Complete steps above' : 'Ready to create'}
             </Text>
-            <Text type="secondary" style={{ fontSize: 13 }}>
+            <Text type="secondary" style={{ 
+              fontSize: "clamp(11px, 1.8vw, 13px)",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              display: "block",
+            }}>
               {generatedOptions.length} option{generatedOptions.length !== 1 ? 's' : ''} 
               {selectedPDS ? ` • ${selectedPDS.name}` : ' • Select a category'}
             </Text>
           </div>
         </div>
-        <Space size={12}>
+        <div style={{ 
+          display: 'flex', 
+          gap: 'clamp(8px, 1.5vw, 12px)', 
+          flexShrink: 0,
+          flexWrap: 'wrap',
+        }}>
           <Button 
             size="large" 
             onClick={onBack}
             style={{
-              height: 40,
-              fontSize: 14,
+              height: "clamp(36px, 5vh, 40px)",
+              fontSize: "clamp(12px, 1.8vw, 14px)",
               fontWeight: 500,
               borderRadius: 6,
+              padding: "0 clamp(12px, 2vw, 16px)",
             }}
           >
             Cancel
@@ -1276,17 +1314,17 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
             disabled={!selectedPDS || generatedOptions.length === 0}
             loading={creating}
             style={{
-              height: 40,
-              fontSize: 14,
+              height: "clamp(36px, 5vh, 40px)",
+              fontSize: "clamp(12px, 1.8vw, 14px)",
               fontWeight: 500,
               borderRadius: 6,
-              paddingLeft: 24,
-              paddingRight: 24,
+              paddingLeft: "clamp(16px, 3vw, 24px)",
+              paddingRight: "clamp(16px, 3vw, 24px)",
             }}
           >
             Create Deal
           </Button>
-        </Space>
+        </div>
         </div>
       </div>
 

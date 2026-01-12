@@ -67,6 +67,22 @@ export interface MerchantAccount {
     followers: number;
     url: string;
   };
+  popularTimes?: {
+    monday: number[];
+    tuesday: number[];
+    wednesday: number[];
+    thursday: number[];
+    friday: number[];
+    saturday: number[];
+    sunday: number[];
+  };
+  nearbyCompetitors?: Array<{
+    name: string;
+    distance: string;
+    rating: number;
+    type: string;
+  }>;
+  location?: any; // Location object with hours for MerchantInfoCard
 }
 
 export const merchantAccounts: MerchantAccount[] = [

@@ -196,13 +196,121 @@ export async function fetchDirectReports(managerId: string): Promise<Employee[]>
 /**
  * Fetch merchant accounts with owner details
  */
+/**
+ * Fetch merchant accounts with pagination
+ */
+export async function fetchMerchantAccountsPaginated(
+  limit: number = 10,
+  offset: number = 0,
+  ownerId?: string | null
+): Promise<{ accounts: MerchantAccount[], total: number }> {
+  if (!supabase) {
+    return { accounts: [], total: 0 };
+  }
+
+  let query = supabase
+    .from('merchant_accounts')
+    .select(`
+      *,
+      owner:employees!account_owner_id (
+        id,
+        name,
+        email,
+        role,
+        avatar
+      )
+    `, { count: 'exact' })
+    .order('name');
+
+  // Filter by owner if specified
+  if (ownerId) {
+    query = query.eq('account_owner_id', ownerId);
+  }
+
+  // Apply pagination
+  query = query.range(offset, offset + limit - 1);
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    console.error(`Error fetching merchant accounts:`, error);
+    throw error;
+  }
+
+  return {
+    accounts: data || [],
+    total: count || 0
+  };
+}
+
+/**
+ * Get total count of merchant accounts (fast query)
+ */
+export async function getMerchantAccountsCount(ownerId?: string | null): Promise<number> {
+  if (!supabase) {
+    return 0;
+  }
+
+  let query = supabase
+    .from('merchant_accounts')
+    .select('id', { count: 'exact', head: true });
+
+  if (ownerId) {
+    query = query.eq('account_owner_id', ownerId);
+  }
+
+  const { count, error } = await query;
+
+  if (error) {
+    console.error('Error getting merchant accounts count:', error);
+    return 0;
+  }
+
+  return count || 0;
+}
+
+/**
+ * Get account counts per employee (aggregated in database)
+ * Returns { employeeId: count } map
+ */
+export async function getAccountCountsPerEmployee(): Promise<Record<string, number>> {
+  if (!supabase) {
+    return {};
+  }
+
+  try {
+    // Get all accounts with their owner IDs
+    const { data, error } = await supabase
+      .from('merchant_accounts')
+      .select('account_owner_id');
+
+    if (error) {
+      console.error('Error fetching account counts:', error);
+      return {};
+    }
+
+    // Count in client (simple aggregation)
+    const counts: Record<string, number> = {};
+    data?.forEach(account => {
+      if (account.account_owner_id) {
+        counts[account.account_owner_id] = (counts[account.account_owner_id] || 0) + 1;
+      }
+    });
+
+    return counts;
+  } catch (error) {
+    console.error('Error getting account counts per employee:', error);
+    return {};
+  }
+}
+
 export async function fetchMerchantAccounts(): Promise<MerchantAccount[]> {
   // Fetch in batches due to Supabase default 1000 row limit
   // Loading first 5000 accounts for now
   const BATCH_SIZE = 1000;
   const TOTAL_ACCOUNTS = 5000;
   const allAccounts: any[] = [];
-  
+
   for (let offset = 0; offset < TOTAL_ACCOUNTS; offset += BATCH_SIZE) {
     const { data, error } = await supabase
       .from('merchant_accounts')

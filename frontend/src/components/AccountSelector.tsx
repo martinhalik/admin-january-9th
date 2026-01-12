@@ -11,6 +11,7 @@ import {
   Tooltip,
   Avatar,
   Empty,
+  Spin,
 } from "antd";
 import { Search, Info, User } from "lucide-react";
 import { List, type ListImperativeAPI } from 'react-window';
@@ -18,7 +19,11 @@ import {
   MerchantAccount,
   MerchantPotentialAnalysis,
 } from "../data/merchantAccounts";
-import { merchantAccountsWithOwners } from "../data/accountOwnerAssignments";
+import { 
+  loadMerchantAccountsIncremental,
+  getTotalAccountsCount 
+} from "../data/accountOwnerAssignments";
+import { getAccountCountsPerEmployee } from "../lib/supabaseData";
 import {
   getActivityStatus,
 } from "../lib/accountActivity";
@@ -54,16 +59,85 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   const [selectedMerchantName, setSelectedMerchantName] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
   const [showUnassignedAccounts, setShowUnassignedAccounts] = useState(false);
+  // Track initial filter to prevent double-loading
+  const initialFilterRef = useRef<string | null>(null);
+  
   const [accountOwnerFilter, setAccountOwnerFilter] = useState<string | null>(() => {
     // Initialize with current user's ID for BD/MD roles, 'team' for DSM
+    let initialFilter = null;
     if (currentRole === 'bd' || currentRole === 'md') {
-      return currentUser.employeeId;
+      initialFilter = currentUser.employeeId;
+    } else if (currentRole === 'dsm') {
+      initialFilter = 'team';
     }
-    if (currentRole === 'dsm') {
-      return 'team';
-    }
-    return null;
+    initialFilterRef.current = initialFilter;
+    return initialFilter;
   });
+  
+  // Loading state for merchant accounts
+  const [merchantAccounts, setMerchantAccounts] = useState<MerchantAccount[]>([]);
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(true);
+  const [totalAccountsCount, setTotalAccountsCount] = useState(0);
+  const [accountCountsPerEmployee, setAccountCountsPerEmployee] = useState<Record<string, number>>({});
+  const hasLoadedRef = useRef(false);
+
+  // Load ONLY what we need on mount
+  useEffect(() => {
+    // Prevent multiple loads
+    if (hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
+    
+    const loadInitialData = async () => {
+      setIsLoadingAccounts(true);
+      
+      try {
+        // Use the initial filter that was set during state initialization
+        const initialFilter = initialFilterRef.current;
+        const shouldFilterByOwner = (currentRole === 'bd' || currentRole === 'md');
+        const filterOwnerId = shouldFilterByOwner ? currentUser.employeeId : null;
+        
+        // First, load counts to determine batch size
+        const [totalCount, employeeCounts] = await Promise.all([
+          getTotalAccountsCount(filterOwnerId),
+          getAccountCountsPerEmployee(), // Get counts for ALL employees (fast aggregation)
+        ]);
+        
+        // Determine batch size based on role and counts
+        let batchSize = 30; // Default: load first 30
+        if (shouldFilterByOwner) {
+          // BD/MD: load all their accounts (up to 200 max)
+          const ownerCount = employeeCounts[currentUser.employeeId] || 0;
+          batchSize = Math.min(ownerCount, 200);
+        } else if (initialFilter === 'team') {
+          // DSM: load batch for team filtering
+          batchSize = 200;
+        }
+        
+        // Now load accounts with the right batch size
+        const firstBatch = await loadMerchantAccountsIncremental(
+          batchSize,
+          0, 
+          shouldFilterByOwner ? filterOwnerId : null
+        );
+        
+        setTotalAccountsCount(totalCount);
+        setAccountCountsPerEmployee(employeeCounts);
+        setMerchantAccounts(firstBatch.accounts);
+        
+        console.log(
+          `[AccountSelector] Loaded ${firstBatch.accounts.length} initial accounts${initialFilter ? ` (filter: ${initialFilter})` : ''}. ` +
+          `Total: ${totalCount}, Counts ready for ${Object.keys(employeeCounts).length} employees`
+        );
+      } catch (error) {
+        console.error('[AccountSelector] Error loading data:', error);
+        setMerchantAccounts([]);
+      } finally {
+        setIsLoadingAccounts(false);
+      }
+    };
+    
+    loadInitialData();
+  }, []); // Empty deps - load only once on mount
 
   // Update filter when role changes
   useEffect(() => {
@@ -76,45 +150,96 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
     }
   }, [currentRole, currentUser.employeeId]);
 
+  // Load accounts when owner filter changes (after initial load)
+  useEffect(() => {
+    // Skip if initial load hasn't completed yet
+    if (!hasLoadedRef.current) return;
+    
+    // Skip if this is the initial filter (already loaded)
+    if (accountOwnerFilter === initialFilterRef.current) return;
+    
+    const loadFilteredAccounts = async () => {
+      setIsLoadingAccounts(true);
+      try {
+        if (!accountOwnerFilter) {
+          // No filter - reload first 30 accounts
+          const result = await loadMerchantAccountsIncremental(30, 0, null);
+          setMerchantAccounts(result.accounts);
+          console.log(`[AccountSelector] Reloaded first ${result.accounts.length} accounts (filter cleared)`);
+        } else if (accountOwnerFilter === 'team' || accountOwnerFilter === 'unassigned') {
+          // Team/Unassigned - load more to ensure we have enough to filter from
+          // This is a compromise - we load a larger batch and filter client-side
+          const result = await loadMerchantAccountsIncremental(200, 0, null);
+          setMerchantAccounts(result.accounts);
+          console.log(`[AccountSelector] Loaded ${result.accounts.length} accounts for ${accountOwnerFilter} filtering`);
+        } else {
+          // Specific owner selected - load their accounts from database
+          const count = accountCountsPerEmployee[accountOwnerFilter] || 0;
+          const batchSize = Math.min(count, 200); // Load up to 200 accounts for the owner
+          
+          const result = await loadMerchantAccountsIncremental(batchSize, 0, accountOwnerFilter);
+          setMerchantAccounts(result.accounts);
+          
+          console.log(`[AccountSelector] Loaded ${result.accounts.length} accounts for owner ${accountOwnerFilter}`);
+        }
+      } catch (error) {
+        console.error('[AccountSelector] Error loading filtered accounts:', error);
+      } finally {
+        setIsLoadingAccounts(false);
+      }
+    };
+
+    loadFilteredAccounts();
+  }, [accountOwnerFilter, accountCountsPerEmployee]);
+
   // Apply account owner filtering based on role (memoized for performance)
   const baseAccounts = useMemo(() => {
+    // Helper to check if account is unassigned (includes House Account)
+    const isUnassigned = (acc: any) => !acc.accountOwner || acc.accountOwner.name === 'House Account';
+    
     if (accountOwnerFilter === 'unassigned') {
       // Show only unassigned accounts
-      return merchantAccountsWithOwners.filter(acc => !acc.accountOwner);
+      return merchantAccounts.filter(isUnassigned);
     } else if (accountOwnerFilter === 'team') {
       // DSM: Show accounts owned by anyone on their team
       const teamMembers = getAllTeamMembers(currentUser.employeeId);
       const teamMemberIds = teamMembers.map(m => m.id);
-      const filteredAccounts = merchantAccountsWithOwners.filter(acc => 
-        acc.accountOwner && teamMemberIds.includes(acc.accountOwner.id)
+      const filteredAccounts = merchantAccounts.filter(acc => 
+        acc.accountOwner && acc.accountOwner.name !== 'House Account' && teamMemberIds.includes(acc.accountOwner.id)
       );
       // Add unassigned accounts if the toggle is on
       if (showUnassignedAccounts) {
-        const unassignedAccounts = merchantAccountsWithOwners.filter(acc => !acc.accountOwner);
+        const unassignedAccounts = merchantAccounts.filter(isUnassigned);
         return [...filteredAccounts, ...unassignedAccounts];
       }
       return filteredAccounts;
     } else if (accountOwnerFilter) {
       // BD/MD or specific owner selected
-      const filteredAccounts = merchantAccountsWithOwners.filter(acc => acc.accountOwner?.id === accountOwnerFilter);
+      const filteredAccounts = merchantAccounts.filter(acc => 
+        acc.accountOwner && acc.accountOwner.name !== 'House Account' && acc.accountOwner.id === accountOwnerFilter
+      );
       // Add unassigned accounts if the toggle is on
       if (showUnassignedAccounts) {
-        const unassignedAccounts = merchantAccountsWithOwners.filter(acc => !acc.accountOwner);
+        const unassignedAccounts = merchantAccounts.filter(isUnassigned);
         return [...filteredAccounts, ...unassignedAccounts];
       }
       return filteredAccounts;
     } else {
       // MM, Admin, Executive: Show all accounts
-      return merchantAccountsWithOwners;
+      return merchantAccounts;
     }
-  }, [accountOwnerFilter, currentUser.employeeId, showUnassignedAccounts]);
+  }, [accountOwnerFilter, currentUser.employeeId, showUnassignedAccounts, merchantAccounts]);
 
   const filteredAccounts = useMemo(() => {
     return baseAccounts.filter(
-      (account) =>
-        account.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        account.businessType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        account.location.toLowerCase().includes(searchQuery.toLowerCase())
+      (account) => {
+        const locationStr = typeof account.location === 'string' ? account.location : '';
+        return (
+          account.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          account.businessType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          locationStr.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
     );
   }, [baseAccounts, searchQuery]);
 
@@ -268,7 +393,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
                   type="secondary"
                   style={{ fontSize: token.fontSizeSM }}
                 >
-                  {account.businessType} • {account.location}
+                  {account.businessType} • {typeof account.location === 'string' ? account.location : ''}
                   {account.bookingEngine && (
                     <span style={{ margin: "0 0 0 0" }}> • </span>
                   )}
@@ -500,8 +625,9 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             onFilterChange={setAccountOwnerFilter}
             showUnassigned={showUnassignedAccounts}
             onShowUnassignedChange={setShowUnassignedAccounts}
-            items={merchantAccountsWithOwners.map(acc => ({ accountOwnerId: acc.accountOwner?.id }))}
+            accountCounts={accountCountsPerEmployee}
             context="accounts"
+            isLoadingData={isLoadingAccounts}
           />
         </div>
       </div>
@@ -514,11 +640,29 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
           minHeight: 0,
           padding: `${isScrolled ? token.paddingLG : token.paddingXS}px ${
             token.paddingLG
-          }px ${token.paddingLG}px`,
+          }px 0`,
           transition: "padding-top 0.2s ease",
         }}
       >
-        {filteredAccounts.length > 0 ? (
+        {isLoadingAccounts ? (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              minHeight: "300px",
+              padding: "40px 20px",
+              gap: 16,
+            }}
+          >
+            <Spin size="large" />
+            <Text type="secondary" style={{ fontSize: token.fontSize }}>
+              Loading accounts...
+            </Text>
+          </div>
+        ) : filteredAccounts.length > 0 ? (
           <List<{}>
             listRef={listRef}
             rowCount={filteredAccounts.length}

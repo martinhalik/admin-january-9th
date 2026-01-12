@@ -55,7 +55,7 @@ function generateInitialsAvatar(options: AvatarOptions): string {
   
   return `data:image/svg+xml,${encodeURIComponent(`
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-      <rect width="${size}" height="${size}" fill="${bgColor}" rx="${size / 2}"/>
+      <rect width="${size}" height="${size}" fill="${bgColor}" rx="6"/>
       <text 
         x="50%" 
         y="50%" 
@@ -80,7 +80,7 @@ function generateAvataaarsAvatar(options: AvatarOptions): string {
   // Simple person silhouette
   return `data:image/svg+xml,${encodeURIComponent(`
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-      <rect width="${size}" height="${size}" fill="${bgColor}" rx="${size / 2}"/>
+      <rect width="${size}" height="${size}" fill="${bgColor}" rx="6"/>
       <g transform="translate(${size * 0.5}, ${size * 0.5})">
         <circle cx="0" cy="${size * -0.1}" r="${size * 0.15}" fill="white" opacity="0.9"/>
         <ellipse cx="0" cy="${size * 0.2}" rx="${size * 0.25}" ry="${size * 0.3}" fill="white" opacity="0.9"/>

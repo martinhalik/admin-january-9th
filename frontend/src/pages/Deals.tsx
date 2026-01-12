@@ -22,7 +22,6 @@ import { getDeals, isSupabaseConfigured } from "../lib/dealAdapter";
 import CreateDealModal from "../components/CreateDealModal";
 import type { TableRowSelection } from "antd/es/table/interface";
 import { merchantAccounts } from "../data/merchantAccounts";
-import { merchantAccountsWithOwners } from "../data/accountOwnerAssignments";
 import { getLocationsByAccount } from "../data/locationData";
 import DealsFilterSidebar from "../components/DealsFilterSidebar";
 import SidebarLayout from "../components/SidebarLayout";
