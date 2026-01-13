@@ -22,38 +22,33 @@ test.describe('Navigation', () => {
     await expect(page).toHaveURL(/.*tasks/);
   });
 
-  test.skip('should handle browser back button', async ({ page }) => {
-    // SKIPPED: Browser history navigation is incompatible with Supabase Auth
-    // When using page.goBack(), Supabase OAuth intercepts the navigation
-    // and redirects to /auth/login/google/ instead of the expected route.
-    // This is a known limitation when testing with Supabase configured.
-    // 
-    // Direct navigation (tested above) works correctly and covers the
-    // actual user experience since users typically click links rather than
-    // using browser history buttons.
-    
+  test('should handle browser back button', async ({ page }) => {
     await page.goto('/deals');
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
     
     await page.goto('/accounts');
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
     
     await page.goBack();
+    await page.waitForTimeout(500);
     await expect(page).toHaveURL(/.*deals/);
   });
 
-  test.skip('should handle browser forward button', async ({ page }) => {
-    // SKIPPED: Browser history navigation is incompatible with Supabase Auth
-    // See explanation in "should handle browser back button" test above.
-    
+  test('should handle browser forward button', async ({ page }) => {
     await page.goto('/deals');
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
     
     await page.goto('/accounts');
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
     
     await page.goBack();
+    await page.waitForTimeout(500);
     await page.goForward();
+    await page.waitForTimeout(500);
     await expect(page).toHaveURL(/.*accounts/);
   });
 });

@@ -7,16 +7,19 @@ test.describe('Deals Page', () => {
     await setupTestAuth(page);
   });
 
-  test.skip('should navigate to deals page', async ({ page }) => {
-    // SKIPPED: This test has issues with auth bypass timing in test environment.
-    // The auth bypass is set in beforeEach but Supabase still redirects to login
-    // when checking immediately after navigation.
-    //
-    // The actual deals page functionality is tested by the other tests in this
-    // file which wait for content to load before making assertions.
-    
+  test('should navigate to deals page', async ({ page }) => {
+    // Navigate to deals page
     await page.goto('/deals');
     await page.waitForLoadState('networkidle');
+    
+    // Wait for auth context to process
+    await page.waitForTimeout(1000);
+    
+    // Verify we're on deals page (not redirected to login)
+    await expect(page).toHaveURL(/.*deals/);
+    await expect(page).not.toHaveURL(/.*login/);
+    
+    // Verify page content loaded
     const body = page.locator('body');
     await expect(body).toBeVisible();
   });

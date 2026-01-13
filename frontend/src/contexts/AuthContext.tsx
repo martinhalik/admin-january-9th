@@ -28,21 +28,35 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Check for localhost OUTSIDE component to use in initial state
 const isLocalhostCheck = () => {
-  if (typeof window === 'undefined') return false;
-  return (
+  if (typeof window === 'undefined') {
+    console.log('[Auth] isLocalhostCheck: window undefined (SSR)');
+    return false;
+  }
+  const result = (
     window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1' ||
     window.location.hostname === ''
   );
+  console.log('[Auth] isLocalhostCheck:', result, 'hostname:', window.location.hostname);
+  return result;
 };
 
 const isTestModeCheck = () => {
   if (typeof window === 'undefined') return false;
-  return (
-    (window as any).__PLAYWRIGHT_TEST_MODE__ === true ||
-    (typeof localStorage !== 'undefined' && localStorage.getItem('test_auth_bypass') === 'true') ||
-    window.location.search.includes('test_auth=bypass')
-  );
+  
+  const playwrightFlag = (window as any).__PLAYWRIGHT_TEST_MODE__ === true;
+  const localStorageFlag = typeof localStorage !== 'undefined' && localStorage.getItem('test_auth_bypass') === 'true';
+  const queryFlag = window.location.search.includes('test_auth=bypass');
+  
+  const result = playwrightFlag || localStorageFlag || queryFlag;
+  
+  console.log('[Auth] isTestModeCheck:', result, {
+    playwright: playwrightFlag,
+    localStorage: localStorageFlag,
+    query: queryFlag
+  });
+  
+  return result;
 };
 
 // Create mock user for localhost/test mode
@@ -56,30 +70,31 @@ const createMockUser = (): User => ({
 } as User);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize with mock user if on localhost or test mode
+  // Check bypass IMMEDIATELY during initialization (synchronous)
   const shouldBypassAuth = isLocalhostCheck() || isTestModeCheck();
   
-  console.log('[Auth] AuthProvider mounting...', {
+  console.log('[Auth] Provider initializing...', {
     shouldBypassAuth,
-    hostname: typeof window !== 'undefined' ? window.location.hostname : 'undefined',
+    hostname: typeof window !== 'undefined' ? window.location.hostname : 'server',
     testMode: isTestModeCheck()
   });
-  
+
+  // Set initial state based on bypass check
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(shouldBypassAuth ? createMockUser() : null);
-  const [loading, setLoading] = useState(!shouldBypassAuth); // Don't show loading if bypassing
+  const [loading, setLoading] = useState(!shouldBypassAuth);
   const [isGrouponUser, setIsGrouponUser] = useState(shouldBypassAuth);
 
   useEffect(() => {
-    console.log('[Auth] useEffect running - checking auth bypass...');
+    console.log('[Auth] useEffect running...', { shouldBypassAuth });
     
-    // If we already bypassed auth in initial state, skip this useEffect
+    // If bypassing, we're done (already set in initial state)
     if (shouldBypassAuth) {
-      console.log('[Auth] ✅ Already bypassed in initial state');
+      console.log('[Auth] ✅ Bypassing authentication (localhost or test mode)');
       return;
     }
 
-    // Otherwise, proceed with normal Supabase auth flow
+    // Production mode - check Supabase auth
     console.log('[Auth] Production mode - checking Supabase auth...');
 
     // Check if supabase is configured
