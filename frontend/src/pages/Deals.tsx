@@ -277,7 +277,7 @@ const Deals = () => {
     // Column visibility - only include if different from default
     const defaultColumns = {
       image: true, title: true, orders: true, views: true, gp: true,
-      gpPerView: true, cr: true, margin: true, dealStart: true, stage: true, actions: true,
+      gpPerView: true, cr: true, margin: true, dealStart: true, stage: true, accountOwner: true, actions: true,
     };
     const columnsChanged = JSON.stringify(visibleColumns) !== JSON.stringify(defaultColumns);
     if (columnsChanged) {
