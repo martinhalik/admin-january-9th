@@ -5,8 +5,9 @@ test.describe('Deals Page with Auth Bypass', () => {
   test.beforeEach(async ({ page }) => {
     await setupTestAuth(page);
     await page.goto('/deals?test_auth=bypass');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000); // Wait for React to render and data to load
+    await page.waitForLoadState('domcontentloaded');
+    // Wait for table to appear instead of fixed timeout
+    await page.locator('table').first().waitFor({ timeout: 5000 }).catch(() => {});
   });
 
   test('should display Account Owner Filter after auth bypass', async ({ page }) => {
@@ -21,6 +22,16 @@ test.describe('Deals Page with Auth Bypass', () => {
     });
 
     console.log('\n=== Checking for Account Owner Filter ===\n');
+
+    // Wait for loading to complete - wait for "Loading..." text to disappear
+    const loadingText = page.locator('text=/^Loading\.\.\.$/i').first();
+    if (await loadingText.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await loadingText.waitFor({ state: 'hidden', timeout: 10000 });
+    }
+    
+    // Also wait for filters section to be ready
+    const filtersButton = page.locator('button:has-text("Filters")').first();
+    await filtersButton.waitFor({ timeout: 5000 }).catch(() => {});
 
     // Look for all buttons
     const allButtons = await page.locator('button').all();

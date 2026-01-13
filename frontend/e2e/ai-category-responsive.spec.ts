@@ -27,12 +27,11 @@ test.describe('AI Category Selector - Responsiveness', () => {
       // Wait for loading spinner to disappear (account is being fetched)
       const loadingSpinner = page.locator('text=/loading.*merchant.*account/i, .ant-spin-spinning').first();
       if (await loadingSpinner.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await loadingSpinner.waitFor({ state: 'hidden', timeout: 15000 });
+        await loadingSpinner.waitFor({ state: 'hidden', timeout: 10000 });
       }
       
-      // Wait for page to be ready (don't use networkidle as it's too strict and can timeout)
-      // Instead, wait for the main content to appear
-      await page.waitForTimeout(2000);
+      // Wait for main content to appear instead of fixed timeout
+      await page.waitForLoadState('domcontentloaded');
       
       // Check if account selection screen is shown (account doesn't exist)
       const accountSelectionVisible = await page.locator('text=/select.*merchant.*account/i').first().isVisible({ timeout: 2000 }).catch(() => false);
@@ -40,11 +39,11 @@ test.describe('AI Category Selector - Responsiveness', () => {
         console.log(`⚠️ Account ${testAccountId} not found - selecting first available account...`);
         
         // Wait for accounts to load in the list
-        await page.waitForTimeout(3000);
+        await page.waitForLoadState('domcontentloaded');
         
         // Look for account cards and select the first one
         const accountCard = page.locator('.ant-card-hoverable').first();
-        const cardVisible = await accountCard.isVisible({ timeout: 5000 }).catch(() => false);
+        const cardVisible = await accountCard.isVisible({ timeout: 3000 }).catch(() => false);
         
         if (!cardVisible) {
           console.log(`❌ No merchant accounts available - cannot proceed with test`);
@@ -56,11 +55,7 @@ test.describe('AI Category Selector - Responsiveness', () => {
         }
         
         await accountCard.click();
-        await page.waitForTimeout(2000);
-        
-        // Wait for category selector to appear after account selection
-        // Don't use networkidle - wait for specific content instead
-        await page.waitForTimeout(2000);
+        await page.waitForLoadState('domcontentloaded');
       }
       
       // Wait for AI Category Selector to load
@@ -76,7 +71,7 @@ test.describe('AI Category Selector - Responsiveness', () => {
       }
       
       // Wait for content to be ready
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
       
       // Take a full page screenshot
       await page.screenshot({
@@ -86,7 +81,8 @@ test.describe('AI Category Selector - Responsiveness', () => {
       
       // Scroll to the bottom to capture the fixed footer
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-      await page.waitForTimeout(500);
+      // Small wait for scroll animation
+      await page.waitForLoadState('domcontentloaded');
       
       // Take screenshot of the bottom fixed footer
       const footer = page.locator('[style*="position: fixed"][style*="bottom: 0"]').first();
@@ -136,12 +132,11 @@ test.describe('AI Category Selector - Responsiveness', () => {
       // Wait for loading spinner to disappear (account is being fetched)
       const loadingSpinner = page.locator('text=/loading.*merchant.*account/i, .ant-spin-spinning').first();
       if (await loadingSpinner.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await loadingSpinner.waitFor({ state: 'hidden', timeout: 15000 });
+        await loadingSpinner.waitFor({ state: 'hidden', timeout: 10000 });
       }
       
-      // Wait for page to be ready (don't use networkidle as it's too strict and can timeout)
-      // Instead, wait for the main content to appear
-      await page.waitForTimeout(2000);
+      // Wait for main content to appear instead of fixed timeout
+      await page.waitForLoadState('domcontentloaded');
       
       // Check if account selection screen is shown (account doesn't exist)
       const accountSelectionVisible = await page.locator('text=/select.*merchant.*account/i').first().isVisible({ timeout: 2000 }).catch(() => false);
@@ -149,11 +144,11 @@ test.describe('AI Category Selector - Responsiveness', () => {
         console.log(`⚠️ Account ${testAccountId} not found - selecting first available account for ${viewport.name}...`);
         
         // Wait for accounts to load in the list
-        await page.waitForTimeout(3000);
+        await page.waitForLoadState('domcontentloaded');
         
         // Look for account cards and select the first one
         const accountCard = page.locator('.ant-card-hoverable').first();
-        const cardVisible = await accountCard.isVisible({ timeout: 5000 }).catch(() => false);
+        const cardVisible = await accountCard.isVisible({ timeout: 3000 }).catch(() => false);
         
         if (!cardVisible) {
           console.log(`❌ No merchant accounts available for ${viewport.name} - skipping`);
@@ -161,16 +156,11 @@ test.describe('AI Category Selector - Responsiveness', () => {
         }
         
         await accountCard.click();
-        await page.waitForTimeout(2000);
-        
-        // Wait for category selector to appear after account selection
-        // Don't use networkidle - wait for specific content instead
-        await page.waitForTimeout(2000);
+        await page.waitForLoadState('domcontentloaded');
       }
       
       try {
-        await page.waitForSelector('text=Select Category', { timeout: 10000 });
-        await page.waitForTimeout(500);
+        await page.waitForSelector('text=Select Category', { timeout: 8000 });
         
         // Try to open the sidebar if it exists
         const sidebarTab = page.locator('[role="tablist"]').first();
@@ -178,7 +168,7 @@ test.describe('AI Category Selector - Responsiveness', () => {
           const tabs = await sidebarTab.locator('[role="tab"]').all();
           if (tabs.length > 0) {
             await tabs[0].click();
-            await page.waitForTimeout(300);
+            await page.waitForLoadState('domcontentloaded');
             
             // Take screenshot with sidebar open
             await page.screenshot({

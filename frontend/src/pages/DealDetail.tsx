@@ -1839,6 +1839,14 @@ Don't miss this opportunity to enjoy ${businessType} excellence at an unbeatable
     };
   }, []);
 
+  // #region agent log - MOVED BEFORE EARLY RETURN TO FIX HOOKS ORDER
+  React.useEffect(() => {
+    if (deal) {
+      fetch('http://127.0.0.1:7242/ingest/eec779b3-74e7-4829-a8e6-818a27f11014',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DealDetail.tsx:2283',message:'Deal loaded successfully',data:{dealId:deal.id,dealTitle:deal.title,dealLocation:deal.location,dealAccountId:deal.accountId,hasSelectedMerchant:!!selectedMerchantAccount,selectedMerchantName:selectedMerchantAccount?.name},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C'})}).catch(()=>{});
+    }
+  }, [deal?.id, selectedMerchantAccount]);
+  // #endregion
+
   // Helper function to initialize deal data
   const initializeDealData = (dealData: any) => {
     setDeal(dealData);
@@ -2284,15 +2292,6 @@ Don't miss this opportunity to enjoy ${businessType} excellence at an unbeatable
     // Simple loading for non-draft deals
     return <Card loading={loading} />;
   }
-
-
-  // #region agent log - MOVED BEFORE EARLY RETURN TO FIX HOOKS ORDER
-  React.useEffect(() => {
-    if (deal) {
-      fetch('http://127.0.0.1:7242/ingest/eec779b3-74e7-4829-a8e6-818a27f11014',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DealDetail.tsx:2283',message:'Deal loaded successfully',data:{dealId:deal.id,dealTitle:deal.title,dealLocation:deal.location,dealAccountId:deal.accountId,hasSelectedMerchant:!!selectedMerchantAccount,selectedMerchantName:selectedMerchantAccount?.name},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C'})}).catch(()=>{});
-    }
-  }, [deal?.id, selectedMerchantAccount]);
-  // #endregion
 
   // Safety check - deal must exist beyond this point
   if (!deal) {

@@ -5,28 +5,25 @@ test.describe('Theme Toggle', () => {
   test.beforeEach(async ({ page }) => {
     await setupTestAuth(page);
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('should toggle between light and dark mode', async ({ page }) => {
     // Look for theme toggle button
     const themeToggle = page.locator('button[aria-label*="theme" i], button[title*="theme" i], button:has-text("Theme")').first();
     
-    if (await themeToggle.isVisible()) {
+    if (await themeToggle.isVisible({ timeout: 3000 }).catch(() => false)) {
       // Get initial theme
-      const initialHtml = await page.locator('html').getAttribute('class');
+      const initialTheme = await page.evaluate(() => localStorage.getItem('theme'));
       
       // Click toggle
       await themeToggle.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('domcontentloaded');
       
-      // Check if theme changed
-      const newHtml = await page.locator('html').getAttribute('class');
-      
-      // Verify theme changed (either class changed or localStorage updated)
-      const initialTheme = await page.evaluate(() => localStorage.getItem('theme'));
+      // Click again to toggle back
       await themeToggle.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('domcontentloaded');
+      
       const newTheme = await page.evaluate(() => localStorage.getItem('theme'));
       
       expect(initialTheme).not.toBe(newTheme);
@@ -39,7 +36,7 @@ test.describe('Theme Toggle', () => {
     
     // Reload page
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Check if theme persisted
     const theme = await page.evaluate(() => localStorage.getItem('theme'));
