@@ -151,20 +151,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Get the redirect URL - use environment variable if set, otherwise use current origin
     // This ensures production deployments use the correct URL
+    // IMPORTANT: The URL must be added to Supabase's allowed redirect URLs in the dashboard
     const getRedirectUrl = () => {
       // Check for explicit production URL (set in Vercel environment variables)
       const prodUrl = import.meta.env.VITE_PRODUCTION_URL;
       if (prodUrl) {
-        console.log('[Auth] Using explicit production URL:', prodUrl);
-        return prodUrl;
+        // Ensure URL is a valid absolute URL with protocol
+        let url = String(prodUrl).trim();
+        
+        // Remove any leading/trailing whitespace or slashes
+        url = url.replace(/^\/+|\/+$/g, '');
+        
+        // Ensure it starts with http:// or https://
+        if (!url.match(/^https?:\/\//i)) {
+          url = `https://${url}`;
+        }
+        
+        // Remove trailing slash
+        url = url.replace(/\/$/, '');
+        
+        // Validate it's a proper URL
+        try {
+          new URL(url);
+        } catch (e) {
+          console.error('[Auth] Invalid production URL format:', prodUrl);
+          throw new Error(`Invalid VITE_PRODUCTION_URL format: ${prodUrl}. Must be a valid URL like https://example.com`);
+        }
+        
+        console.log('[Auth] Using explicit production URL:', url);
+        return url;
       }
       
       // Fallback to current origin (works for both localhost and production)
-      console.log('[Auth] Using window.location.origin:', window.location.origin);
-      return window.location.origin;
+      const origin = window.location.origin;
+      console.log('[Auth] Using window.location.origin:', origin);
+      console.warn('[Auth] ⚠️ VITE_PRODUCTION_URL not set!');
+      console.warn('[Auth] ⚠️ Make sure this URL is added to Supabase allowed redirect URLs:', origin);
+      return origin;
     };
 
     const redirectUrl = getRedirectUrl();
+    console.log('[Auth] Redirect URL being sent to Supabase:', redirectUrl);
+    console.log('[Auth] Redirect URL type:', typeof redirectUrl);
+    console.log('[Auth] Current window location:', window.location.href);
+    console.log('[Auth] ⚠️ If you see "requested path is invalid" error, add this URL to Supabase Dashboard:');
+    console.log('[Auth]    Authentication > URL Configuration > Redirect URLs:', redirectUrl);
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -180,7 +211,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     if (error) {
-      console.error('Error signing in with Google:', error);
+      console.error('[Auth] Error signing in with Google:', error);
+    } else {
+      console.log('[Auth] OAuth redirect initiated successfully');
     }
   };
 
