@@ -147,8 +147,8 @@ const Deals = () => {
     };
   });
 
-  // Track if we've initialized the default filter
-  const defaultFilterInitialized = useRef(false);
+  // Track if we've initialized the default filter (stores role key or false)
+  const defaultFilterInitialized = useRef<string | false>(false);
   
   // Set default filter based on role when currentUser is available
   // Only sets default once, if no URL param exists
@@ -158,7 +158,7 @@ const Deals = () => {
     // If URL param exists, mark as initialized and don't set default
     if (urlOwnerFilter !== null) {
       if (!defaultFilterInitialized.current) {
-        defaultFilterInitialized.current = true;
+        defaultFilterInitialized.current = 'url-param';
       }
       return;
     }
@@ -216,7 +216,7 @@ const Deals = () => {
       // Update filter if it's different (avoid unnecessary updates)
       if (newFilter !== accountOwnerFilter) {
         setAccountOwnerFilter(newFilter);
-        defaultFilterInitialized.current = true; // Mark as initialized when syncing from URL
+        defaultFilterInitialized.current = 'url-sync'; // Mark as initialized when syncing from URL
       }
     } else {
       // URL param removed - reset initialization flag so defaults can be reapplied
