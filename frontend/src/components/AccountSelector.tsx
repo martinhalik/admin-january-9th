@@ -35,7 +35,7 @@ import ScoreProgress from "./ScoreProgress";
 import { PotentialTag } from "../utils/potentialHelpers";
 import { useRoleView } from "../contexts/RoleViewContext";
 import AccountOwnerFilter from "./AccountOwnerFilter";
-import { getAllTeamMembers } from "../data/companyHierarchy";
+import { getAllTeamMembers, loadEmployees } from "../data/companyHierarchy";
 import { getAccountOwnerDisplayName } from "../utils/accountOwnerHelpers";
 
 const { Text, Title, Paragraph } = Typography;
@@ -91,6 +91,9 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       setIsLoadingAccounts(true);
       
       try {
+        // Ensure employees are loaded first (needed for AccountOwnerFilter)
+        await loadEmployees();
+        
         // Use the initial filter that was set during state initialization
         const initialFilter = initialFilterRef.current;
         const shouldFilterByOwner = (currentRole === 'bd' || currentRole === 'md');

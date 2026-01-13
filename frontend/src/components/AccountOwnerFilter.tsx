@@ -12,7 +12,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Dropdown, Typography, Avatar, theme, Button, Badge, Input, Checkbox, Space, Spin } from 'antd';
 import { ChevronDown, Check, X, Search, HelpCircle } from 'lucide-react';
 import { useRoleView } from '../contexts/RoleViewContext';
-import { getEmployeeById, getAllTeamMembers, getAllEmployees } from '../data/companyHierarchy';
+import { getEmployeeById, getAllTeamMembers, getAllEmployees, loadEmployees } from '../data/companyHierarchy';
 import { fetchEmployeesByRolePaginated, getAccountOwnersCount, type EmployeeWithCounts } from '../lib/supabaseData';
 import { supabase } from '../lib/supabase';
 import type { MenuProps } from 'antd';
@@ -138,11 +138,23 @@ export const AccountOwnerFilter: React.FC<AccountOwnerFilterProps> = ({
     }
   }, [hasMore, loading, page, searchQuery, loadOwners, owners.length]);
 
-  // Check if hierarchy data is loaded - if not, don't render
+  // Load employees if not already loaded
+  const [employeesLoaded, setEmployeesLoaded] = useState(false);
   const allEmployees = getAllEmployees();
-  if (allEmployees.length === 0) {
-    return null; // Data not loaded yet
-  }
+  
+  useEffect(() => {
+    if (allEmployees.length === 0) {
+      // Try to load employees
+      loadEmployees().then(() => {
+        setEmployeesLoaded(true);
+      }).catch((err) => {
+        console.error('[AccountOwnerFilter] Error loading employees:', err);
+        setEmployeesLoaded(true); // Set to true anyway to render with empty state
+      });
+    } else {
+      setEmployeesLoaded(true);
+    }
+  }, [allEmployees.length]);
 
   // Get current employee - with null check for data not loaded
   // If not found, we'll still render but with limited functionality
@@ -151,6 +163,25 @@ export const AccountOwnerFilter: React.FC<AccountOwnerFilterProps> = ({
   // If no current user context at all, don't render
   if (!currentUser) {
     return null;
+  }
+  
+  // Show loading state while employees are being loaded
+  if (!employeesLoaded && allEmployees.length === 0) {
+    return (
+      <Button
+        style={{
+          height: 32,
+          padding: '0 12px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
+        loading={true}
+        disabled={true}
+      >
+        <Text style={{ fontSize: 14 }}>Loading...</Text>
+      </Button>
+    );
   }
 
   // Helper functions
