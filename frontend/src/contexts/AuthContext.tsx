@@ -33,19 +33,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isGrouponUser, setIsGrouponUser] = useState(false);
 
   useEffect(() => {
-    // Check if running on localhost - bypass authentication for local development
-    const isLocalhost = 
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1' ||
-      window.location.hostname === '';
-
-    // Check for test mode (Playwright/E2E testing)
+    // Check for test mode first (Playwright/E2E testing) - before localStorage/window checks
     const isTestMode = 
-      window.location.search.includes('test_auth=bypass') ||
-      localStorage.getItem('test_auth_bypass') === 'true' ||
-      (window as any).__PLAYWRIGHT_TEST_MODE__ === true;
+      (typeof window !== 'undefined' && (window as any).__PLAYWRIGHT_TEST_MODE__ === true) ||
+      (typeof localStorage !== 'undefined' && localStorage.getItem('test_auth_bypass') === 'true') ||
+      (typeof window !== 'undefined' && window.location.search.includes('test_auth=bypass'));
 
+    // Check if running on localhost - bypass authentication for local development
+    // IMPORTANT: This bypasses auth even if Supabase is configured, for easier development
+    const isLocalhost = 
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' ||
+       window.location.hostname === '127.0.0.1' ||
+       window.location.hostname === '');
+
+    // ALWAYS bypass auth on localhost or in test mode, regardless of Supabase configuration
+    // This makes local development and testing much easier
     if (isLocalhost || isTestMode) {
+      console.log('[Auth] Bypassing authentication (localhost or test mode)');
       // Create a mock user for local development - using CEO employee ID that exists in hierarchy
       const mockUser = {
         id: 'emp-ceo-1',  // Use actual employee ID from company hierarchy
@@ -114,10 +119,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
+    // Get the redirect URL - use environment variable if set, otherwise use current origin
+    // This ensures production deployments use the correct URL
+    const getRedirectUrl = () => {
+      // Check for explicit production URL
+      const prodUrl = import.meta.env.VITE_PRODUCTION_URL;
+      if (prodUrl) {
+        console.log('[Auth] Using explicit production URL:', prodUrl);
+        return prodUrl;
+      }
+      
+      // For Vercel deployments, use VITE_VERCEL_URL if available
+      const vercelUrl = import.meta.env.VITE_VERCEL_URL;
+      if (vercelUrl) {
+        const fullUrl = vercelUrl.startsWith('http') ? vercelUrl : `https://${vercelUrl}`;
+        console.log('[Auth] Using Vercel URL:', fullUrl);
+        return fullUrl;
+      }
+      
+      // Fallback to current origin (works for both localhost and production)
+      console.log('[Auth] Using window.location.origin:', window.location.origin);
+      return window.location.origin;
+    };
+
+    const redirectUrl = getRedirectUrl();
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: redirectUrl,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',

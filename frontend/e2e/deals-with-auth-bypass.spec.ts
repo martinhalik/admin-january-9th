@@ -1,13 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { setupTestAuth } from './test-helpers';
 
 test.describe('Deals Page with Auth Bypass', () => {
   test.beforeEach(async ({ page }) => {
-    // Enable test auth bypass
-    await page.addInitScript(() => {
-      (window as any).__PLAYWRIGHT_TEST_MODE__ = true;
-    });
-    
-    // Navigate to deals page with test auth bypass parameter
+    await setupTestAuth(page);
     await page.goto('/deals?test_auth=bypass');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000); // Wait for React to render and data to load
