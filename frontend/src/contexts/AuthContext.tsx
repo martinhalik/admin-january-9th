@@ -152,19 +152,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Get the redirect URL - use environment variable if set, otherwise use current origin
     // This ensures production deployments use the correct URL
     const getRedirectUrl = () => {
-      // Check for explicit production URL
+      // Check for explicit production URL (set in Vercel environment variables)
       const prodUrl = import.meta.env.VITE_PRODUCTION_URL;
       if (prodUrl) {
         console.log('[Auth] Using explicit production URL:', prodUrl);
         return prodUrl;
-      }
-      
-      // For Vercel deployments, use VITE_VERCEL_URL if available
-      const vercelUrl = import.meta.env.VITE_VERCEL_URL;
-      if (vercelUrl) {
-        const fullUrl = vercelUrl.startsWith('http') ? vercelUrl : `https://${vercelUrl}`;
-        console.log('[Auth] Using Vercel URL:', fullUrl);
-        return fullUrl;
       }
       
       // Fallback to current origin (works for both localhost and production)
