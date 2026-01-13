@@ -10,13 +10,14 @@ import {
   Input,
   Tooltip,
   Switch,
+  Spin,
 } from "antd";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Sparkles, Search, TrendingUp, Briefcase, Compass, FileText, Clock, Settings } from "lucide-react";
 import { saveDeal } from "../lib/api";
 import { getMockDeal, getAccountLocationIds } from "../data/mockDeals";
 import { MerchantAccount } from "../data/merchantAccounts";
-import { getMerchantAccountsWithOwners, getMerchantAccount } from "../data/accountOwnerAssignments";
+import { getMerchantAccountsWithOwners, getMerchantAccount, getMerchantAccountsWithOwnersAsync } from "../data/accountOwnerAssignments";
 import AICategorySelector from "./AICategorySelector";
 import AIAdvisorySidebar from "./AIAdvisorySidebar";
 import GoogleWorkspaceSidebar, { SIDEBAR_CONSTANTS } from "./GoogleWorkspaceSidebar";
@@ -64,6 +65,7 @@ const AIGenerationFlow: React.FC<AIGenerationFlowProps> = ({
   const [selectedAccount, setSelectedAccount] =
     useState<MerchantAccount | null>(preSelectedAccount || null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [expectations, setExpectations] = useState<{
     totalProjectedRevenue: number;
     totalProjectedOrders: number;
@@ -115,6 +117,25 @@ const AIGenerationFlow: React.FC<AIGenerationFlowProps> = ({
   
   // Track if we auto-opened the sidebar for option/settings view
   const wasAutoOpenedRef = React.useRef<boolean>(false);
+
+  // Load accounts if we're on account selection screen and accounts aren't loaded
+  useEffect(() => {
+    if (currentStep === "account") {
+      const accounts = getMerchantAccountsWithOwners();
+      if (accounts.length === 0) {
+        // Accounts not loaded yet, load them
+        setIsLoadingAccounts(true);
+        getMerchantAccountsWithOwnersAsync()
+          .then(() => {
+            setIsLoadingAccounts(false);
+          })
+          .catch((error) => {
+            console.error('[AIGenerationFlow] Error loading accounts:', error);
+            setIsLoadingAccounts(false);
+          });
+      }
+    }
+  }, [currentStep]);
 
   // Ensure accountId is in URL if account is selected
   useEffect(() => {
@@ -617,23 +638,29 @@ const AIGenerationFlow: React.FC<AIGenerationFlowProps> = ({
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{ marginBottom: 16 }}
           size="large"
+          disabled={isLoadingAccounts}
         />
 
-        <Space direction="vertical" size="small" style={{ width: "100%" }}>
-          {getMerchantAccountsWithOwners()
-            .filter(
-              (account) =>
-                account.name
-                  .toLowerCase()
-                  .includes(searchQuery.toLowerCase()) ||
-                account.businessType
-                  .toLowerCase()
-                  .includes(searchQuery.toLowerCase()) ||
-                account.location
-                  .toLowerCase()
-                  .includes(searchQuery.toLowerCase())
-            )
-            .map((account) => (
+        {isLoadingAccounts ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <Spin size="large" tip="Loading merchant accounts..." />
+          </div>
+        ) : (
+          <Space direction="vertical" size="small" style={{ width: "100%" }}>
+            {getMerchantAccountsWithOwners()
+              .filter(
+                (account) =>
+                  account.name
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
+                  account.businessType
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
+                  account.location
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase())
+              )
+              .map((account) => (
               <Card
                 key={account.id}
                 hoverable
@@ -745,7 +772,8 @@ const AIGenerationFlow: React.FC<AIGenerationFlowProps> = ({
                 </div>
               </Card>
             ))}
-        </Space>
+          </Space>
+        )}
 
         <Space
           style={{

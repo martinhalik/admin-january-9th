@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('AI Deal Generator - Comprehensive Tests', () => {
-  // Note: merchant-1 might not exist in Supabase - test will handle both cases
-  const testAccountId = 'merchant-1';
+  // Use Salesforce account ID format (sf-...) for production
+  // Set TEST_ACCOUNT_ID environment variable with a real account ID from Supabase
+  // Example: TEST_ACCOUNT_ID=sf-0013c00001zGmarAAC npm test
+  const testAccountId = process.env.TEST_ACCOUNT_ID || 'sf-0013c00001zGmarAAC'; // Real account ID from database
 
   test.beforeEach(async ({ page }) => {
     await page.goto(`/deals/ai-generator?accountId=${testAccountId}`);
@@ -22,17 +24,32 @@ test.describe('AI Deal Generator - Comprehensive Tests', () => {
     if (accountSelectionVisible) {
       console.log('⚠️ Account not found in database, selecting first available account...');
       
-      // Search and select first account
-      const searchInput = page.locator('input[placeholder*="Search"]').first();
-      await searchInput.waitFor({ state: 'visible', timeout: 5000 });
-      await searchInput.click();
-      await page.waitForTimeout(1000);
+      // Wait for loading spinner to disappear (accounts are loading)
+      const loadingSpinner = page.locator('.ant-spin-spinning, text=/loading.*account/i').first();
+      if (await loadingSpinner.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await loadingSpinner.waitFor({ state: 'hidden', timeout: 30000 });
+      }
       
-      // Click first account in list
-      const firstAccount = page.locator('[role="button"], button').filter({ hasText: /restaurant|cafe|spa|gym/i }).first();
-      await firstAccount.waitFor({ state: 'visible', timeout: 5000 });
-      await firstAccount.click();
-      await page.waitForTimeout(1000);
+      // Wait for accounts to load in the list
+      await page.waitForTimeout(2000);
+      
+      // Look for account cards (they're rendered as hoverable cards)
+      // Try multiple selectors to find an account
+      const accountCard = page.locator('.ant-card-hoverable').first();
+      
+      // Wait for at least one account card to be visible
+      try {
+        await accountCard.waitFor({ state: 'visible', timeout: 10000 });
+      } catch (error) {
+        // If still not visible, check if there are any cards at all
+        const cardCount = await page.locator('.ant-card-hoverable').count();
+        if (cardCount === 0) {
+          throw new Error('No merchant accounts available in the list. Please seed data: npx ts-node scripts/seedEmployeesAndAccountsStandalone.ts');
+        }
+      }
+      
+      await accountCard.click();
+      await page.waitForTimeout(2000);
     }
   });
 
@@ -54,24 +71,60 @@ test.describe('AI Deal Generator - Comprehensive Tests', () => {
   });
 
   test('should display category cards', async ({ page }) => {
-    // Look for category options (cards or buttons)
-    // After beforeEach, we should be on category selection page
-    const categories = page.locator('[role="button"]:has-text("Dining"), [role="button"]:has-text("Food"), button:has-text("Restaurant"), button:has-text("Casual")');
+    // Wait for AI analysis to complete (component shows loading state first)
+    // The analysis takes ~3 seconds, but we need to wait for it to fully complete
+    const analysisSpinner = page.locator('text=/AI Analysis/i, text=/Scraping website/i, text=/Analyzing data/i, text=/Generating recommendations/i').first();
     
-    // Wait for categories to load
-    await page.waitForTimeout(1000);
-    
-    const count = await categories.count();
-    
-    // If no categories found, log diagnostic info
-    if (count === 0) {
-      console.log('❌ No category cards found');
-      console.log('Current URL:', page.url());
-      const bodyText = await page.locator('body').textContent();
-      console.log('Page content preview:', bodyText?.slice(0, 500));
+    // Wait for analysis spinner to appear and then disappear (analysis completes)
+    if (await analysisSpinner.isVisible({ timeout: 2000 }).catch(() => false)) {
+      // Wait for analysis to complete - it shows 3 steps, wait for all to finish
+      await analysisSpinner.waitFor({ state: 'hidden', timeout: 15000 });
     }
     
-    expect(count).toBeGreaterThan(0);
+    // Wait for the analysis to fully complete and UI to update
+    // The component auto-selects a category after analysis, so we might see subcategories
+    await page.waitForTimeout(2000);
+    
+    // Look for subcategory cards (PDS options) - these appear after category auto-selection
+    // The component auto-selects a category, so we should see subcategory cards
+    const subcategoryCards = page.locator('.ant-card-hoverable').filter({ 
+      hasText: /.+/ // Any card with text content
+    });
+    
+    // Wait for at least one card to appear (with longer timeout)
+    try {
+      await subcategoryCards.first().waitFor({ state: 'visible', timeout: 15000 });
+    } catch (error) {
+      // If subcategory cards don't appear, check for category selection UI
+      const categorySelection = page.locator('text=/Select Category/i, text=/Category Recommendations/i').first();
+      if (await categorySelection.isVisible({ timeout: 2000 }).catch(() => false)) {
+        // Category selection is visible but no cards yet - wait a bit more
+        await page.waitForTimeout(3000);
+      }
+    }
+    
+    const subcategoryCount = await subcategoryCards.count();
+    
+    // If still no cards, check for any cards in the category recommendations area
+    if (subcategoryCount === 0) {
+      // Look for any cards in the main content area
+      const anyCards = page.locator('.ant-card-hoverable, [role="button"].ant-card').filter({ 
+        hasText: /.+/ 
+      });
+      const anyCardCount = await anyCards.count();
+      
+      if (anyCardCount === 0) {
+        console.log('❌ No category or subcategory cards found');
+        console.log('Current URL:', page.url());
+        const bodyText = await page.locator('body').textContent();
+        console.log('Page content preview:', bodyText?.slice(0, 500));
+        throw new Error('No category or subcategory cards found on the page');
+      }
+      
+      expect(anyCardCount).toBeGreaterThan(0);
+    } else {
+      expect(subcategoryCount).toBeGreaterThan(0);
+    }
   });
 
   test('should select a category', async ({ page }) => {

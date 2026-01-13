@@ -3,8 +3,8 @@ import { test, expect } from '@playwright/test';
 test.describe('AI Category Selector - Responsiveness', () => {
   // Use Salesforce account ID format (sf-...) for production
   // Set TEST_ACCOUNT_ID environment variable with a real account ID from Supabase
-  // Example: TEST_ACCOUNT_ID=sf-0053c00000Bx01UAAR npm test
-  const testAccountId = process.env.TEST_ACCOUNT_ID || 'sf-001'; // Must be a real account ID in production
+  // Example: TEST_ACCOUNT_ID=sf-0013c00001zGmarAAC npm test
+  const testAccountId = process.env.TEST_ACCOUNT_ID || 'sf-0013c00001zGmarAAC'; // Real account ID from database
   
   const viewports = [
     { width: 375, height: 667, name: 'mobile' },      // Mobile
@@ -25,13 +25,14 @@ test.describe('AI Category Selector - Responsiveness', () => {
       await page.waitForLoadState('domcontentloaded');
       
       // Wait for loading spinner to disappear (account is being fetched)
-      const loadingSpinner = page.locator('text=/loading.*merchant.*account/i, .ant-spin').first();
+      const loadingSpinner = page.locator('text=/loading.*merchant.*account/i, .ant-spin-spinning').first();
       if (await loadingSpinner.isVisible({ timeout: 2000 }).catch(() => false)) {
         await loadingSpinner.waitFor({ state: 'hidden', timeout: 15000 });
       }
       
-      // Wait for network to be idle after account fetch
-      await page.waitForLoadState('networkidle');
+      // Wait for page to be ready (don't use networkidle as it's too strict and can timeout)
+      // Instead, wait for the main content to appear
+      await page.waitForTimeout(2000);
       
       // Check if account selection screen is shown (account doesn't exist)
       const accountSelectionVisible = await page.locator('text=/select.*merchant.*account/i').first().isVisible({ timeout: 2000 }).catch(() => false);
@@ -58,7 +59,8 @@ test.describe('AI Category Selector - Responsiveness', () => {
         await page.waitForTimeout(2000);
         
         // Wait for category selector to appear after account selection
-        await page.waitForLoadState('networkidle');
+        // Don't use networkidle - wait for specific content instead
+        await page.waitForTimeout(2000);
       }
       
       // Wait for AI Category Selector to load
@@ -132,13 +134,14 @@ test.describe('AI Category Selector - Responsiveness', () => {
       await page.waitForLoadState('domcontentloaded');
       
       // Wait for loading spinner to disappear (account is being fetched)
-      const loadingSpinner = page.locator('text=/loading.*merchant.*account/i, .ant-spin').first();
+      const loadingSpinner = page.locator('text=/loading.*merchant.*account/i, .ant-spin-spinning').first();
       if (await loadingSpinner.isVisible({ timeout: 2000 }).catch(() => false)) {
         await loadingSpinner.waitFor({ state: 'hidden', timeout: 15000 });
       }
       
-      // Wait for network to be idle after account fetch
-      await page.waitForLoadState('networkidle');
+      // Wait for page to be ready (don't use networkidle as it's too strict and can timeout)
+      // Instead, wait for the main content to appear
+      await page.waitForTimeout(2000);
       
       // Check if account selection screen is shown (account doesn't exist)
       const accountSelectionVisible = await page.locator('text=/select.*merchant.*account/i').first().isVisible({ timeout: 2000 }).catch(() => false);
@@ -161,7 +164,8 @@ test.describe('AI Category Selector - Responsiveness', () => {
         await page.waitForTimeout(2000);
         
         // Wait for category selector to appear after account selection
-        await page.waitForLoadState('networkidle');
+        // Don't use networkidle - wait for specific content instead
+        await page.waitForTimeout(2000);
       }
       
       try {

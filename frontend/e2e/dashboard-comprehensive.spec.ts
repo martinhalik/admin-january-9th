@@ -12,10 +12,10 @@ test.describe('Dashboard - Comprehensive Tests', () => {
     // Check URL
     await expect(page).toHaveURL('/');
     
-    // Check main navigation is present
-    await expect(page.getByRole('link', { name: /dashboard/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /deals/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /accounts/i })).toBeVisible();
+    // Check main navigation is present (navigation items are divs, not links)
+    await expect(page.locator('header').getByText('Dashboard')).toBeVisible();
+    await expect(page.locator('header').getByText('Deals')).toBeVisible();
+    await expect(page.locator('header').getByText('Accounts')).toBeVisible();
   });
 
   test('should display key metrics and stats', async ({ page }) => {
@@ -50,7 +50,11 @@ test.describe('Dashboard - Comprehensive Tests', () => {
   });
 
   test('should navigate to deals page from dashboard', async ({ page }) => {
-    await page.getByRole('link', { name: /deals/i }).first().click();
+    // Navigation items are divs with onClick handlers, not links
+    // Target the header navigation specifically to avoid clicking content links
+    const dealsNavItem = page.locator('header').getByText('Deals').first();
+    await expect(dealsNavItem).toBeVisible();
+    await dealsNavItem.click();
     await page.waitForLoadState('domcontentloaded');
     
     await expect(page).toHaveURL(/.*deals/);

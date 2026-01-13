@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Create Deal Flow - AI Generator', () => {
-  const testAccountId = 'merchant-1';
+  // Use Salesforce account ID format (sf-...) for production
+  // Set TEST_ACCOUNT_ID environment variable with a real account ID from Supabase
+  // Example: TEST_ACCOUNT_ID=sf-0013c00001zGmarAAC npm test
+  const testAccountId = process.env.TEST_ACCOUNT_ID || 'sf-0013c00001zGmarAAC'; // Real account ID from database
 
   test.beforeEach(async ({ page }) => {
     await page.goto(`/deals/ai-generator?accountId=${testAccountId}`);
@@ -41,15 +44,19 @@ test.describe('Create Deal Flow - AI Generator', () => {
 
   test('should show account selection when no account provided', async ({ page }) => {
     await page.goto('/deals/ai-generator');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
     
-    // Should redirect to deals or show account selection
+    // The component redirects immediately when no accountId is provided
+    // Wait for redirect to /deals page (without ai-generator in URL)
+    // Use waitForFunction to check URL condition
+    await page.waitForFunction(() => {
+      const url = window.location.href;
+      return url.includes('/deals') && !url.includes('ai-generator');
+    }, { timeout: 10000 });
+    
+    // Verify final URL
     const url = page.url();
-    const isOnDeals = url.includes('/deals') && !url.includes('ai-generator');
-    const hasAccountSelection = await page.locator('text=/select.*account/i, text=/choose.*merchant/i').first().isVisible({ timeout: 3000 });
-    
-    expect(isOnDeals || hasAccountSelection).toBeTruthy();
+    expect(url).toContain('/deals');
+    expect(url).not.toContain('ai-generator');
   });
 
   test('should preserve selected account on page refresh', async ({ page }) => {
