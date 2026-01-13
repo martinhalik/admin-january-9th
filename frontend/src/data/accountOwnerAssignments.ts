@@ -13,6 +13,7 @@ import {
   type MerchantAccount as SupabaseMerchantAccount 
 } from '../lib/supabaseData';
 import { generateAvatar } from '../lib/avatarGenerator';
+import { mockLocations } from './locationData';
 
 // Cache for merchant accounts
 let accountsCache: MerchantAccount[] | null = null;
@@ -141,6 +142,14 @@ function generateScoutData(acc: SupabaseMerchantAccount, accountIndex: number) {
     };
   });
   
+  // Generate mock coordinates (spread around a central point for variety)
+  // Base coordinates: somewhere in the US (39.8283° N, 98.5795° W - geographic center of US)
+  const baseLat = 39.8283;
+  const baseLng = -98.5795;
+  // Spread coordinates over ~1000 mile radius
+  const latOffset = ((accountIndex * 7) % 200 - 100) * 0.1; // ±10 degrees
+  const lngOffset = ((accountIndex * 11) % 200 - 100) * 0.1; // ±10 degrees
+  
   // Create location object with hours for MerchantInfoCard
   const location = {
     id: `loc-${acc.id}`,
@@ -151,6 +160,10 @@ function generateScoutData(acc: SupabaseMerchantAccount, accountIndex: number) {
       state: acc.location.split(',')[1]?.trim() || '',
       zipCode: '',
       country: 'USA',
+    },
+    coordinates: {
+      latitude: baseLat + latOffset,
+      longitude: baseLng + lngOffset,
     },
     phone: '',
     hours,
@@ -213,6 +226,11 @@ function convertSupabaseMerchantAccount(acc: any, index: number): MerchantAccoun
 
   // Generate enriched scout data
   const scoutData = generateScoutData(acc, index);
+  
+  // Add location to mockLocations for map component
+  if (scoutData.location && acc.id) {
+    mockLocations[acc.id] = [scoutData.location];
+  }
   
   // Generate more realistic potential analysis scores
   const baseScore = acc.potential === 'high' ? 85 : acc.potential === 'mid' ? 65 : 45;
@@ -282,7 +300,7 @@ function convertSupabaseMerchantAccount(acc: any, index: number): MerchantAccoun
     businessHours: scoutData.businessHours,
     popularTimes: scoutData.popularTimes,
     nearbyCompetitors: scoutData.nearbyCompetitors,
-    location: scoutData.location,
+    locationData: scoutData.location,
   };
 }
 

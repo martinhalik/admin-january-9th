@@ -357,6 +357,44 @@ export async function fetchMerchantAccounts(): Promise<MerchantAccount[]> {
 }
 
 /**
+ * Fetch a single merchant account by ID
+ */
+export async function fetchMerchantAccountById(accountId: string): Promise<MerchantAccount | null> {
+  const { data, error } = await supabase
+    .from('merchant_accounts')
+    .select(`
+      *,
+      owner:employees!account_owner_id (
+        id,
+        name,
+        email,
+        role,
+        avatar
+      )
+    `)
+    .eq('id', accountId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching merchant account by ID:', error);
+    return null;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  // Transform to include owner details at the top level
+  return {
+    ...data,
+    owner_name: data.owner?.name,
+    owner_email: data.owner?.email,
+    owner_role: data.owner?.role,
+    owner_avatar: data.owner?.avatar,
+  };
+}
+
+/**
  * Fetch accounts for a specific owner
  */
 export async function fetchAccountsForOwner(ownerId: string): Promise<MerchantAccount[]> {

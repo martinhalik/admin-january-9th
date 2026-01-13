@@ -51,7 +51,7 @@ const AIAdvisorySidebar: React.FC<AIAdvisorySidebarProps> = ({
   
   // Get location data for the merchant (if available)
   const merchantLocations = merchantAccount ? (mockLocations[merchantAccount.id] || []) : [];
-  const primaryLocation = merchantLocations && merchantLocations.length > 0 ? merchantLocations[0] : undefined;
+  const primaryLocation = merchantLocations && merchantLocations.length > 0 ? merchantLocations[0] : merchantAccount?.locationData;
 
   return (
     <div style={{ width: "100%" }}>
@@ -126,7 +126,7 @@ const AIAdvisorySidebar: React.FC<AIAdvisorySidebarProps> = ({
                                 ✉️ {merchantAccount.contactEmail}
                               </Text>
                             )}
-                            {merchantAccount.location && (
+                            {merchantAccount.location && typeof merchantAccount.location === 'string' && (
                               <Text style={{ fontSize: 12 }}>
                                 📍 {merchantAccount.location}
                               </Text>
@@ -135,12 +135,12 @@ const AIAdvisorySidebar: React.FC<AIAdvisorySidebarProps> = ({
                         </div>
                         
                         {/* Opening Hours and Popular Times */}
-                        {merchantAccount.location && (
+                        {merchantAccount.locationData && (
                           <>
                             <Divider style={{ margin: "12px 0" }} />
                             <MerchantInfoCard
                               merchant={merchantAccount}
-                              location={merchantAccount.location}
+                              location={merchantAccount.locationData}
                               showBusyTimes={true}
                               showCard={false}
                             />

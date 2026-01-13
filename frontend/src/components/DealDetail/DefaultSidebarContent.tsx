@@ -50,7 +50,7 @@ const DefaultSidebarContent: React.FC<DefaultSidebarContentProps> = ({
 
   // Get location data for the merchant (if available)
   const merchantLocations = selectedMerchantAccount ? mockLocations[selectedMerchantAccount.id] : [];
-  const primaryLocation = merchantLocations && merchantLocations.length > 0 ? merchantLocations[0] : undefined;
+  const primaryLocation = merchantLocations && merchantLocations.length > 0 ? merchantLocations[0] : selectedMerchantAccount?.locationData;
 
   // Build Discovery tab items (Merchant Info)
   const discoveryItems = [];
@@ -104,26 +104,13 @@ const DefaultSidebarContent: React.FC<DefaultSidebarContentProps> = ({
                           ✉️ {selectedMerchantAccount.contactEmail}
                         </Text>
                       )}
-                      {selectedMerchantAccount.location && (
+                      {selectedMerchantAccount.location && typeof selectedMerchantAccount.location === 'string' && (
                         <Text style={{ fontSize: 12 }}>
                           📍 {selectedMerchantAccount.location}
                         </Text>
                       )}
                     </Space>
                   </div>
-                  
-                  {/* Opening Hours and Popular Times */}
-                  {selectedMerchantAccount.location && (
-                    <>
-                      <Divider style={{ margin: "12px 0" }} />
-                      <MerchantInfoCard
-                        merchant={selectedMerchantAccount}
-                        location={selectedMerchantAccount.location}
-                        showBusyTimes={true}
-                        showCard={false}
-                      />
-                    </>
-                  )}
                   
                   {/* Nearby Competitors */}
                   {selectedMerchantAccount.nearbyCompetitors && selectedMerchantAccount.nearbyCompetitors.length > 0 && (

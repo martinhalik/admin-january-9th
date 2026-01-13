@@ -1,10 +1,11 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Typography, Space, theme, Tooltip, Collapse, Card } from "antd";
+import { Typography, Space, theme, Tooltip, Collapse, Card, Row, Col, Image, Tag, Badge } from "antd";
 import { MapPin, Maximize2, Minimize2, ChevronRight } from "lucide-react";
 import * as maptilerSdk from "@maptiler/sdk";
 import "@maptiler/sdk/dist/maptiler-sdk.css";
 import { Deal } from "../data/mockDeals";
 import { getLocationsByAccount, Location } from "../data/locationData";
+import { getMerchantAccount } from "../data/merchantAccounts";
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -584,13 +585,27 @@ const SimilarDealsMap: React.FC<SimilarDealsMapProps> = ({
 
       // Add markers for deals within radius (all are same category now)
       dealsInRadius.forEach((deal, index) => {
+        const merchant = getMerchantAccount(deal.accountId || "");
+        const isCompetitor = deal.accountId?.startsWith('competitor-');
+        
+        // Calculate if price is lower than current deal
+        const currentBestPrice = currentDeal?.options?.length > 0 
+          ? Math.min(...(currentDeal.options.map(o => o.grouponPrice) || [0]))
+          : 0;
+        const competitorBestPrice = deal.options.length > 0
+          ? Math.min(...deal.options.map(o => o.grouponPrice))
+          : 0;
+        const isPriceLower = isCompetitor && competitorBestPrice > 0 && currentBestPrice > 0 && competitorBestPrice < currentBestPrice;
+        
+        const markerColor = isPriceLower ? token.colorError : (isCompetitor ? token.colorWarning : token.colorSuccess);
+        
         const markerEl = document.createElement('div');
         
         markerEl.innerHTML = `
           <div style="
-            width: 24px;
-            height: 24px;
-            background: ${token.colorSuccess};
+            width: ${isCompetitor ? '28px' : '24px'};
+            height: ${isCompetitor ? '28px' : '24px'};
+            background: ${markerColor};
             border: 2px solid white;
             border-radius: 50%;
             box-shadow: 0 2px 6px rgba(0,0,0,0.25);
@@ -599,9 +614,75 @@ const SimilarDealsMap: React.FC<SimilarDealsMapProps> = ({
             justify-content: center;
             color: white;
             font-weight: 600;
-            font-size: 10px;
+            font-size: ${isCompetitor ? '11px' : '10px'};
             cursor: pointer;
           ">${index + 1}</div>
+        `;
+
+        const popupContent = `
+          <div style="padding: 8px; min-width: 200px; max-width: 250px;">
+            ${isCompetitor ? `<div style="
+              background: ${token.colorWarningBg};
+              color: ${token.colorWarning};
+              padding: 4px 8px;
+              border-radius: 4px;
+              font-size: 10px;
+              font-weight: 600;
+              margin-bottom: 8px;
+              text-align: center;
+            ">⚔️ COMPETITOR</div>` : ''}
+            ${merchant ? `<div style="font-size: 11px; color: #999; margin-bottom: 4px;">${merchant.name}</div>` : ''}
+            <div style="font-weight: 600; margin-bottom: 6px; font-size: 13px;">${deal.title}</div>
+            <div style="display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap;">
+              <span style="
+                background: ${token.colorSuccessBg};
+                color: ${token.colorSuccess};
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 10px;
+                font-weight: 500;
+              ">${deal.category}</span>
+              <span style="
+                background: ${token.colorBgTextHover};
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 10px;
+              ">${deal.status}</span>
+            </div>
+            <div style="font-size: 11px; color: #666; margin-bottom: 4px;">${deal.location.name}</div>
+            <div style="font-size: 10px; color: #999; margin-bottom: 6px;">${deal.distance.toFixed(1)} miles away</div>
+            ${deal.options.length > 0 ? `
+              <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 15px; font-weight: 700; color: ${isPriceLower ? token.colorError : token.colorSuccess};">
+                    $${deal.options[0].grouponPrice}
+                  </span>
+                  <span style="font-size: 11px; color: #999; text-decoration: line-through;">
+                    $${deal.options[0].regularPrice}
+                  </span>
+                  <span style="
+                    background: ${isPriceLower ? token.colorErrorBg : token.colorSuccessBg};
+                    color: ${isPriceLower ? token.colorError : token.colorSuccess};
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    font-size: 10px;
+                    font-weight: 600;
+                  ">${deal.options[0].discount}% OFF</span>
+                </div>
+                ${isPriceLower ? `<div style="
+                  color: ${token.colorError};
+                  font-size: 10px;
+                  font-weight: 600;
+                  margin-top: 4px;
+                ">⚠️ Lower than your deal price!</div>` : ''}
+              </div>
+            ` : ''}
+            ${deal.stats && deal.stats.purchases > 0 ? `
+              <div style="font-size: 10px; color: #999; margin-top: 6px;">
+                ${deal.stats.purchases} sold
+              </div>
+            ` : ''}
+          </div>
         `;
 
         const marker = new maptilerSdk.Marker({
@@ -610,29 +691,7 @@ const SimilarDealsMap: React.FC<SimilarDealsMapProps> = ({
         })
           .setLngLat([deal.location.coordinates!.longitude, deal.location.coordinates!.latitude])
           .setPopup(
-            new maptilerSdk.Popup({ offset: 25 }).setHTML(`
-              <div style="padding: 8px; min-width: 180px;">
-                <div style="font-weight: 600; margin-bottom: 6px; font-size: 13px;">${deal.title}</div>
-                <div style="display: flex; gap: 4px; margin-bottom: 6px;">
-                  <span style="
-                    background: ${token.colorSuccessBg};
-                    color: ${token.colorSuccess};
-                    padding: 2px 6px;
-                    border-radius: 4px;
-                    font-size: 10px;
-                    font-weight: 500;
-                  ">${deal.category}</span>
-                  <span style="
-                    background: ${token.colorBgTextHover};
-                    padding: 2px 6px;
-                    border-radius: 4px;
-                    font-size: 10px;
-                  ">${deal.status}</span>
-                </div>
-                <div style="font-size: 11px; color: #666; margin-bottom: 4px;">${deal.location.name}</div>
-                <div style="font-size: 10px; color: #999;">${deal.distance.toFixed(1)} miles away</div>
-              </div>
-            `)
+            new maptilerSdk.Popup({ offset: 25 }).setHTML(popupContent)
           )
           .addTo(map.current);
 
@@ -738,7 +797,7 @@ const SimilarDealsMap: React.FC<SimilarDealsMapProps> = ({
                   </Tooltip>
                 </div>
 
-                {/* Summary */}
+                {/* Summary & Legend */}
                 <Space direction="vertical" size="small" style={{ width: '100%' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Text type="secondary" style={{ fontSize: 12 }}>
@@ -754,7 +813,189 @@ const SimilarDealsMap: React.FC<SimilarDealsMapProps> = ({
                       </Text>
                     </div>
                   )}
+                  
+                  {/* Map Legend */}
+                  <div style={{ 
+                    marginTop: 12, 
+                    padding: 8, 
+                    background: token.colorBgLayout,
+                    borderRadius: 6,
+                    border: `1px solid ${token.colorBorder}`,
+                  }}>
+                    <Text type="secondary" style={{ fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                      Map Legend:
+                    </Text>
+                    <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{
+                          width: 16,
+                          height: 16,
+                          background: token.colorPrimary,
+                          border: '2px solid white',
+                          borderRadius: '50%',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                        }} />
+                        <Text type="secondary" style={{ fontSize: 10 }}>Your Deal Location</Text>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{
+                          width: 16,
+                          height: 16,
+                          background: token.colorWarning,
+                          border: '2px solid white',
+                          borderRadius: '50%',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                        }} />
+                        <Text type="secondary" style={{ fontSize: 10 }}>Competitor Deal</Text>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{
+                          width: 16,
+                          height: 16,
+                          background: token.colorError,
+                          border: '2px solid white',
+                          borderRadius: '50%',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                        }} />
+                        <Text type="secondary" style={{ fontSize: 10 }}>Lower Price Than Yours</Text>
+                      </div>
+                    </Space>
+                  </div>
                 </Space>
+
+                {/* Deal Previews */}
+                {dealsInRadius.length > 0 && (
+                  <div style={{ marginTop: 16 }}>
+                    <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 12 }}>
+                      Competitor Deals
+                    </Text>
+                    <Row gutter={[12, 12]}>
+                      {dealsInRadius.slice(0, 6).map((deal, index) => {
+                        const featuredImage = deal.content.media.find(m => m.isFeatured) || deal.content.media[0];
+                        const imageUrl = featuredImage?.url || "/images/ai/chef-cooking.jpg";
+                        const merchant = getMerchantAccount(deal.accountId || "");
+                        
+                        // Calculate if competitor price is better than current deal
+                        const currentBestPrice = currentDeal?.options?.length > 0 
+                          ? Math.min(...(currentDeal.options.map(o => o.grouponPrice) || [0]))
+                          : 0;
+                        const competitorBestPrice = deal.options.length > 0
+                          ? Math.min(...deal.options.map(o => o.grouponPrice))
+                          : 0;
+                        const isPriceLower = competitorBestPrice > 0 && currentBestPrice > 0 && competitorBestPrice < currentBestPrice;
+
+                        return (
+                          <Col xs={24} sm={12} key={deal.id}>
+                            <Card
+                              size="small"
+                              style={{ 
+                                cursor: "pointer",
+                                border: `1px solid ${isPriceLower ? token.colorErrorBorder : token.colorBorder}`,
+                                borderRadius: 8,
+                              }}
+                              hoverable
+                              bodyStyle={{ padding: 8 }}
+                            >
+                              <div style={{ display: "flex", gap: 10 }}>
+                                <div style={{ position: 'relative' }}>
+                                  <Image
+                                    src={imageUrl}
+                                    width={70}
+                                    height={70}
+                                    style={{
+                                      borderRadius: 6,
+                                      objectFit: "cover",
+                                    }}
+                                    fallback="/images/ai/chef-cooking.jpg"
+                                    preview={false}
+                                  />
+                                  <div
+                                    style={{
+                                      position: 'absolute',
+                                      top: 4,
+                                      left: 4,
+                                      background: token.colorSuccess,
+                                      color: 'white',
+                                      borderRadius: '50%',
+                                      width: 20,
+                                      height: 20,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      fontSize: 10,
+                                      fontWeight: 600,
+                                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    }}
+                                  >
+                                    {index + 1}
+                                  </div>
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ marginBottom: 4 }}>
+                                    {merchant && (
+                                      <Text type="secondary" style={{ fontSize: 11, display: 'block', lineHeight: 1.2 }}>
+                                        {merchant.name}
+                                      </Text>
+                                    )}
+                                    <Text strong style={{ fontSize: 12, lineHeight: 1.3, display: 'block' }}>
+                                      {deal.title.length > 60
+                                        ? `${deal.title.substring(0, 60)}...`
+                                        : deal.title}
+                                    </Text>
+                                  </div>
+                                  <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                                    <MapPin size={10} color={token.colorTextSecondary} />
+                                    <Text type="secondary" style={{ fontSize: 10 }}>
+                                      {deal.distance.toFixed(1)} mi away
+                                    </Text>
+                                  </div>
+                                  {deal.options.length > 0 && (
+                                    <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                      <Text 
+                                        strong
+                                        style={{ 
+                                          fontSize: 13,
+                                          color: isPriceLower ? token.colorError : token.colorSuccess,
+                                        }}
+                                      >
+                                        ${deal.options[0].grouponPrice}
+                                      </Text>
+                                      <Text 
+                                        delete 
+                                        type="secondary" 
+                                        style={{ fontSize: 10 }}
+                                      >
+                                        ${deal.options[0].regularPrice}
+                                      </Text>
+                                      <Tag 
+                                        color={isPriceLower ? "red" : "green"} 
+                                        style={{ fontSize: 9, margin: 0, padding: '0 4px' }}
+                                      >
+                                        {deal.options[0].discount}% off
+                                      </Tag>
+                                    </div>
+                                  )}
+                                  {isPriceLower && (
+                                    <Text type="danger" style={{ fontSize: 9, display: 'block', marginTop: 4 }}>
+                                      ⚠️ Lower than your deal
+                                    </Text>
+                                  )}
+                                </div>
+                              </div>
+                            </Card>
+                          </Col>
+                        );
+                      })}
+                    </Row>
+                    {dealsInRadius.length > 6 && (
+                      <div style={{ textAlign: 'center', marginTop: 12 }}>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          +{dealsInRadius.length - 6} more deals nearby
+                        </Text>
+                      </div>
+                    )}
+                  </div>
+                )}
               </Space>
             </div>
           ),

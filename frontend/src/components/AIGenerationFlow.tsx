@@ -19,7 +19,7 @@ import { MerchantAccount } from "../data/merchantAccounts";
 import { getMerchantAccountsWithOwners, getMerchantAccount } from "../data/accountOwnerAssignments";
 import AICategorySelector from "./AICategorySelector";
 import AIAdvisorySidebar from "./AIAdvisorySidebar";
-import GoogleWorkspaceSidebar from "./GoogleWorkspaceSidebar";
+import GoogleWorkspaceSidebar, { SIDEBAR_CONSTANTS } from "./GoogleWorkspaceSidebar";
 import { DealOptionDetailsContent, DefaultSidebarContent } from "./DealDetail";
 import { GeneratedOption } from "../lib/aiRecommendations";
 import { 
@@ -116,6 +116,18 @@ const AIGenerationFlow: React.FC<AIGenerationFlowProps> = ({
   // Track if we auto-opened the sidebar for option/settings view
   const wasAutoOpenedRef = React.useRef<boolean>(false);
 
+  // Ensure accountId is in URL if account is selected
+  useEffect(() => {
+    if (selectedAccount) {
+      const currentAccountId = searchParams.get('accountId');
+      if (currentAccountId !== selectedAccount.id) {
+        const newParams = new URLSearchParams(window.location.search);
+        newParams.set('accountId', selectedAccount.id);
+        setSearchParams(newParams, { replace: true });
+      }
+    }
+  }, [selectedAccount, searchParams, setSearchParams]);
+
   // Sync sidebar state to URL params
   useEffect(() => {
     const newParams = new URLSearchParams(window.location.search);
@@ -166,8 +178,13 @@ const AIGenerationFlow: React.FC<AIGenerationFlowProps> = ({
 
       setSelectedAccount(account);
       setCurrentStep("category");
+      
+      // Update URL with accountId so it persists on refresh
+      const newParams = new URLSearchParams(window.location.search);
+      newParams.set('accountId', accountId);
+      setSearchParams(newParams, { replace: true });
     },
-    []
+    [setSearchParams]
   );
 
   const handleCategorySelect = React.useCallback(
@@ -411,7 +428,7 @@ const AIGenerationFlow: React.FC<AIGenerationFlowProps> = ({
             const contentWidth = activeRightSidebarTab ? totalWidth - 56 : AI_SIDEBAR_CONSTANTS.WIDTH_DEFAULT;
             setSidebarWidth(contentWidth);
           }}
-          zIndex={10}
+          zIndex={SIDEBAR_CONSTANTS.Z_INDEX_HEADER}
           extraIcon={
             sidebarView === "option-details" && selectedOption ? {
               icon: FileText,
