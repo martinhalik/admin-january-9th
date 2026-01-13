@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Typography, Space, theme, Tooltip, Collapse, Card, Row, Col, Image, Tag, Badge } from "antd";
+import { Typography, Space, theme, Tooltip, Collapse, Card, Row, Col, Image, Tag } from "antd";
 import { MapPin, Maximize2, Minimize2, ChevronRight } from "lucide-react";
 import * as maptilerSdk from "@maptiler/sdk";
 import "@maptiler/sdk/dist/maptiler-sdk.css";
@@ -925,54 +925,6 @@ const SimilarDealsMap: React.FC<SimilarDealsMapProps> = ({
                       </Text>
                     </div>
                   )}
-                  
-                  {/* Map Legend */}
-                  <div style={{ 
-                    marginTop: 12, 
-                    padding: 8, 
-                    background: token.colorBgLayout,
-                    borderRadius: 6,
-                    border: `1px solid ${token.colorBorder}`,
-                  }}>
-                    <Text type="secondary" style={{ fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 6 }}>
-                      Map Legend:
-                    </Text>
-                    <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{
-                          width: 16,
-                          height: 16,
-                          background: token.colorPrimary,
-                          border: '2px solid white',
-                          borderRadius: '50%',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                        }} />
-                        <Text type="secondary" style={{ fontSize: 10 }}>Your Deal Location</Text>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{
-                          width: 16,
-                          height: 16,
-                          background: token.colorWarning,
-                          border: '2px solid white',
-                          borderRadius: '50%',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                        }} />
-                        <Text type="secondary" style={{ fontSize: 10 }}>Competitor Deal</Text>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{
-                          width: 16,
-                          height: 16,
-                          background: token.colorError,
-                          border: '2px solid white',
-                          borderRadius: '50%',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                        }} />
-                        <Text type="secondary" style={{ fontSize: 10 }}>Lower Price Than Yours</Text>
-                      </div>
-                    </Space>
-                  </div>
                 </Space>
 
                 {/* Deal Previews */}

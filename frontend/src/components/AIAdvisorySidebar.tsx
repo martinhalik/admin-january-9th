@@ -93,7 +93,7 @@ const AIAdvisorySidebar: React.FC<AIAdvisorySidebarProps> = ({
                     />
 
                     {/* Opening Hours and Popular Times */}
-                    {primaryLocation ? (
+                    {primaryLocation && (
                       <>
                         <Divider style={{ margin: "8px 0" }} />
                         <MerchantInfoCard 
@@ -103,85 +103,41 @@ const AIAdvisorySidebar: React.FC<AIAdvisorySidebarProps> = ({
                           showCard={false}
                         />
                       </>
-                    ) : (
+                    )}
+                    
+                    {/* Nearby Competitors */}
+                    {merchantAccount.nearbyCompetitors && merchantAccount.nearbyCompetitors.length > 0 && (
                       <>
-                        <Divider style={{ margin: "8px 0" }} />
-                        <div style={{ 
-                          padding: "12px", 
-                          background: token.colorInfoBg,
-                          borderRadius: token.borderRadius,
-                          border: `1px solid ${token.colorInfoBorder}`,
-                        }}>
-                          <Text style={{ fontSize: 13 }}>
-                            <strong>Contact Details</strong>
+                        <Divider style={{ margin: "12px 0" }} />
+                        <div style={{ paddingBottom: 16 }}>
+                          <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>
+                            Nearby Competitors
                           </Text>
-                          <Space direction="vertical" size={4} style={{ width: "100%", marginTop: 8 }}>
-                            {merchantAccount.phone && (
-                              <Text style={{ fontSize: 12 }}>
-                                📞 {merchantAccount.phone}
-                              </Text>
-                            )}
-                            {merchantAccount.contactEmail && (
-                              <Text style={{ fontSize: 12 }}>
-                                ✉️ {merchantAccount.contactEmail}
-                              </Text>
-                            )}
-                            {merchantAccount.location && typeof merchantAccount.location === 'string' && (
-                              <Text style={{ fontSize: 12 }}>
-                                📍 {merchantAccount.location}
-                              </Text>
-                            )}
+                          <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                            {merchantAccount.nearbyCompetitors.slice(0, 5).map((comp, idx) => (
+                              <div key={idx} style={{ 
+                                display: 'flex', 
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '8px 12px',
+                                background: token.colorFillQuaternary,
+                                borderRadius: token.borderRadius,
+                              }}>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <Text style={{ fontSize: 12, fontWeight: 500, display: 'block' }}>
+                                    {comp.name}
+                                  </Text>
+                                  <Text type="secondary" style={{ fontSize: 11 }}>
+                                    {comp.distance} • {comp.type}
+                                  </Text>
+                                </div>
+                                <Tag color={comp.rating >= 4.0 ? 'green' : 'orange'} style={{ margin: 0 }}>
+                                  {comp.rating}★
+                                </Tag>
+                              </div>
+                            ))}
                           </Space>
                         </div>
-                        
-                        {/* Opening Hours and Popular Times */}
-                        {merchantAccount.locationData && (
-                          <>
-                            <Divider style={{ margin: "12px 0" }} />
-                            <MerchantInfoCard
-                              merchant={merchantAccount}
-                              location={merchantAccount.locationData}
-                              showBusyTimes={true}
-                              showCard={false}
-                            />
-                          </>
-                        )}
-                        
-                        {/* Nearby Competitors */}
-                        {merchantAccount.nearbyCompetitors && merchantAccount.nearbyCompetitors.length > 0 && (
-                          <>
-                            <Divider style={{ margin: "12px 0" }} />
-                            <div style={{ paddingBottom: 16 }}>
-                              <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>
-                                Nearby Competitors
-                              </Text>
-                              <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                                {merchantAccount.nearbyCompetitors.slice(0, 5).map((comp, idx) => (
-                                  <div key={idx} style={{ 
-                                    display: 'flex', 
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    padding: '8px 12px',
-                                    background: token.colorFillQuaternary,
-                                    borderRadius: token.borderRadius,
-                                  }}>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                      <Text style={{ fontSize: 12, fontWeight: 500, display: 'block' }}>
-                                        {comp.name}
-                                      </Text>
-                                      <Text type="secondary" style={{ fontSize: 11 }}>
-                                        {comp.distance} • {comp.type}
-                                      </Text>
-                                    </div>
-                                    <Tag color={comp.rating >= 4.0 ? 'green' : 'orange'} style={{ margin: 0 }}>
-                                      {comp.rating}★
-                                    </Tag>
-                                  </div>
-                                ))}
-                              </Space>
-                            </div>
-                          </>
-                        )}
                       </>
                     )}
 
