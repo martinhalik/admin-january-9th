@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { setupTestAuth } from './test-helpers';
 
 test.describe('Theme Toggle', () => {
   test.beforeEach(async ({ page }) => {
+    await setupTestAuth(page);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
   });

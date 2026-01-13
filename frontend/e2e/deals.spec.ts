@@ -8,13 +8,17 @@ test.describe('Deals Page', () => {
   });
 
   test.skip('should navigate to deals page', async ({ page }) => {
-    // SKIPPED: Known issue with Playwright tests and Supabase OAuth redirects
-    // The application works correctly in manual testing, but automated tests
-    // have issues with auth bypass when navigating directly to protected routes.
-    // See TESTING_STATUS.md for details.
+    // SKIPPED: This test has issues with auth bypass timing in test environment.
+    // The auth bypass is set in beforeEach but Supabase still redirects to login
+    // when checking immediately after navigation.
+    //
+    // The actual deals page functionality is tested by the other tests in this
+    // file which wait for content to load before making assertions.
     
-    // This functionality is tested manually and works correctly.
-    // The other tests in this file verify deals page content loads properly.
+    await page.goto('/deals');
+    await page.waitForLoadState('networkidle');
+    const body = page.locator('body');
+    await expect(body).toBeVisible();
   });
 
   test('should display deals content', async ({ page }) => {
