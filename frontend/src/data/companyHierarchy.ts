@@ -64,6 +64,7 @@ function convertSupabaseEmployee(emp: SupabaseEmployee): Employee {
 
 /**
  * Fetch and cache all employees from Supabase
+ * Employees must come from Supabase to match deals data
  */
 export async function loadEmployees(): Promise<Employee[]> {
   const now = Date.now();
@@ -76,10 +77,8 @@ export async function loadEmployees(): Promise<Employee[]> {
   try {
     const supabaseEmployees = await fetchEmployees();
     
-    // If Supabase is not configured (localhost), return empty array
-    // This prevents errors and allows the app to work with mock data
     if (supabaseEmployees.length === 0) {
-      console.log('[loadEmployees] No employees from Supabase (likely localhost mode). Using empty cache.');
+      console.warn('[loadEmployees] No employees found in Supabase. Make sure employees are seeded.');
       employeesCache = [];
       cacheTimestamp = now;
       return [];
@@ -104,6 +103,7 @@ export async function loadEmployees(): Promise<Employee[]> {
     }));
     
     cacheTimestamp = now;
+    console.log(`[loadEmployees] Loaded ${employeesCache.length} employees from Supabase`);
     return employeesCache;
   } catch (error) {
     console.error('Error loading employees from Supabase:', error);

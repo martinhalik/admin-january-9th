@@ -305,17 +305,19 @@ export const AccountOwnerFilter: React.FC<AccountOwnerFilterProps> = ({
       },
     },
     { type: 'divider' },
-    // My Accounts shortcut (for BD/MD) - only show if we found the current employee
-    (currentRole === 'bd' || currentRole === 'md') && currentEmployee && {
+    // My Accounts shortcut (for BD/MD) - always show for BD/MD roles
+    (currentRole === 'bd' || currentRole === 'md') && {
       key: 'my-accounts',
       label: (
         <Space size="middle" style={{ width: '100%', padding: '8px 0' }}>
           <Avatar
-            src={currentEmployee.avatar}
+            src={currentEmployee?.avatar}
             size={32}
             style={{ border: `2px solid ${token.colorBorder}` }}
           >
-            {currentEmployee.name.split(' ').map(n => n[0]).join('')}
+            {currentEmployee 
+              ? currentEmployee.name.split(' ').map(n => n[0]).join('')
+              : currentUser.name.split(' ').map(n => n[0]).join('')}
           </Avatar>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -337,8 +339,8 @@ export const AccountOwnerFilter: React.FC<AccountOwnerFilterProps> = ({
         background: selectedOwnerId === currentUser.employeeId ? token.colorFillSecondary : 'transparent',
       },
     },
-    // My Team shortcut - only show if we found the current employee
-    (currentRole === 'dsm' || (currentEmployee && currentEmployee.directReports && currentEmployee.directReports.length > 0)) && {
+    // My Team shortcut - show for DSM role or if user has team members
+    (currentRole === 'dsm' || (getAllTeamMembers(currentUser.employeeId).length > 0)) && {
       key: 'my-team',
       label: (
         <Space size="middle" style={{ width: '100%', padding: '8px 0' }}>
@@ -594,6 +596,20 @@ export const AccountOwnerFilter: React.FC<AccountOwnerFilterProps> = ({
             </Badge>
             <Text strong style={{ fontSize: 14 }}>
               {selected.name}
+            </Text>
+          </>
+        );
+      } else {
+        // Employee not found (e.g., employees not loaded yet)
+        // Still show that a filter is active - use "My Deals" or employee ID
+        const isCurrentUser = selectedOwnerId === currentUser?.employeeId;
+        return (
+          <>
+            <Avatar size={24} style={{ background: token.colorFillSecondary }}>
+              {isCurrentUser ? 'Me' : selectedOwnerId.slice(0, 2).toUpperCase()}
+            </Avatar>
+            <Text strong style={{ fontSize: 14 }}>
+              {isCurrentUser ? `My ${context === 'accounts' ? 'Accounts' : 'Deals'}` : 'Filtered'}
             </Text>
           </>
         );

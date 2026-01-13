@@ -54,7 +54,7 @@ export interface EmployeeWithCounts extends Employee {
  */
 export async function fetchEmployees(): Promise<Employee[]> {
   if (!supabase) {
-    console.warn('[fetchEmployees] Supabase not configured (running on localhost). Returning empty array.');
+    console.warn('[fetchEmployees] Supabase not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.');
     return [];
   }
   
@@ -146,6 +146,11 @@ export async function getAccountOwnersCount(roles: string[]): Promise<number> {
  * Fetch employees by role
  */
 export async function fetchEmployeesByRole(role: string): Promise<Employee[]> {
+  if (!supabase) {
+    console.warn('[fetchEmployeesByRole] Supabase not configured (running on localhost). Returning empty array.');
+    return [];
+  }
+
   const { data, error } = await supabase
     .from('employees')
     .select('*')
@@ -165,6 +170,11 @@ export async function fetchEmployeesByRole(role: string): Promise<Employee[]> {
  * Fetch employee by ID
  */
 export async function fetchEmployeeById(id: string): Promise<Employee | null> {
+  if (!supabase) {
+    console.warn('[fetchEmployeeById] Supabase not configured (running on localhost). Returning null.');
+    return null;
+  }
+
   const { data, error } = await supabase
     .from('employees')
     .select('*')
@@ -183,6 +193,11 @@ export async function fetchEmployeeById(id: string): Promise<Employee | null> {
  * Fetch direct reports for a manager
  */
 export async function fetchDirectReports(managerId: string): Promise<Employee[]> {
+  if (!supabase) {
+    console.warn('[fetchDirectReports] Supabase not configured (running on localhost). Returning empty array.');
+    return [];
+  }
+
   const { data, error } = await supabase
     .from('employees')
     .select('*')
@@ -310,6 +325,11 @@ export async function getAccountCountsPerEmployee(): Promise<Record<string, numb
 }
 
 export async function fetchMerchantAccounts(): Promise<MerchantAccount[]> {
+  if (!supabase) {
+    console.warn('[fetchMerchantAccounts] Supabase not configured (running on localhost). Returning empty array.');
+    return [];
+  }
+
   // Fetch in batches due to Supabase default 1000 row limit
   // Loading first 5000 accounts for now
   const BATCH_SIZE = 1000;
@@ -365,6 +385,11 @@ export async function fetchMerchantAccounts(): Promise<MerchantAccount[]> {
  * Fetch a single merchant account by ID
  */
 export async function fetchMerchantAccountById(accountId: string): Promise<MerchantAccount | null> {
+  if (!supabase) {
+    console.warn('[fetchMerchantAccountById] Supabase not configured (running on localhost). Returning null.');
+    return null;
+  }
+
   const { data, error } = await supabase
     .from('merchant_accounts')
     .select(`
@@ -403,6 +428,11 @@ export async function fetchMerchantAccountById(accountId: string): Promise<Merch
  * Fetch accounts for a specific owner
  */
 export async function fetchAccountsForOwner(ownerId: string): Promise<MerchantAccount[]> {
+  if (!supabase) {
+    console.warn('[fetchAccountsForOwner] Supabase not configured (running on localhost). Returning empty array.');
+    return [];
+  }
+
   const { data, error } = await supabase
     .from('merchant_accounts')
     .select(`
@@ -437,6 +467,10 @@ export async function fetchAccountsForOwner(ownerId: string): Promise<MerchantAc
  * Update account owner
  */
 export async function updateAccountOwner(accountId: string, ownerId: string | null): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase not configured');
+  }
+
   const { error } = await supabase
     .from('merchant_accounts')
     .update({ account_owner_id: ownerId })
@@ -452,6 +486,18 @@ export async function updateAccountOwner(accountId: string, ownerId: string | nu
  * Get account owner statistics
  */
 export async function fetchOwnerAccountStats(ownerId: string) {
+  if (!supabase) {
+    console.warn('[fetchOwnerAccountStats] Supabase not configured (running on localhost). Returning empty stats.');
+    return {
+      totalAccounts: 0,
+      activeAccounts: 0,
+      totalDeals: 0,
+      highPotential: 0,
+      midPotential: 0,
+      lowPotential: 0,
+    };
+  }
+
   const { data, error } = await supabase
     .from('merchant_accounts')
     .select('status, potential, deals_count')

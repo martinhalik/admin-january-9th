@@ -17,7 +17,7 @@ import {
 } from "antd";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Search, Edit, ChevronDown, Info, MapPin, Filter, Settings, Download, Archive } from "lucide-react";
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { getDeals, isSupabaseConfigured } from "../lib/dealAdapter";
 import CreateDealModal from "../components/CreateDealModal";
 import type { TableRowSelection } from "antd/es/table/interface";
@@ -67,22 +67,28 @@ const Deals = () => {
   const [maxPrice, setMaxPrice] = useState(() => searchParams.get("maxPrice") || "");
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   
-  // Initialize account owner filter based on role
-  // BD/MD: Show their own deals
-  // DSM: Show their team's deals
-  // MM: Show all (will use category/division filters instead)
-  // Admin/Executive: Show all
-  const getInitialOwnerFilter = () => {
-    if (currentRole === 'bd' || currentRole === 'md') {
-      return currentUser.employeeId;
+  // Initialize account owner filter - start with null, will be set by useEffect
+  // This ensures currentUser is loaded before we try to use it
+  const [accountOwnerFilter, setAccountOwnerFilter] = useState<string | null>(() => {
+    // First check URL params - if present, use them
+    const urlOwnerFilter = searchParams.get("owner");
+    if (urlOwnerFilter !== null) {
+      // Handle special values
+      if (urlOwnerFilter === 'all' || urlOwnerFilter === '') {
+        return null; // All owners
+      }
+      if (urlOwnerFilter === 'team') {
+        return 'team';
+      }
+      if (urlOwnerFilter === 'unassigned') {
+        return 'unassigned';
+      }
+      // Otherwise it's a specific employee ID
+      return urlOwnerFilter;
     }
-    if (currentRole === 'dsm') {
-      return 'team'; // Special marker for team filtering
-    }
-    return null; // MM, Admin, Executive see all
-  };
-  
-  const [accountOwnerFilter, setAccountOwnerFilter] = useState<string | null>(getInitialOwnerFilter);
+    // No URL param - return null initially, will be set by useEffect when currentUser loads
+    return null;
+  });
   const [showUnassignedDeals, setShowUnassignedDeals] = useState(false);
   
   // Sidebar state
@@ -141,16 +147,83 @@ const Deals = () => {
     };
   });
 
-  // Update filter when role changes
+  // Track if we've initialized the default filter
+  const defaultFilterInitialized = useRef(false);
+  
+  // Set default filter based on role when currentUser is available
+  // Only sets default once, if no URL param exists
   useEffect(() => {
-    if (currentRole === 'bd' || currentRole === 'md') {
-      setAccountOwnerFilter(currentUser.employeeId);
-    } else if (currentRole === 'dsm') {
-      setAccountOwnerFilter('team');
-    } else {
-      setAccountOwnerFilter(null);
+    const urlOwnerFilter = searchParams.get("owner");
+    
+    // If URL param exists, mark as initialized and don't set default
+    if (urlOwnerFilter !== null) {
+      if (!defaultFilterInitialized.current) {
+        defaultFilterInitialized.current = true;
+      }
+      return;
     }
-  }, [currentRole, currentUser.employeeId]);
+    
+    // Reset initialization flag when role changes (so we can set new default)
+    // This allows the filter to update when switching between roles
+    const roleKey = `${currentRole}-${currentUser?.employeeId || 'none'}`;
+    if (defaultFilterInitialized.current && defaultFilterInitialized.current !== roleKey) {
+      defaultFilterInitialized.current = false;
+    }
+    
+    // If already initialized for this role, don't set default again
+    if (defaultFilterInitialized.current === roleKey) {
+      return;
+    }
+    
+    // No URL param and not initialized - apply role-based default
+    // Make sure currentUser is loaded and has an employeeId
+    if (currentUser && currentUser.employeeId && currentUser.employeeId.trim() !== '') {
+      if (currentRole === 'bd' || currentRole === 'md') {
+        console.log('[Deals] Setting default filter for BD/MD:', currentUser.employeeId);
+        setAccountOwnerFilter(currentUser.employeeId);
+        defaultFilterInitialized.current = roleKey;
+      } else if (currentRole === 'dsm') {
+        console.log('[Deals] Setting default filter for DSM: team');
+        setAccountOwnerFilter('team');
+        defaultFilterInitialized.current = roleKey;
+      } else {
+        // MM, Admin, Executive: keep null (all deals)
+        defaultFilterInitialized.current = roleKey;
+      }
+    } else {
+      console.log('[Deals] Cannot set default filter - currentUser or employeeId missing:', { currentUser, currentRole });
+    }
+  }, [currentUser, currentUser?.employeeId, currentRole, searchParams]);
+
+  // Sync account owner filter from URL params when they change (browser back/forward)
+  // This handles when user navigates back/forward and URL changes
+  useEffect(() => {
+    const urlOwnerFilter = searchParams.get("owner");
+    
+    if (urlOwnerFilter !== null) {
+      // URL param exists - parse and apply it
+      let newFilter: string | null = null;
+      if (urlOwnerFilter === 'all' || urlOwnerFilter === '') {
+        newFilter = null; // All owners
+      } else if (urlOwnerFilter === 'team') {
+        newFilter = 'team';
+      } else if (urlOwnerFilter === 'unassigned') {
+        newFilter = 'unassigned';
+      } else {
+        newFilter = urlOwnerFilter; // Specific employee ID
+      }
+      
+      // Update filter if it's different (avoid unnecessary updates)
+      if (newFilter !== accountOwnerFilter) {
+        setAccountOwnerFilter(newFilter);
+        defaultFilterInitialized.current = true; // Mark as initialized when syncing from URL
+      }
+    } else {
+      // URL param removed - reset initialization flag so defaults can be reapplied
+      defaultFilterInitialized.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.get("owner")]); // Only react to URL param changes
 
   // Sync state to URL params
   useEffect(() => {
@@ -161,6 +234,26 @@ const Deals = () => {
     
     // Search
     if (debouncedSearchText) params.set("search", debouncedSearchText);
+    
+    // Account owner filter - only include if different from role-based default
+    const getDefaultOwnerFilter = () => {
+      if (currentRole === 'bd' || currentRole === 'md') {
+        return currentUser.employeeId;
+      }
+      if (currentRole === 'dsm') {
+        return 'team';
+      }
+      return null;
+    };
+    const defaultOwnerFilter = getDefaultOwnerFilter();
+    if (accountOwnerFilter !== defaultOwnerFilter) {
+      // User has overridden the default filter
+      if (accountOwnerFilter === null) {
+        params.set("owner", "all");
+      } else {
+        params.set("owner", accountOwnerFilter);
+      }
+    }
     
     // Filters
     if (merchantFilter !== "all") params.set("merchant", merchantFilter);
@@ -198,7 +291,7 @@ const Deals = () => {
     trendingFilter, tagFilter, merchandisingTagFilter, taxonomyCategoriesFilter,
     countryFilter, divisionsFilter, channelsFilter, subchannelFilter, marginsFilter,
     minPurchases, maxPurchases, minActivations, maxActivations, brandsFilter,
-    visibleColumns, setSearchParams
+    visibleColumns, accountOwnerFilter, currentRole, currentUser.employeeId, setSearchParams
   ]);
 
   // Debounce search text

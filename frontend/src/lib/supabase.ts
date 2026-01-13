@@ -11,11 +11,11 @@ const isLocalhost =
    window.location.hostname === '127.0.0.1' ||
    window.location.hostname === '');
 
-// Check if Supabase is configured AND not on localhost
-// On localhost, we disable Supabase entirely to force auth bypass
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey && !isLocalhost);
+// Check if Supabase is configured (allow on localhost for data fetching)
+// Auth is bypassed on localhost, but we still want to fetch data from Supabase
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
-// Create Supabase client only if configured AND not on localhost
+// Create Supabase client if configured (works on localhost too)
 // Configure with auth settings for Google OAuth
 export const supabase: SupabaseClient | null = isSupabaseConfigured 
   ? createClient(supabaseUrl, supabaseAnonKey, {
