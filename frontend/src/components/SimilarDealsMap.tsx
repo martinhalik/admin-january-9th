@@ -17,6 +17,12 @@ interface SimilarDealsMapProps {
     subcategory?: string;
     accountId?: string;
     title: string;
+    options?: Array<{
+      id: string;
+      grouponPrice: number;
+      discount: number;
+      regularPrice: number;
+    }>;
   };
   allDeals: Deal[];
   defaultRadius?: number; // in miles

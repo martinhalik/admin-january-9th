@@ -445,11 +445,12 @@ export async function loadMerchantAccountsIncremental(
     
     // Log raw data structure for debugging (first account only)
     if (supabaseAccounts.length > 0 && offset === 0) {
+      const firstAccount = supabaseAccounts[0] as any;
       console.log('[loadMerchantAccountsIncremental] Sample raw account:', {
-        name: supabaseAccounts[0].name,
-        account_owner_id: supabaseAccounts[0].account_owner_id,
-        hasOwnerObject: !!supabaseAccounts[0].owner,
-        ownerStructure: supabaseAccounts[0].owner,
+        name: firstAccount.name,
+        account_owner_id: firstAccount.account_owner_id,
+        hasOwnerObject: !!firstAccount.owner,
+        ownerStructure: firstAccount.owner,
       });
     }
     
