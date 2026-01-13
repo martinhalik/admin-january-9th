@@ -48,14 +48,71 @@ const calculateDistance = (
   return R * c;
 };
 
+// Default Chicago center coordinates for map visualization
+const CHICAGO_CENTER = {
+  latitude: 41.8781,
+  longitude: -87.6298,
+};
+
 // Helper to get primary location coordinates for a deal
 const getDealCoordinates = (deal: Deal): Location | null => {
   if (!deal.accountId) return null;
+  
+  // For competitors, always use their Chicago location (if they have one)
+  // This ensures all competitors show in Chicago regardless of actual location
+  const isCompetitor = deal.accountId.startsWith('competitor-');
+  
   const locations = getLocationsByAccount(deal.accountId);
-  if (locations.length === 0) return null;
+  if (locations.length === 0) {
+    // If competitor has no location data, create a default Chicago location
+    if (isCompetitor) {
+      return {
+        id: `chicago-default-${deal.accountId}`,
+        name: `${deal.accountId} - Chicago`,
+        address: {
+          street: "Chicago, IL",
+          city: "Chicago",
+          state: "IL",
+          zipCode: "60601",
+          country: "USA",
+        },
+        coordinates: CHICAGO_CENTER,
+        isActive: true,
+        businessType: "Competitor",
+        description: "Competitor location (visualization)",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    }
+    return null;
+  }
   
   // Get primary (first active) location
   const primaryLocation = locations.find(loc => loc.isActive && !loc.isDraft) || locations[0];
+  
+  // For competitors, ensure they're shown in Chicago
+  // If the location is not in Chicago area, use Chicago center
+  if (isCompetitor && primaryLocation?.coordinates) {
+    const loc = primaryLocation.coordinates;
+    const isInChicago = 
+      loc.latitude >= 41.7 && loc.latitude <= 42.0 &&
+      loc.longitude >= -87.8 && loc.longitude <= -87.5;
+    
+    if (!isInChicago) {
+      // Use Chicago center for competitors outside Chicago
+      return {
+        ...primaryLocation,
+        coordinates: CHICAGO_CENTER,
+        address: {
+          ...primaryLocation.address,
+          city: "Chicago",
+          state: "IL",
+          zipCode: "60601",
+        },
+      };
+    }
+  }
+  
   return primaryLocation && primaryLocation.coordinates ? primaryLocation : null;
 };
 
@@ -85,17 +142,64 @@ const SimilarDealsMap: React.FC<SimilarDealsMapProps> = ({
   }, [radius]);
 
   // Get current deal's location
+  // For visualization purposes, always center on Chicago if current deal is not in Chicago
   useEffect(() => {
     if (currentDeal?.accountId) {
       const locations = getLocationsByAccount(currentDeal.accountId);
       const primaryLocation = locations.find(loc => loc.isActive && !loc.isDraft) || locations[0];
+      
       if (primaryLocation && primaryLocation.coordinates) {
-        setCurrentLocation(primaryLocation);
+        const coords = primaryLocation.coordinates;
+        // Check if location is in Chicago area
+        const isInChicago = 
+          coords.latitude >= 41.7 && coords.latitude <= 42.0 &&
+          coords.longitude >= -87.8 && coords.longitude <= -87.5;
+        
+        if (isInChicago) {
+          setCurrentLocation(primaryLocation);
+        } else {
+          // Use Chicago center for deals outside Chicago (e.g., Mexico)
+          // This ensures all competitors show in Chicago for visualization
+          setCurrentLocation({
+            ...primaryLocation,
+            coordinates: CHICAGO_CENTER,
+            address: {
+              ...primaryLocation.address,
+              street: "Chicago, IL",
+              city: "Chicago",
+              state: "IL",
+              zipCode: "60601",
+              country: "USA",
+            },
+          });
+        }
+      } else {
+        // No location found, use Chicago center as default
+        setCurrentLocation({
+          id: 'chicago-center',
+          name: 'Chicago, IL',
+          address: {
+            street: "Chicago, IL",
+            city: "Chicago",
+            state: "IL",
+            zipCode: "60601",
+            country: "USA",
+          },
+          coordinates: CHICAGO_CENTER,
+          isActive: true,
+          businessType: "Default",
+          description: "Map center",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
       }
     }
   }, [currentDeal]);
 
   // Calculate deals within radius (same category only)
+  // Note: All competitors are shown in Chicago for visualization purposes,
+  // regardless of their actual location (e.g., Mexico, other cities).
+  // This prevents having hundreds of thousands of fake locations across North America.
   useEffect(() => {
     if (!currentLocation?.coordinates || !currentDeal?.category) {
       setDealsInRadius([]);
@@ -113,6 +217,8 @@ const SimilarDealsMap: React.FC<SimilarDealsMapProps> = ({
         const dealLocation = getDealCoordinates(deal);
         if (!dealLocation?.coordinates) return null;
 
+        // All competitors will have Chicago coordinates, so distance calculation
+        // will be relative to Chicago center (or current deal's Chicago location)
         const distance = calculateDistance(
           currentLat,
           currentLon,
