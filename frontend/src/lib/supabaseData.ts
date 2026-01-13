@@ -53,6 +53,11 @@ export interface EmployeeWithCounts extends Employee {
  * Fetch all employees
  */
 export async function fetchEmployees(): Promise<Employee[]> {
+  if (!supabase) {
+    console.warn('[fetchEmployees] Supabase not configured (running on localhost). Returning empty array.');
+    return [];
+  }
+  
   const { data, error } = await supabase
     .from('employees')
     .select('*')

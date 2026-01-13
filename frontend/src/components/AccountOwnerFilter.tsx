@@ -145,8 +145,12 @@ export const AccountOwnerFilter: React.FC<AccountOwnerFilterProps> = ({
   useEffect(() => {
     if (allEmployees.length === 0) {
       // Try to load employees
-      loadEmployees().then(() => {
+      loadEmployees().then((loadedEmployees) => {
         setEmployeesLoaded(true);
+        // If still empty after loading (e.g., localhost mode), that's okay
+        if (loadedEmployees.length === 0) {
+          console.log('[AccountOwnerFilter] No employees loaded (likely localhost mode). Filter will show limited options.');
+        }
       }).catch((err) => {
         console.error('[AccountOwnerFilter] Error loading employees:', err);
         setEmployeesLoaded(true); // Set to true anyway to render with empty state

@@ -75,6 +75,16 @@ export async function loadEmployees(): Promise<Employee[]> {
 
   try {
     const supabaseEmployees = await fetchEmployees();
+    
+    // If Supabase is not configured (localhost), return empty array
+    // This prevents errors and allows the app to work with mock data
+    if (supabaseEmployees.length === 0) {
+      console.log('[loadEmployees] No employees from Supabase (likely localhost mode). Using empty cache.');
+      employeesCache = [];
+      cacheTimestamp = now;
+      return [];
+    }
+    
     employeesCache = supabaseEmployees.map(convertSupabaseEmployee);
     
     // Build directReports arrays
@@ -98,7 +108,9 @@ export async function loadEmployees(): Promise<Employee[]> {
   } catch (error) {
     console.error('Error loading employees from Supabase:', error);
     // Return cached data even if expired, or empty array
-    return employeesCache || [];
+    employeesCache = employeesCache || [];
+    cacheTimestamp = now;
+    return employeesCache;
   }
 }
 
