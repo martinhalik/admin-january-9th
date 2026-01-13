@@ -4,10 +4,18 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-// Check if Supabase is configured
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+// Check if running on localhost
+const isLocalhost = 
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' ||
+   window.location.hostname === '127.0.0.1' ||
+   window.location.hostname === '');
 
-// Create Supabase client only if configured
+// Check if Supabase is configured AND not on localhost
+// On localhost, we disable Supabase entirely to force auth bypass
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey && !isLocalhost);
+
+// Create Supabase client only if configured AND not on localhost
 // Configure with auth settings for Google OAuth
 export const supabase: SupabaseClient | null = isSupabaseConfigured 
   ? createClient(supabaseUrl, supabaseAnonKey, {

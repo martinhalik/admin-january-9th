@@ -26,46 +26,61 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Check for localhost OUTSIDE component to use in initial state
+const isLocalhostCheck = () => {
+  if (typeof window === 'undefined') return false;
+  return (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === ''
+  );
+};
+
+const isTestModeCheck = () => {
+  if (typeof window === 'undefined') return false;
+  return (
+    (window as any).__PLAYWRIGHT_TEST_MODE__ === true ||
+    (typeof localStorage !== 'undefined' && localStorage.getItem('test_auth_bypass') === 'true') ||
+    window.location.search.includes('test_auth=bypass')
+  );
+};
+
+// Create mock user for localhost/test mode
+const createMockUser = (): User => ({
+  id: 'emp-ceo-1',
+  email: 'dev@groupon.com',
+  user_metadata: { name: 'Local Dev User' },
+  app_metadata: {},
+  aud: 'authenticated',
+  created_at: new Date().toISOString(),
+} as User);
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Initialize with mock user if on localhost or test mode
+  const shouldBypassAuth = isLocalhostCheck() || isTestModeCheck();
+  
+  console.log('[Auth] AuthProvider mounting...', {
+    shouldBypassAuth,
+    hostname: typeof window !== 'undefined' ? window.location.hostname : 'undefined',
+    testMode: isTestModeCheck()
+  });
+  
   const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isGrouponUser, setIsGrouponUser] = useState(false);
+  const [user, setUser] = useState<User | null>(shouldBypassAuth ? createMockUser() : null);
+  const [loading, setLoading] = useState(!shouldBypassAuth); // Don't show loading if bypassing
+  const [isGrouponUser, setIsGrouponUser] = useState(shouldBypassAuth);
 
   useEffect(() => {
-    // Check for test mode first (Playwright/E2E testing) - before localStorage/window checks
-    const isTestMode = 
-      (typeof window !== 'undefined' && (window as any).__PLAYWRIGHT_TEST_MODE__ === true) ||
-      (typeof localStorage !== 'undefined' && localStorage.getItem('test_auth_bypass') === 'true') ||
-      (typeof window !== 'undefined' && window.location.search.includes('test_auth=bypass'));
-
-    // Check if running on localhost - bypass authentication for local development
-    // IMPORTANT: This bypasses auth even if Supabase is configured, for easier development
-    const isLocalhost = 
-      typeof window !== 'undefined' &&
-      (window.location.hostname === 'localhost' ||
-       window.location.hostname === '127.0.0.1' ||
-       window.location.hostname === '');
-
-    // ALWAYS bypass auth on localhost or in test mode, regardless of Supabase configuration
-    // This makes local development and testing much easier
-    if (isLocalhost || isTestMode) {
-      console.log('[Auth] Bypassing authentication (localhost or test mode)');
-      // Create a mock user for local development - using CEO employee ID that exists in hierarchy
-      const mockUser = {
-        id: 'emp-ceo-1',  // Use actual employee ID from company hierarchy
-        email: 'dev@groupon.com',
-        user_metadata: { name: 'Local Dev User' },
-        app_metadata: {},
-        aud: 'authenticated',
-        created_at: new Date().toISOString(),
-      } as User;
-      
-      setUser(mockUser);
-      setIsGrouponUser(true);
-      setLoading(false);
+    console.log('[Auth] useEffect running - checking auth bypass...');
+    
+    // If we already bypassed auth in initial state, skip this useEffect
+    if (shouldBypassAuth) {
+      console.log('[Auth] ✅ Already bypassed in initial state');
       return;
     }
+
+    // Otherwise, proceed with normal Supabase auth flow
+    console.log('[Auth] Production mode - checking Supabase auth...');
 
     // Check if supabase is configured
     if (!supabase) {
