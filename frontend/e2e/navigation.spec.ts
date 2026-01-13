@@ -5,7 +5,7 @@ test.describe('Navigation', () => {
   test.beforeEach(async ({ page }) => {
     await setupTestAuth(page);
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('should navigate between pages', async ({ page }) => {
@@ -24,31 +24,31 @@ test.describe('Navigation', () => {
 
   test('should handle browser back button', async ({ page }) => {
     await page.goto('/deals');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(300);
     
     await page.goto('/accounts');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(300);
     
     await page.goBack();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(300);
     await expect(page).toHaveURL(/.*deals/);
   });
 
   test('should handle browser forward button', async ({ page }) => {
     await page.goto('/deals');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(300);
     
     await page.goto('/accounts');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(300);
     
     await page.goBack();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(300);
     await page.goForward();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(300);
     await expect(page).toHaveURL(/.*accounts/);
   });
 });

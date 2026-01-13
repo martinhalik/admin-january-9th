@@ -1,13 +1,39 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('AI Deal Generator - Comprehensive Tests', () => {
-  const testAccountId = 'merchant-1'; // Using known account from mock data
+  // Note: merchant-1 might not exist in Supabase - test will handle both cases
+  const testAccountId = 'merchant-1';
 
   test.beforeEach(async ({ page }) => {
     await page.goto(`/deals/ai-generator?accountId=${testAccountId}`);
-    await page.waitForLoadState('networkidle');
-    // Wait for data and account to load
-    await page.waitForTimeout(5000);
+    await page.waitForLoadState('domcontentloaded');
+    
+    // Wait for loading spinner if present
+    const loadingSpinner = page.locator('text=/loading.*account/i').first();
+    if (await loadingSpinner.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await loadingSpinner.waitFor({ state: 'hidden', timeout: 10000 });
+    }
+    
+    await page.waitForTimeout(2000);
+    
+    // Check if we're on account selection page (account not found)
+    const accountSelectionVisible = await page.locator('text=/select.*merchant.*account/i').first().isVisible({ timeout: 1000 }).catch(() => false);
+    
+    if (accountSelectionVisible) {
+      console.log('⚠️ Account not found in database, selecting first available account...');
+      
+      // Search and select first account
+      const searchInput = page.locator('input[placeholder*="Search"]').first();
+      await searchInput.waitFor({ state: 'visible', timeout: 5000 });
+      await searchInput.click();
+      await page.waitForTimeout(1000);
+      
+      // Click first account in list
+      const firstAccount = page.locator('[role="button"], button').filter({ hasText: /restaurant|cafe|spa|gym/i }).first();
+      await firstAccount.waitFor({ state: 'visible', timeout: 5000 });
+      await firstAccount.click();
+      await page.waitForTimeout(1000);
+    }
   });
 
   test('should load AI generator page with pre-selected account', async ({ page }) => {
@@ -19,9 +45,6 @@ test.describe('AI Deal Generator - Comprehensive Tests', () => {
   });
 
   test('should display category selection step', async ({ page }) => {
-    // Wait for categories to load
-    await page.waitForTimeout(2000);
-    
     // Look for category selection heading
     const categoryHeading = page.locator('text=/select.*category/i, text=/choose.*category/i').first();
     
@@ -31,12 +54,23 @@ test.describe('AI Deal Generator - Comprehensive Tests', () => {
   });
 
   test('should display category cards', async ({ page }) => {
-    await page.waitForTimeout(2000);
-    
     // Look for category options (cards or buttons)
-    const categories = page.locator('[role="button"]:has-text("Dining"), [role="button"]:has-text("Food"), button:has-text("Restaurant")');
+    // After beforeEach, we should be on category selection page
+    const categories = page.locator('[role="button"]:has-text("Dining"), [role="button"]:has-text("Food"), button:has-text("Restaurant"), button:has-text("Casual")');
+    
+    // Wait for categories to load
+    await page.waitForTimeout(1000);
     
     const count = await categories.count();
+    
+    // If no categories found, log diagnostic info
+    if (count === 0) {
+      console.log('❌ No category cards found');
+      console.log('Current URL:', page.url());
+      const bodyText = await page.locator('body').textContent();
+      console.log('Page content preview:', bodyText?.slice(0, 500));
+    }
+    
     expect(count).toBeGreaterThan(0);
   });
 
@@ -48,7 +82,7 @@ test.describe('AI Deal Generator - Comprehensive Tests', () => {
     
     if (await firstCategory.isVisible({ timeout: 5000 })) {
       await firstCategory.click();
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(500);
       
       // Should show next step or options
       const body = page.locator('body');
@@ -57,7 +91,6 @@ test.describe('AI Deal Generator - Comprehensive Tests', () => {
   });
 
   test('should display merchant info sidebar', async ({ page }) => {
-    await page.waitForTimeout(2000);
     
     // Look for merchant info section
     const merchantInfo = page.locator('text=/merchant.*info/i, text=/account.*info/i').first();
@@ -68,8 +101,6 @@ test.describe('AI Deal Generator - Comprehensive Tests', () => {
   });
 
   test('should show discovery sidebar tabs', async ({ page }) => {
-    await page.waitForTimeout(2000);
-    
     // Look for sidebar tabs (Scout, Work, Files, etc)
     const sidebarTabs = page.locator('[role="tab"], button:has-text("Scout"), button:has-text("Work")');
     
@@ -80,14 +111,12 @@ test.describe('AI Deal Generator - Comprehensive Tests', () => {
   });
 
   test('should handle cancel action', async ({ page }) => {
-    await page.waitForTimeout(1000);
-    
     // Look for cancel button
     const cancelButton = page.getByRole('button', { name: /cancel/i }).first();
     
     if (await cancelButton.isVisible({ timeout: 3000 })) {
       await cancelButton.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Should navigate away from AI generator
       await expect(page).not.toHaveURL(/ai-generator/);
@@ -97,16 +126,14 @@ test.describe('AI Deal Generator - Comprehensive Tests', () => {
   test('should be responsive on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto(`/deals/ai-generator?accountId=${testAccountId}`);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(500);
     
     const body = page.locator('body');
     await expect(body).toBeVisible();
   });
 
   test('should show breadcrumb navigation', async ({ page }) => {
-    await page.waitForTimeout(1000);
-    
     // Look for breadcrumbs
     const breadcrumb = page.locator('[role="navigation"] a:has-text("Deals"), a:has-text("AI")').first();
     

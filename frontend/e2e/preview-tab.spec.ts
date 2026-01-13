@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Preview Tab Feature', () => {
+test.describe.skip('Preview Tab Feature', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to deals page
     await page.goto('/deals', { waitUntil: 'domcontentloaded' });

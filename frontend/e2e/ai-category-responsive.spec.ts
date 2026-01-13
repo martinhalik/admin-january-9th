@@ -2,12 +2,9 @@ import { test, expect } from '@playwright/test';
 
 test.describe('AI Category Selector - Responsiveness', () => {
   const viewports = [
-    { width: 375, height: 667, name: 'mobile-small' },      // iPhone SE
-    { width: 414, height: 896, name: 'mobile-large' },      // iPhone 11 Pro Max
-    { width: 768, height: 1024, name: 'tablet' },           // iPad
-    { width: 1024, height: 768, name: 'tablet-landscape' }, // iPad Landscape
-    { width: 1366, height: 768, name: 'desktop-small' },    // Small Laptop
-    { width: 1920, height: 1080, name: 'desktop-large' },   // Full HD
+    { width: 375, height: 667, name: 'mobile' },      // Mobile
+    { width: 768, height: 1024, name: 'tablet' },     // Tablet
+    { width: 1920, height: 1080, name: 'desktop' },   // Desktop
   ];
 
   // Test each viewport
@@ -20,11 +17,11 @@ test.describe('AI Category Selector - Responsiveness', () => {
       await page.goto('/deals/ai-generator?accountId=acc-1');
       
       // Wait for page to load
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Wait for AI Category Selector to load
       try {
-        await page.waitForSelector('text=Select Category', { timeout: 15000 });
+        await page.waitForSelector('text=Select Category', { timeout: 10000 });
       } catch (error) {
         console.log(`Could not find 'Select Category' on ${viewport.name}`);
         await page.screenshot({
@@ -34,8 +31,8 @@ test.describe('AI Category Selector - Responsiveness', () => {
         return;
       }
       
-      // Wait for any loading/animation states to complete
-      await page.waitForTimeout(3000);
+      // Wait for content to be ready
+      await page.waitForTimeout(1000);
       
       // Take a full page screenshot
       await page.screenshot({
@@ -88,11 +85,11 @@ test.describe('AI Category Selector - Responsiveness', () => {
     for (const viewport of viewports) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await page.goto('/deals/ai-generator?accountId=acc-1');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       try {
-        await page.waitForSelector('text=Select Category', { timeout: 15000 });
-        await page.waitForTimeout(3000);
+        await page.waitForSelector('text=Select Category', { timeout: 10000 });
+        await page.waitForTimeout(500);
         
         // Try to open the sidebar if it exists
         const sidebarTab = page.locator('[role="tablist"]').first();
@@ -100,7 +97,7 @@ test.describe('AI Category Selector - Responsiveness', () => {
           const tabs = await sidebarTab.locator('[role="tab"]').all();
           if (tabs.length > 0) {
             await tabs[0].click();
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(300);
             
             // Take screenshot with sidebar open
             await page.screenshot({

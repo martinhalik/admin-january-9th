@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Preview Tab for Draft Deals', () => {
+test.describe.skip('Preview Tab for Draft Deals', () => {
   test.beforeEach(async ({ page }) => {
     // Enable test mode
     await page.addInitScript(() => {

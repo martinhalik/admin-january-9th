@@ -3,9 +3,9 @@ import { test, expect } from '@playwright/test';
 test.describe('Dashboard - Comprehensive Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     // Wait for data to load
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(500);
   });
 
   test('should display dashboard with main navigation', async ({ page }) => {
@@ -19,9 +19,6 @@ test.describe('Dashboard - Comprehensive Tests', () => {
   });
 
   test('should display key metrics and stats', async ({ page }) => {
-    // Wait for content to render
-    await page.waitForTimeout(1000);
-    
     // Check that the page has loaded successfully
     const body = page.locator('body');
     await expect(body).toBeVisible();
@@ -33,7 +30,7 @@ test.describe('Dashboard - Comprehensive Tests', () => {
   test('should be responsive on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Check page renders on mobile
     const body = page.locator('body');
@@ -46,7 +43,7 @@ test.describe('Dashboard - Comprehensive Tests', () => {
   test('should be responsive on tablet', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const body = page.locator('body');
     await expect(body).toBeVisible();
@@ -54,7 +51,7 @@ test.describe('Dashboard - Comprehensive Tests', () => {
 
   test('should navigate to deals page from dashboard', async ({ page }) => {
     await page.getByRole('link', { name: /deals/i }).first().click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     await expect(page).toHaveURL(/.*deals/);
   });
@@ -65,7 +62,7 @@ test.describe('Dashboard - Comprehensive Tests', () => {
     
     if (await themeToggle.isVisible()) {
       await themeToggle.click();
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(300);
       
       // Toggle back
       await themeToggle.click();
