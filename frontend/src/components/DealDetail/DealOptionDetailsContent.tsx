@@ -198,10 +198,28 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
             precision={0}
           />
         </div>
+        
+
+      </div>
+      {/* Validity Period */}
+      <div>
+        <Text
+          type="secondary"
+          style={{ fontSize: 12, display: "block", marginBottom: 8 }}
+        >
+          Validity Period
+        </Text>
+        <Select
+          value={option.validity}
+          onChange={(value) => onUpdate("validity", value)}
+          size="large"
+          style={{ width: "100%" }}
+          options={VALIDITY_PERIOD_OPTIONS}
+        />
       </div>
 
       {/* Optional Details */}
-      <div style={{ display: "none" }}>
+      {/* <div style={{ display: "none" }}>
         <Text
           type="secondary"
           style={{ fontSize: 12, display: "block", marginBottom: 8 }}
@@ -229,23 +247,8 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
           rows={3}
           placeholder="Enter additional details..."
         />
-      </div>
+      </div> */}
 
-      <div style={{ marginTop: -8 }}>
-        <Text
-          type="secondary"
-          style={{ fontSize: 12, display: "block", marginBottom: 8 }}
-        >
-          Validity Period
-        </Text>
-        <Select
-          value={option.validity}
-          onChange={(value) => onUpdate("validity", value)}
-          size="large"
-          style={{ width: "100%" }}
-          options={VALIDITY_PERIOD_OPTIONS}
-        />
-      </div>
 
       <Divider style={{ margin: 0 }} />
 
