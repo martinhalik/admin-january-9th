@@ -200,76 +200,6 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
         </div>
       </div>
 
-      {/* Merchant Payout - Prominent Display */}
-      <div>
-        <Text
-          type="secondary"
-          style={{ fontSize: 12, display: "block", marginBottom: 8 }}
-        >
-          Merchant Payout
-        </Text>
-        <div
-          style={{
-            padding: "12px 16px",
-            background: token.colorSuccessBg,
-            border: `2px solid ${token.colorSuccessBorder}`,
-            borderRadius: 8,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Text style={{ fontSize: 13, color: token.colorSuccess }}>
-            Per voucher sold
-          </Text>
-          <Text
-            strong
-            style={{
-              fontSize: 24,
-              color: token.colorSuccess,
-            }}
-          >
-            ${option.merchantPayout || (() => {
-              const grouponMargin = option.grouponMargin !== undefined ? option.grouponMargin : 50;
-              const merchantMargin = 100 - grouponMargin;
-              return Math.round((option.grouponPrice * merchantMargin) / 100);
-            })()}
-          </Text>
-        </div>
-        <Text
-          type="secondary"
-          style={{ fontSize: 11, marginTop: 4, display: "block" }}
-        >
-          Based on {100 - (option.grouponMargin !== undefined ? option.grouponMargin : 50)}% merchant margin
-        </Text>
-      </div>
-
-      {/* Status */}
-      <div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <Text strong style={{ display: "block" }}>
-              Active Status
-            </Text>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              Make this option available for purchase
-            </Text>
-          </div>
-          <Switch
-            checked={option.enabled}
-            onChange={(checked) => onUpdate("enabled", checked)}
-          />
-        </div>
-      </div>
-
-      <Divider style={{ margin: 0 }} />
-
       {/* Optional Details */}
       <div style={{ display: "none" }}>
         <Text
@@ -301,7 +231,7 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
         />
       </div>
 
-      <div>
+      <div style={{ marginTop: -8 }}>
         <Text
           type="secondary"
           style={{ fontSize: 12, display: "block", marginBottom: 8 }}
@@ -447,6 +377,30 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
       </div>
 
       <Divider style={{ margin: 0 }} />
+
+      {/* Status */}
+      <div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <Text strong style={{ display: "block" }}>
+              Active Status
+            </Text>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Make this option available for purchase
+            </Text>
+          </div>
+          <Switch
+            checked={option.enabled}
+            onChange={(checked) => onUpdate("enabled", checked)}
+          />
+        </div>
+      </div>
 
       {/* Remove Option Button */}
       <Button
