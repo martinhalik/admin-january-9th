@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Card,
   Typography,
@@ -78,6 +78,31 @@ const DealOptionsTable = ({
   const step = useDecimals ? 0.01 : 1;
   const [autoSaving, setAutoSaving] = useState(false);
   const [applyMarginToAll, setApplyMarginToAll] = useState(false);
+
+  // Calculate default groupon margin from all options
+  // Find the most common groupon margin value, defaulting to 30 if none found
+  const defaultGrouponMargin = useMemo(() => {
+    if (options.length === 0) return 30;
+    
+    // Count occurrences of each groupon margin value
+    const marginCounts = new Map<number, number>();
+    options.forEach((opt) => {
+      const margin = opt.grouponMargin !== undefined ? opt.grouponMargin : 30;
+      marginCounts.set(margin, (marginCounts.get(margin) || 0) + 1);
+    });
+    
+    // Find the most common margin value
+    let maxCount = 0;
+    let mostCommonMargin = 30;
+    marginCounts.forEach((count, margin) => {
+      if (count > maxCount) {
+        maxCount = count;
+        mostCommonMargin = margin;
+      }
+    });
+    
+    return mostCommonMargin;
+  }, [options]);
 
   // Calculate discount from prices
   const calculateDiscount = (
@@ -189,8 +214,8 @@ const DealOptionsTable = ({
       enabled: true,
       customFields: [],
       monthlyCapacity: 100,
-      merchantMargin: 50,
-      grouponMargin: 50,
+      merchantMargin: 70,
+      grouponMargin: 30,
       merchantPayout: (newOption.grouponPrice || 0) * 0.8,
       status: "Live",
     };
@@ -1414,22 +1439,36 @@ const DealOptionsTable = ({
                               Groupon Margin %
                             </Text>
                             <InputNumber
-                              value={selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 50}
+                              value={selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 30}
                               onChange={(value) => {
-                                const grouponMargin = value !== null && value !== undefined ? value : 50;
+                                const grouponMargin = value !== null && value !== undefined ? value : 30;
                                 // Calculate merchant margin: if Groupon gets X%, merchant gets (100-X)%
                                 const merchantMargin = 100 - grouponMargin;
                                 
                                 if (applyMarginToAll) {
-                                  // Apply to all options
-                                  const updatedOptions = options.map((opt) => ({
-                                    ...opt,
-                                    grouponMargin,
-                                    merchantMargin,
-                                    merchantPayout: opt.grouponPrice 
-                                      ? Math.round((opt.grouponPrice * merchantMargin) / 100)
-                                      : opt.merchantPayout,
-                                  }));
+                                  // Apply to all options that don't have custom margins
+                                  const oldDefaultGrouponMargin = defaultGrouponMargin;
+                                  const updatedOptions = options.map((opt) => {
+                                    // Check if option has a custom margin (explicitly set and differs from default)
+                                    // An option has custom margin if: grouponMargin is defined AND it differs from the default
+                                    const hasCustomMargin = opt.grouponMargin !== undefined && opt.grouponMargin !== oldDefaultGrouponMargin;
+                                    
+                                    // Only update options that don't have custom margins
+                                    if (!hasCustomMargin) {
+                                      // Always set explicit value when applying to all
+                                      // This ensures the value is preserved even if it matches the default (including 0)
+                                      return {
+                                        ...opt,
+                                        grouponMargin: grouponMargin,
+                                        merchantMargin,
+                                        merchantPayout: opt.grouponPrice 
+                                          ? Math.round((opt.grouponPrice * merchantMargin) / 100)
+                                          : opt.merchantPayout,
+                                      };
+                                    }
+                                    // Keep custom margin options unchanged
+                                    return opt;
+                                  });
                                   onOptionsChange(updatedOptions);
                                   // Update selected option state
                                   setSelectedOption({
@@ -1526,7 +1565,7 @@ const DealOptionsTable = ({
                                 $
                                 {Math.round(
                                   (selectedOption.grouponPrice *
-                                    (100 - (selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 50))) /
+                                    (100 - (selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 30))) /
                                     100
                                 )}
                               </Text>
@@ -1542,7 +1581,7 @@ const DealOptionsTable = ({
                                 Merchant margin
                               </Text>
                               <Text strong style={{ fontSize: 14 }}>
-                                {100 - (selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 50)}%
+                                {100 - (selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 30)}%
                               </Text>
                             </div>
                             <Divider style={{ margin: "8px 0" }} />
@@ -1558,7 +1597,7 @@ const DealOptionsTable = ({
                                 $
                                 {Math.round(
                                   (selectedOption.grouponPrice *
-                                    (selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 50)) /
+                                    (selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 30)) /
                                     100
                                 )}
                               </Text>
@@ -1574,7 +1613,7 @@ const DealOptionsTable = ({
                                 Groupon margin
                               </Text>
                               <Text strong style={{ fontSize: 14 }}>
-                                {selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 50}%
+                                {selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 30}%
                               </Text>
                             </div>
                           </Space>

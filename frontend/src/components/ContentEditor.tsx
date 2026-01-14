@@ -234,8 +234,8 @@ const ContentEditor = ({
       enabled: opt.enabled ?? opt.status === "Live",
       customFields: opt.customFields,
       monthlyCapacity: opt.monthlyCapacity || 100,
-      merchantMargin: opt.merchantMargin || 50,
-      grouponMargin: opt.grouponMargin || 50,
+      merchantMargin: opt.merchantMargin || 70,
+      grouponMargin: opt.grouponMargin || 30,
       merchantPayout: opt.merchantPayout,
       status: opt.status,
     }))

@@ -9,6 +9,7 @@ const { useToken } = theme;
 
 const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
   option,
+  allOptions = [],
   onUpdate,
   onRemove,
   onClose,
@@ -19,6 +20,31 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
   // State for Promotion section
   const [merchantPaysMax, setMerchantPaysMax] = useState<number>(option.merchantPaysMax || 20);
   const [promotionDiscount, setPromotionDiscount] = useState<number>(option.promotionDiscount || 10);
+
+  // Calculate default groupon margin from all options
+  // Find the most common groupon margin value, defaulting to 30 if none found
+  const defaultGrouponMargin = useMemo(() => {
+    if (allOptions.length === 0) return 30;
+    
+    // Count occurrences of each groupon margin value
+    const marginCounts = new Map<number, number>();
+    allOptions.forEach((opt) => {
+      const margin = opt.grouponMargin !== undefined ? opt.grouponMargin : 30;
+      marginCounts.set(margin, (marginCounts.get(margin) || 0) + 1);
+    });
+    
+    // Find the most common margin value
+    let maxCount = 0;
+    let mostCommonMargin = 30;
+    marginCounts.forEach((count, margin) => {
+      if (count > maxCount) {
+        maxCount = count;
+        mostCommonMargin = margin;
+      }
+    });
+    
+    return mostCommonMargin;
+  }, [allOptions]);
 
   // Helper to round based on decimal setting
   const roundValue = (val: number) => {
@@ -183,7 +209,7 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
               );
               onUpdate("discount", newDiscount);
               // Recalculate merchant payout based on groupon margin
-              const grouponMargin = option.grouponMargin !== undefined ? option.grouponMargin : 50;
+              const grouponMargin = option.grouponMargin !== undefined ? option.grouponMargin : defaultGrouponMargin;
               const merchantMargin = 100 - grouponMargin;
               const merchantPayout = roundValue(
                 (newGrouponPrice * merchantMargin) / 100
@@ -220,7 +246,7 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
               );
               onUpdate("grouponPrice", newGrouponPrice);
               // Recalculate merchant payout based on groupon margin
-              const grouponMargin = option.grouponMargin !== undefined ? option.grouponMargin : 50;
+              const grouponMargin = option.grouponMargin !== undefined ? option.grouponMargin : defaultGrouponMargin;
               const merchantMargin = 100 - grouponMargin;
               const merchantPayout = roundValue(
                 (newGrouponPrice * merchantMargin) / 100
@@ -338,10 +364,14 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
               Groupon Margin %
             </Text>
             <InputNumber
-              value={option.grouponMargin !== undefined ? option.grouponMargin : 50}
+              value={option.grouponMargin !== undefined ? option.grouponMargin : defaultGrouponMargin}
               onChange={(value) => {
-                const grouponMargin = value !== null && value !== undefined ? value : 50;
+                const grouponMargin = value !== null && value !== undefined ? value : defaultGrouponMargin;
+                
+                // Always set explicit value - don't set to undefined even if it matches default
+                // This ensures that when user explicitly sets a value (including 0), it's preserved
                 onUpdate("grouponMargin", grouponMargin);
+                
                 // Calculate merchant margin: if Groupon gets X%, merchant gets (100-X)%
                 const merchantMargin = 100 - grouponMargin;
                 onUpdate("merchantMargin", merchantMargin);
@@ -394,7 +424,7 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
               <Text strong style={{ fontSize: 14 }}>
                 $
                 {Math.round(
-                  (option.grouponPrice * (100 - (option.grouponMargin !== undefined ? option.grouponMargin : 50))) / 100
+                  (option.grouponPrice * (100 - (option.grouponMargin !== undefined ? option.grouponMargin : defaultGrouponMargin))) / 100
                 )}
               </Text>
             </div>
@@ -407,7 +437,7 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
             >
               <Text style={{ fontSize: 13 }}>Merchant margin</Text>
               <Text strong style={{ fontSize: 14 }}>
-                {100 - (option.grouponMargin !== undefined ? option.grouponMargin : 50)}%
+                {100 - (option.grouponMargin !== undefined ? option.grouponMargin : defaultGrouponMargin)}%
               </Text>
             </div>
             <Divider style={{ margin: "8px 0" }} />
@@ -422,7 +452,7 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
               <Text strong style={{ fontSize: 14 }}>
                 $
                 {Math.round(
-                  (option.grouponPrice * (option.grouponMargin !== undefined ? option.grouponMargin : 50)) / 100
+                  (option.grouponPrice * (option.grouponMargin !== undefined ? option.grouponMargin : defaultGrouponMargin)) / 100
                 )}
               </Text>
             </div>
@@ -435,12 +465,14 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
             >
               <Text style={{ fontSize: 13 }}>Groupon margin</Text>
               <Text strong style={{ fontSize: 14 }}>
-                {option.grouponMargin !== undefined ? option.grouponMargin : 50}%
+                {option.grouponMargin !== undefined ? option.grouponMargin : defaultGrouponMargin}%
               </Text>
             </div>
           </Space>
         </Card>
       </div>
+
+      <Divider style={{ margin: "8px 0" }} />
 
       {/* Revenue Split with Promotion */}
       <div>
@@ -448,7 +480,13 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
           strong
           style={{ fontSize: 13, display: "block", marginBottom: 12 }}
         >
-          Revenue Split with Promotion
+          
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            Revenue Split with Promotion
+            <Tag color="purple">
+              VFM
+            </Tag>
+          </div>
         </Text>
 
         {/* Merchant pays max and Promotion discount - Side by side */}
@@ -556,9 +594,14 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
               }}
             >
               <Text style={{ fontSize: 13 }}>Promotion discount</Text>
-              <Text strong style={{ fontSize: 14 }}>
-                {promotionDiscount}% ${promotionCalculations.promotionDiscountAmount}
-              </Text>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <Tag style={{ color: token.colorTextSecondary }}>
+                  {promotionDiscount}%
+                </Tag>
+                <Text strong style={{ fontSize: 14 }}>
+                  ${promotionCalculations.promotionDiscountAmount}
+                </Text>
+              </div>
             </div>
             <div
               style={{

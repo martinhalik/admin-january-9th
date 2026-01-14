@@ -153,7 +153,7 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                       const newDiscount = calculateDiscount(option.regularPrice, newGrouponPrice);
                       onUpdate("discount", newDiscount);
                       // Recalculate merchant payout based on groupon margin
-                      const grouponMargin = option.grouponMargin !== undefined ? option.grouponMargin : 50;
+                      const grouponMargin = option.grouponMargin !== undefined ? option.grouponMargin : 30;
                       const merchantMargin = 100 - grouponMargin;
                       onUpdate("merchantPayout", Math.round((newGrouponPrice * merchantMargin) / 100));
                     }}
@@ -196,7 +196,7 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                       const newGrouponPrice = calculateGrouponPrice(option.regularPrice, newDiscount);
                       onUpdate("grouponPrice", newGrouponPrice);
                       // Recalculate merchant payout based on groupon margin
-                      const grouponMargin = option.grouponMargin !== undefined ? option.grouponMargin : 50;
+                      const grouponMargin = option.grouponMargin !== undefined ? option.grouponMargin : 30;
                       const merchantMargin = 100 - grouponMargin;
                       onUpdate("merchantPayout", Math.round((newGrouponPrice * merchantMargin) / 100));
                     }}
@@ -434,9 +434,9 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                           Groupon Margin %
                         </Text>
                         <InputNumber
-                          value={option.grouponMargin !== undefined ? option.grouponMargin : 50}
+                          value={option.grouponMargin !== undefined ? option.grouponMargin : 30}
                           onChange={(value) => {
-                            const grouponMargin = value !== null && value !== undefined ? value : 50;
+                            const grouponMargin = value !== null && value !== undefined ? value : 30;
                             onUpdate("grouponMargin", grouponMargin);
                             // Calculate merchant margin: if Groupon gets X%, merchant gets (100-X)%
                             const merchantMargin = 100 - grouponMargin;
@@ -491,7 +491,7 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                         >
                           <Text style={{ fontSize: 13 }}>Merchant gets</Text>
                           <Text strong style={{ fontSize: 14 }}>
-                            ${Math.round((option.grouponPrice * (100 - (option.grouponMargin !== undefined ? option.grouponMargin : 50))) / 100)}
+                            ${Math.round((option.grouponPrice * (100 - (option.grouponMargin !== undefined ? option.grouponMargin : 30))) / 100)}
                           </Text>
                         </div>
                         <div
@@ -503,7 +503,7 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                         >
                           <Text style={{ fontSize: 13 }}>Merchant margin</Text>
                           <Text strong style={{ fontSize: 14 }}>
-                            {100 - (option.grouponMargin !== undefined ? option.grouponMargin : 50)}%
+                            {100 - (option.grouponMargin !== undefined ? option.grouponMargin : 30)}%
                           </Text>
                         </div>
                         <Divider style={{ margin: "8px 0" }} />
@@ -516,7 +516,7 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                         >
                           <Text style={{ fontSize: 13 }}>Groupon gets</Text>
                           <Text strong style={{ fontSize: 14 }}>
-                            ${Math.round((option.grouponPrice * (option.grouponMargin !== undefined ? option.grouponMargin : 50)) / 100)}
+                            ${Math.round((option.grouponPrice * (option.grouponMargin !== undefined ? option.grouponMargin : 30)) / 100)}
                           </Text>
                         </div>
                         <div
@@ -528,7 +528,7 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                         >
                           <Text style={{ fontSize: 13 }}>Groupon margin</Text>
                           <Text strong style={{ fontSize: 14 }}>
-                            {option.grouponMargin !== undefined ? option.grouponMargin : 50}%
+                            {option.grouponMargin !== undefined ? option.grouponMargin : 30}%
                           </Text>
                         </div>
                       </Space>

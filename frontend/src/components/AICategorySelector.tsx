@@ -201,8 +201,8 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
     }
   };
   
-  // Merchant margin state (default 30%)
-  const [defaultMerchantMargin, setDefaultMerchantMargin] = useState(30);
+  // Merchant margin state (default 70% - Groupon margin is 30%)
+  const [defaultMerchantMargin, setDefaultMerchantMargin] = useState(70);
   
   // Track options that are currently checking for pricing
   const [loadingPricing, setLoadingPricing] = useState<Set<string>>(new Set());
@@ -362,10 +362,9 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
       const updatedOpt: any = { 
         ...opt, 
         enabled: true, // All generated options are active by default
-        // Don't set merchantMargin - leave undefined so it uses defaultMerchantMargin
-        // merchantMargin will only be set when user explicitly customizes it
-        // Set grouponMargin to match defaultMerchantMargin initially
-        grouponMargin: defaultMerchantMargin,
+        // Don't set merchantMargin or grouponMargin - leave undefined so they use defaults
+        // These will only be set when user explicitly customizes them
+        // grouponMargin: undefined (will use default: 100 - defaultMerchantMargin)
       };
       
       if (debugScrapingMode === "all") {
@@ -412,10 +411,14 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
             const grouponPrice = opt.grouponPrice;
             updated.discount = Math.round(((regularPrice - grouponPrice) / regularPrice) * 100);
             // Use grouponMargin to calculate merchantMargin and merchantPayout
+            // Don't set grouponMargin explicitly - keep it undefined if it was undefined
             const grouponMargin = opt.grouponMargin !== undefined ? opt.grouponMargin : (100 - defaultMerchantMargin);
             const merchantMargin = 100 - grouponMargin;
             updated.merchantMargin = merchantMargin;
-            updated.grouponMargin = grouponMargin;
+            // Only set grouponMargin if it was already explicitly set (preserve custom vs default)
+            if (opt.grouponMargin !== undefined) {
+              updated.grouponMargin = opt.grouponMargin;
+            }
             updated.merchantPayout = Math.round((grouponPrice * merchantMargin) / 100);
             updated.margin = roundValue(grouponPrice * 0.5);
           } else if (field === 'grouponPrice') {
@@ -423,10 +426,14 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
             const grouponPrice = value;
             updated.discount = Math.round(((regularPrice - grouponPrice) / regularPrice) * 100);
             // Use grouponMargin to calculate merchantMargin and merchantPayout
+            // Don't set grouponMargin explicitly - keep it undefined if it was undefined
             const grouponMargin = opt.grouponMargin !== undefined ? opt.grouponMargin : (100 - defaultMerchantMargin);
             const merchantMargin = 100 - grouponMargin;
             updated.merchantMargin = merchantMargin;
-            updated.grouponMargin = grouponMargin;
+            // Only set grouponMargin if it was already explicitly set (preserve custom vs default)
+            if (opt.grouponMargin !== undefined) {
+              updated.grouponMargin = opt.grouponMargin;
+            }
             updated.merchantPayout = Math.round((grouponPrice * merchantMargin) / 100);
             updated.margin = roundValue(grouponPrice * 0.5);
           } else if (field === 'discount') {
@@ -529,10 +536,10 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
       grouponPrice: 50,
       discount: 50,
       margin: 25,
-      // Set grouponMargin (default 50% if defaultMerchantMargin is 50%)
-      // merchantMargin will be calculated as 100 - grouponMargin
-      grouponMargin: 100 - defaultMerchantMargin,
-      merchantMargin: defaultMerchantMargin,
+      // Don't set grouponMargin or merchantMargin - leave undefined so they use defaults
+      // These will only be set when user explicitly customizes them
+      // grouponMargin: undefined (will use default: 100 - defaultMerchantMargin)
+      // merchantMargin: undefined (will use default: defaultMerchantMargin)
       merchantPayout: Math.round((50 * defaultMerchantMargin) / 100),
       projectedSales: 100,
       confidence: 0.7,
@@ -1066,7 +1073,7 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
                         value={100 - defaultMerchantMargin}
                         onChange={(value) => {
                           // Handle null/undefined properly - treat as Groupon margin input
-                          const newGrouponMargin = value !== null && value !== undefined ? value : 50;
+                          const newGrouponMargin = value !== null && value !== undefined ? value : 30;
                           // Calculate merchant margin from groupon margin
                           const newMerchantMargin = 100 - newGrouponMargin;
                           // Store the old default groupon margin to check which options are using the default
@@ -1075,14 +1082,17 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
                           // Update all options that are using the default (not custom)
                           setGeneratedOptions((prev) =>
                             prev.map((opt: any) => {
-                              // Check if option is using the default margin (matches old default or is undefined)
-                              const currentGrouponMargin = opt.grouponMargin !== undefined ? opt.grouponMargin : oldDefaultGrouponMargin;
-                              const isUsingDefault = opt.grouponMargin === undefined || currentGrouponMargin === oldDefaultGrouponMargin;
+                              // Check if option is using the default margin
+                              // An option uses default if: grouponMargin is undefined OR it matches the old default
+                              // An option is custom if: grouponMargin is explicitly set AND differs from old default
+                              const isUsingDefault = opt.grouponMargin === undefined || opt.grouponMargin === oldDefaultGrouponMargin;
                               
                               if (isUsingDefault) {
                                 // Option is using default, update it to new default
                                 const updated = { ...opt };
-                                updated.grouponMargin = newGrouponMargin;
+                                // Keep as undefined so it uses the new default margin
+                                // This ensures options continue to follow the default when it changes
+                                updated.grouponMargin = undefined;
                                 updated.merchantMargin = newMerchantMargin;
                                 // Recalculate merchant payout: merchant gets (100 - grouponMargin)% of groupon price
                                 updated.merchantPayout = Math.round((opt.grouponPrice * newMerchantMargin) / 100);

@@ -1,5 +1,6 @@
 export interface DealOptionDetailsContentProps {
   option: any;
+  allOptions?: any[]; // All options in the deal to calculate default groupon margin
   onUpdate: (field: string, value: any) => void;
   onRemove: () => void;
   onClose?: () => void; // Optional callback to close the sidebar view

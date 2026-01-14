@@ -549,8 +549,8 @@ function generateMockDeals(count: number = 200): Partial<Deal>[] {
         enabled: campaignStage === "won",
         validity: "Valid for 90 days",
         monthlyCapacity: randomNumber(50, 300),
-        merchantMargin: randomNumber(35, 65),
-        grouponMargin: randomNumber(35, 65),
+        merchantMargin: 70,
+        grouponMargin: 30,
       }],
       roles: {
         accountOwner: accountOwners.length > 0 ? randomItem(accountOwners).name : "Unassigned",

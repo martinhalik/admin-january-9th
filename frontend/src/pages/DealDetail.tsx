@@ -3570,6 +3570,7 @@ Don't miss this opportunity to enjoy ${businessType} excellence at an unbeatable
                 <div style={{ padding: `${token.paddingLG}px ${token.paddingLG}px ${token.paddingLG}px ${token.paddingLG}px` }}>
                   <DealOptionDetailsContent
                     option={selectedOption}
+                    allOptions={mappedOptions}
                     onUpdate={(field, value) => {
                       // Update the option in the main options array
                       const newOptions = mappedOptions.map((opt) =>

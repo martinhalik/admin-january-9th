@@ -514,6 +514,7 @@ const AIGenerationFlow: React.FC<AIGenerationFlowProps> = ({
                 <div style={{ padding: `${token.paddingLG}px` }}>
                   <DealOptionDetailsContent
                     option={selectedOption}
+                    allOptions={[]} // Options are managed by AICategorySelector internally
                     onUpdate={(field, value) => {
                       // Update through AICategorySelector's handler
                       if (optionEditHandlerRef.current && selectedOption) {
