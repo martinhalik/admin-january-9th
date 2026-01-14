@@ -6,7 +6,6 @@ import {
   InputNumber,
   Button,
   theme,
-  Popconfirm,
   Input,
   Spin,
   Tag,
@@ -47,6 +46,7 @@ interface SortableOptionItemProps {
   onNameComplete?: (optionId: string, name: string) => void;
   onEditDetails: (option: OptionItemData) => void;
   useDecimals?: boolean;
+  defaultMerchantMargin?: number;
 }
 
 const SortableOptionItem: React.FC<SortableOptionItemProps> = ({
@@ -60,8 +60,14 @@ const SortableOptionItem: React.FC<SortableOptionItemProps> = ({
   onNameComplete,
   onEditDetails,
   useDecimals = false,
+  defaultMerchantMargin = 30,
 }) => {
   const { token } = useToken();
+  
+  // Check if this option has a custom margin (explicitly set and different from default)
+  const hasCustomMargin = option.merchantMargin !== undefined && option.merchantMargin !== defaultMerchantMargin;
+  // Use option's margin if set, otherwise use default
+  const effectiveMargin = option.merchantMargin !== undefined ? option.merchantMargin : defaultMerchantMargin;
   const {
     attributes,
     listeners,
@@ -86,10 +92,12 @@ const SortableOptionItem: React.FC<SortableOptionItemProps> = ({
         size="small"
         style={{
           borderRadius: 8,
-          border: `1px solid ${isDragging ? token.colorPrimary : token.colorBorder}`,
-          background: token.colorBgContainer,
+          border: `1px solid ${isDragging ? token.colorPrimary : hasCustomMargin ? token.colorWarningBorder : token.colorBorder}`,
+          background: hasCustomMargin ? token.colorWarningBg : token.colorBgContainer,
           boxShadow: isDragging
             ? "0 8px 16px rgba(0, 0, 0, 0.15)"
+            : hasCustomMargin
+            ? `0 1px 2px 0 ${token.colorWarningBorder}40`
             : "0 1px 2px 0 rgba(0, 0, 0, 0.03)",
           position: "relative",
         }}
@@ -138,23 +146,17 @@ const SortableOptionItem: React.FC<SortableOptionItemProps> = ({
 
         {/* Delete button - top right corner */}
         <div style={{ position: "absolute", top: 12, right: 12, zIndex: 10 }}>
-          <Popconfirm
-            title="Remove this option?"
-            onConfirm={() => onRemove(option.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button
-              type="text"
-              size="small"
-              danger
-              icon={<Trash2 size={14} />}
-              style={{
-                color: token.colorTextSecondary,
-                opacity: 0.6,
-              }}
-            />
-          </Popconfirm>
+          <Button
+            type="text"
+            size="small"
+            danger
+            icon={<Trash2 size={14} />}
+            onClick={() => onRemove(option.id)}
+            style={{
+              color: token.colorTextSecondary,
+              opacity: 0.6,
+            }}
+          />
         </div>
 
         <div style={{ padding: "12px 16px", paddingLeft: "36px", paddingRight: "80px" }}>
@@ -386,17 +388,23 @@ const SortableOptionItem: React.FC<SortableOptionItemProps> = ({
 
             {/* Merchant Payout - Display Only */}
             <div>
-              <span
-                style={{
-                  fontSize: 11,
-                  color: token.colorTextSecondary,
-                  fontWeight: 500,
-                  display: "block",
-                  marginBottom: 6,
-                }}
-              >
-                Merchant Payout
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 6 }}>
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: token.colorTextSecondary,
+                    fontWeight: 500,
+                    display: "block",
+                  }}
+                >
+                  Merchant Payout
+                </span>
+                {hasCustomMargin && (
+                  <Tag color="warning" style={{ fontSize: 9, margin: 0, padding: "0 4px", lineHeight: "16px" }}>
+                    Custom
+                  </Tag>
+                )}
+              </div>
               <div
                 style={{
                   height: 32,
@@ -412,7 +420,7 @@ const SortableOptionItem: React.FC<SortableOptionItemProps> = ({
                     fontSize: 14,
                   }}
                 >
-                  ${option.merchantPayout || Math.round(option.grouponPrice * 0.5)}
+                  ${option.merchantPayout || Math.round((option.grouponPrice * effectiveMargin) / 100)}
                 </span>
               </div>
             </div>
