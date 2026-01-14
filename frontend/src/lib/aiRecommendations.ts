@@ -58,6 +58,9 @@ export interface GeneratedOption {
   pricingSource: "merchant_scraped" | "similar_deals";
   merchantPricingUrl?: string; // Only if pricingSource is merchant_scraped
   similarDealsReference?: string; // Only if pricingSource is similar_deals
+  grouponMargin?: number; // Groupon's margin percentage (0-100)
+  merchantMargin?: number; // Merchant's margin percentage (0-100), calculated as 100 - grouponMargin
+  merchantPayout?: number; // Amount merchant receives per voucher sold
 }
 
 export interface AIGuidance {

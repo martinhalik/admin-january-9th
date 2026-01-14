@@ -119,9 +119,11 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
                 newGrouponPrice
               );
               onUpdate("discount", newDiscount);
-              // Recalculate merchant payout based on merchant margin
+              // Recalculate merchant payout based on groupon margin
+              const grouponMargin = option.grouponMargin !== undefined ? option.grouponMargin : 50;
+              const merchantMargin = 100 - grouponMargin;
               const merchantPayout = roundValue(
-                (newGrouponPrice * (option.merchantMargin || 50)) / 100
+                (newGrouponPrice * merchantMargin) / 100
               );
               onUpdate("merchantPayout", merchantPayout);
             }}
@@ -154,9 +156,11 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
                 newDiscount
               );
               onUpdate("grouponPrice", newGrouponPrice);
-              // Recalculate merchant payout based on merchant margin
+              // Recalculate merchant payout based on groupon margin
+              const grouponMargin = option.grouponMargin !== undefined ? option.grouponMargin : 50;
+              const merchantMargin = 100 - grouponMargin;
               const merchantPayout = roundValue(
-                (newGrouponPrice * (option.merchantMargin || 50)) / 100
+                (newGrouponPrice * merchantMargin) / 100
               );
               onUpdate("merchantPayout", merchantPayout);
             }}
@@ -225,14 +229,18 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
               color: token.colorSuccess,
             }}
           >
-            ${option.merchantPayout || Math.round((option.grouponPrice * (option.merchantMargin || 50)) / 100)}
+            ${option.merchantPayout || (() => {
+              const grouponMargin = option.grouponMargin !== undefined ? option.grouponMargin : 50;
+              const merchantMargin = 100 - grouponMargin;
+              return Math.round((option.grouponPrice * merchantMargin) / 100);
+            })()}
           </Text>
         </div>
         <Text
           type="secondary"
           style={{ fontSize: 11, marginTop: 4, display: "block" }}
         >
-          Based on {option.merchantMargin || 50}% merchant margin
+          Based on {100 - (option.grouponMargin !== undefined ? option.grouponMargin : 50)}% merchant margin
         </Text>
       </div>
 
@@ -263,7 +271,7 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
       <Divider style={{ margin: 0 }} />
 
       {/* Optional Details */}
-      <div>
+      <div style={{ display: "none" }}>
         <Text
           type="secondary"
           style={{ fontSize: 12, display: "block", marginBottom: 8 }}
@@ -278,7 +286,7 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
         />
       </div>
 
-      <div>
+      <div style={{ display: "none" }}>
         <Text
           type="secondary"
           style={{ fontSize: 12, display: "block", marginBottom: 8 }}
@@ -320,12 +328,9 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
           Revenue Split
         </Text>
 
-        {/* Merchant and Groupon Margin - 2 Column Layout */}
+        {/* Groupon Margin */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 12,
             marginBottom: 16,
           }}
         >
@@ -334,52 +339,18 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
               type="secondary"
               style={{ fontSize: 12, display: "block", marginBottom: 8 }}
             >
-              Merchant Margin %
-            </Text>
-            <InputNumber
-              value={option.merchantMargin || 50}
-              onChange={(value) => {
-                const merchantMargin = value || 0;
-                onUpdate("merchantMargin", merchantMargin);
-                onUpdate("grouponMargin", 100 - merchantMargin);
-                // Recalculate merchant payout
-                const merchantPayout = Math.round(
-                  (option.grouponPrice * merchantMargin) / 100
-                );
-                onUpdate("merchantPayout", merchantPayout);
-              }}
-              suffix="%"
-              size="large"
-              style={{ width: "100%" }}
-              min={0}
-              max={100}
-              step={1}
-              precision={0}
-            />
-            <Text
-              type="secondary"
-              style={{ fontSize: 11, marginTop: 4, display: "block" }}
-            >
-              40-70% ideal
-            </Text>
-          </div>
-
-          <div>
-            <Text
-              type="secondary"
-              style={{ fontSize: 12, display: "block", marginBottom: 8 }}
-            >
               Groupon Margin %
             </Text>
             <InputNumber
-              value={option.grouponMargin || 50}
+              value={option.grouponMargin !== undefined ? option.grouponMargin : 50}
               onChange={(value) => {
-                const grouponMargin = value || 0;
+                const grouponMargin = value !== null && value !== undefined ? value : 50;
                 onUpdate("grouponMargin", grouponMargin);
+                // Calculate merchant margin: if Groupon gets X%, merchant gets (100-X)%
                 const merchantMargin = 100 - grouponMargin;
                 onUpdate("merchantMargin", merchantMargin);
-                // Recalculate merchant payout
-                const merchantPayout = Math.round(
+                // Recalculate merchant payout: merchant gets (100 - grouponMargin)% of groupon price
+                const merchantPayout = roundValue(
                   (option.grouponPrice * merchantMargin) / 100
                 );
                 onUpdate("merchantPayout", merchantPayout);
@@ -392,12 +363,6 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
               step={1}
               precision={0}
             />
-            <Text
-              type="secondary"
-              style={{ fontSize: 11, marginTop: 4, display: "block" }}
-            >
-              Auto-balanced
-            </Text>
           </div>
         </div>
 
@@ -433,7 +398,7 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
               <Text strong style={{ fontSize: 14 }}>
                 $
                 {Math.round(
-                  (option.grouponPrice * (option.merchantMargin || 50)) / 100
+                  (option.grouponPrice * (100 - (option.grouponMargin !== undefined ? option.grouponMargin : 50))) / 100
                 )}
               </Text>
             </div>
@@ -446,7 +411,7 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
             >
               <Text style={{ fontSize: 13 }}>Merchant margin</Text>
               <Text strong style={{ fontSize: 14 }}>
-                {option.merchantMargin || 50}%
+                {100 - (option.grouponMargin !== undefined ? option.grouponMargin : 50)}%
               </Text>
             </div>
             <Divider style={{ margin: "8px 0" }} />
@@ -461,7 +426,7 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
               <Text strong style={{ fontSize: 14 }}>
                 $
                 {Math.round(
-                  (option.grouponPrice * (option.grouponMargin || 50)) / 100
+                  (option.grouponPrice * (option.grouponMargin !== undefined ? option.grouponMargin : 50)) / 100
                 )}
               </Text>
             </div>
@@ -474,7 +439,7 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
             >
               <Text style={{ fontSize: 13 }}>Groupon margin</Text>
               <Text strong style={{ fontSize: 14 }}>
-                {option.grouponMargin || 50}%
+                {option.grouponMargin !== undefined ? option.grouponMargin : 50}%
               </Text>
             </div>
           </Space>

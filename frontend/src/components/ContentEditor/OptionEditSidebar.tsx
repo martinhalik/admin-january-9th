@@ -152,8 +152,10 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                       // Recalculate discount
                       const newDiscount = calculateDiscount(option.regularPrice, newGrouponPrice);
                       onUpdate("discount", newDiscount);
-                      // Recalculate merchant payout (assuming 50% of groupon price)
-                      onUpdate("merchantPayout", Math.round(newGrouponPrice * 0.5));
+                      // Recalculate merchant payout based on groupon margin
+                      const grouponMargin = option.grouponMargin !== undefined ? option.grouponMargin : 50;
+                      const merchantMargin = 100 - grouponMargin;
+                      onUpdate("merchantPayout", Math.round((newGrouponPrice * merchantMargin) / 100));
                     }}
                     prefix="$"
                     size="large"
@@ -193,8 +195,10 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                       // Recalculate groupon price
                       const newGrouponPrice = calculateGrouponPrice(option.regularPrice, newDiscount);
                       onUpdate("grouponPrice", newGrouponPrice);
-                      // Recalculate merchant payout (assuming 50% of groupon price)
-                      onUpdate("merchantPayout", Math.round(newGrouponPrice * 0.5));
+                      // Recalculate merchant payout based on groupon margin
+                      const grouponMargin = option.grouponMargin !== undefined ? option.grouponMargin : 50;
+                      const merchantMargin = 100 - grouponMargin;
+                      onUpdate("merchantPayout", Math.round((newGrouponPrice * merchantMargin) / 100));
                     }}
                     suffix="%"
                     size="large"
@@ -322,7 +326,7 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                 children: (
                   <Space direction="vertical" style={{ width: "100%" }} size="middle">
                     {/* Subtitle */}
-                    <div>
+                    <div style={{ display: "none" }}>
                       <Text
                         type="secondary"
                         style={{
@@ -342,7 +346,7 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                     </div>
 
                     {/* Details */}
-                    <div>
+                    <div style={{ display: "none" }}>
                       <Text
                         type="secondary"
                         style={{
@@ -417,45 +421,7 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                 children: (
                   <Space direction="vertical" style={{ width: "100%" }} size="middle">
                     {/* Merchant and Groupon Margin - 2 Column Layout */}
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: token.marginSM,
-                      }}
-                    >
-                      <div>
-                        <Text
-                          type="secondary"
-                          style={{
-                            fontSize: 12,
-                            display: "block",
-                            marginBottom: 8,
-                          }}
-                        >
-                          Merchant Margin %
-                        </Text>
-                        <InputNumber
-                          value={option.merchantMargin || 50}
-                          onChange={(value) => {
-                            const merchantMargin = value || 0;
-                            onUpdate("merchantMargin", merchantMargin);
-                            // Auto-adjust Groupon margin to make 100%
-                            onUpdate("grouponMargin", 100 - merchantMargin);
-                          }}
-                          suffix="%"
-                          size="large"
-                          style={{ width: "100%" }}
-                          min={0}
-                          max={100}
-                          step={1}
-                          precision={0}
-                        />
-                        <Text type="secondary" style={{ fontSize: 11, marginTop: 4, display: "block" }}>
-                          40-70% ideal
-                        </Text>
-                      </div>
-
+                    <div>
                       <div>
                         <Text
                           type="secondary"
@@ -468,12 +434,16 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                           Groupon Margin %
                         </Text>
                         <InputNumber
-                          value={option.grouponMargin || 50}
+                          value={option.grouponMargin !== undefined ? option.grouponMargin : 50}
                           onChange={(value) => {
-                            const grouponMargin = value || 0;
+                            const grouponMargin = value !== null && value !== undefined ? value : 50;
                             onUpdate("grouponMargin", grouponMargin);
-                            // Auto-adjust Merchant margin to make 100%
-                            onUpdate("merchantMargin", 100 - grouponMargin);
+                            // Calculate merchant margin: if Groupon gets X%, merchant gets (100-X)%
+                            const merchantMargin = 100 - grouponMargin;
+                            onUpdate("merchantMargin", merchantMargin);
+                            // Recalculate merchant payout: merchant gets (100 - grouponMargin)% of groupon price
+                            const merchantPayout = Math.round((option.grouponPrice * merchantMargin) / 100);
+                            onUpdate("merchantPayout", merchantPayout);
                           }}
                           suffix="%"
                           size="large"
@@ -483,9 +453,6 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                           step={1}
                           precision={0}
                         />
-                        <Text type="secondary" style={{ fontSize: 11, marginTop: 4, display: "block" }}>
-                          Auto-balanced
-                        </Text>
                       </div>
                     </div>
 
@@ -524,7 +491,7 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                         >
                           <Text style={{ fontSize: 13 }}>Merchant gets</Text>
                           <Text strong style={{ fontSize: 14 }}>
-                            ${Math.round((option.grouponPrice * (option.merchantMargin || 50)) / 100)}
+                            ${Math.round((option.grouponPrice * (100 - (option.grouponMargin !== undefined ? option.grouponMargin : 50))) / 100)}
                           </Text>
                         </div>
                         <div
@@ -536,7 +503,7 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                         >
                           <Text style={{ fontSize: 13 }}>Merchant margin</Text>
                           <Text strong style={{ fontSize: 14 }}>
-                            {option.merchantMargin || 50}%
+                            {100 - (option.grouponMargin !== undefined ? option.grouponMargin : 50)}%
                           </Text>
                         </div>
                         <Divider style={{ margin: "8px 0" }} />
@@ -549,7 +516,7 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                         >
                           <Text style={{ fontSize: 13 }}>Groupon gets</Text>
                           <Text strong style={{ fontSize: 14 }}>
-                            ${Math.round((option.grouponPrice * (option.grouponMargin || 50)) / 100)}
+                            ${Math.round((option.grouponPrice * (option.grouponMargin !== undefined ? option.grouponMargin : 50)) / 100)}
                           </Text>
                         </div>
                         <div
@@ -561,7 +528,7 @@ const OptionEditSidebar: React.FC<OptionEditSidebarProps> = ({
                         >
                           <Text style={{ fontSize: 13 }}>Groupon margin</Text>
                           <Text strong style={{ fontSize: 14 }}>
-                            {option.grouponMargin || 50}%
+                            {option.grouponMargin !== undefined ? option.grouponMargin : 50}%
                           </Text>
                         </div>
                       </Space>

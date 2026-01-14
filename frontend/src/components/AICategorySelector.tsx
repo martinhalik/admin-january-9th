@@ -14,6 +14,8 @@ import {
   Alert,
   Select,
   Switch,
+  InputNumber,
+  Badge,
 } from "antd";
 
 const { Link } = Typography;
@@ -199,6 +201,9 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
     }
   };
   
+  // Merchant margin state (default 30%)
+  const [defaultMerchantMargin, setDefaultMerchantMargin] = useState(30);
+  
   // Track options that are currently checking for pricing
   const [loadingPricing, setLoadingPricing] = useState<Set<string>>(new Set());
   
@@ -333,6 +338,7 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
       // Load instantly from cache
       const cached = optionsCache[pds.id];
       // Ensure all cached options have enabled: true by default
+      // merchantMargin stays as-is (undefined = uses default, defined = custom)
       const optionsWithEnabled = cached.options.map((opt: any) => ({
         ...opt,
         enabled: opt.enabled !== undefined ? opt.enabled : true,
@@ -353,7 +359,14 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
     
     // Apply debug scraping mode and set enabled: true for all options
     options = options.map((opt, index) => {
-      const updatedOpt: any = { ...opt, enabled: true }; // All generated options are active by default
+      const updatedOpt: any = { 
+        ...opt, 
+        enabled: true, // All generated options are active by default
+        // Don't set merchantMargin - leave undefined so it uses defaultMerchantMargin
+        // merchantMargin will only be set when user explicitly customizes it
+        // Set grouponMargin to match defaultMerchantMargin initially
+        grouponMargin: defaultMerchantMargin,
+      };
       
       if (debugScrapingMode === "all") {
         // All merchant scraped
@@ -386,7 +399,7 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
     setGeneratedOptions((prev) =>
       prev.map((opt) => {
         if (opt.id === optionId) {
-          const updated = { ...opt, [field]: value };
+          const updated: GeneratedOption = { ...opt, [field]: value };
           
           // Helper to round based on decimal setting
           const roundValue = (val: number) => {
@@ -398,17 +411,59 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
             const regularPrice = value;
             const grouponPrice = opt.grouponPrice;
             updated.discount = Math.round(((regularPrice - grouponPrice) / regularPrice) * 100);
+            // Use grouponMargin to calculate merchantMargin and merchantPayout
+            const grouponMargin = opt.grouponMargin !== undefined ? opt.grouponMargin : (100 - defaultMerchantMargin);
+            const merchantMargin = 100 - grouponMargin;
+            updated.merchantMargin = merchantMargin;
+            updated.grouponMargin = grouponMargin;
+            updated.merchantPayout = Math.round((grouponPrice * merchantMargin) / 100);
             updated.margin = roundValue(grouponPrice * 0.5);
           } else if (field === 'grouponPrice') {
             const regularPrice = opt.regularPrice;
             const grouponPrice = value;
             updated.discount = Math.round(((regularPrice - grouponPrice) / regularPrice) * 100);
+            // Use grouponMargin to calculate merchantMargin and merchantPayout
+            const grouponMargin = opt.grouponMargin !== undefined ? opt.grouponMargin : (100 - defaultMerchantMargin);
+            const merchantMargin = 100 - grouponMargin;
+            updated.merchantMargin = merchantMargin;
+            updated.grouponMargin = grouponMargin;
+            updated.merchantPayout = Math.round((grouponPrice * merchantMargin) / 100);
             updated.margin = roundValue(grouponPrice * 0.5);
           } else if (field === 'discount') {
             const newDiscount = value;
             const regularPrice = opt.regularPrice;
             updated.grouponPrice = roundValue(regularPrice * (1 - newDiscount / 100));
+            // Use grouponMargin to calculate merchantMargin and merchantPayout
+            const grouponMargin = opt.grouponMargin !== undefined ? opt.grouponMargin : (100 - defaultMerchantMargin);
+            const merchantMargin = 100 - grouponMargin;
+            updated.merchantMargin = merchantMargin;
+            updated.grouponMargin = grouponMargin;
+            updated.merchantPayout = Math.round((updated.grouponPrice * merchantMargin) / 100);
             updated.margin = roundValue(updated.grouponPrice * 0.5);
+          } else if (field === 'merchantMargin') {
+            const merchantMargin = value !== null && value !== undefined ? value : defaultMerchantMargin;
+            updated.merchantMargin = merchantMargin;
+            // Calculate grouponMargin: if merchant gets X%, groupon gets (100-X)%
+            const grouponMargin = 100 - merchantMargin;
+            updated.grouponMargin = grouponMargin;
+            updated.merchantPayout = Math.round((opt.grouponPrice * merchantMargin) / 100);
+          } else if (field === 'grouponMargin') {
+            const grouponMargin = value !== null && value !== undefined ? value : (100 - defaultMerchantMargin);
+            updated.grouponMargin = grouponMargin;
+            // Calculate merchantMargin: if groupon gets X%, merchant gets (100-X)%
+            const merchantMargin = 100 - grouponMargin;
+            updated.merchantMargin = merchantMargin;
+            updated.merchantPayout = Math.round((opt.grouponPrice * merchantMargin) / 100);
+          } else if (field === 'merchantPayout') {
+            // If merchantPayout is set directly, calculate merchantMargin
+            const merchantPayout = value;
+            if (opt.grouponPrice > 0) {
+              const calculatedMargin = Math.round((merchantPayout / opt.grouponPrice) * 100);
+              updated.merchantMargin = calculatedMargin;
+              // Calculate grouponMargin from merchantMargin
+              const grouponMargin = 100 - calculatedMargin;
+              updated.grouponMargin = grouponMargin;
+            }
           }
           
           // Notify parent of the complete updated option so it can sync the sidebar
@@ -421,7 +476,7 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
         return opt;
       })
     );
-  }, [onOptionUpdate, useDecimals]);
+  }, [onOptionUpdate, useDecimals, defaultMerchantMargin]);
   
   // Register the option edit handler with parent
   useEffect(() => {
@@ -474,6 +529,11 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
       grouponPrice: 50,
       discount: 50,
       margin: 25,
+      // Set grouponMargin (default 50% if defaultMerchantMargin is 50%)
+      // merchantMargin will be calculated as 100 - grouponMargin
+      grouponMargin: 100 - defaultMerchantMargin,
+      merchantMargin: defaultMerchantMargin,
+      merchantPayout: Math.round((50 * defaultMerchantMargin) / 100),
       projectedSales: 100,
       confidence: 0.7,
       reasoning: "Custom option",
@@ -911,17 +971,28 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
                       </Text>
                     </div>
                   </div>
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<Settings size={16} />}
-                    onClick={() => {
-                      setSettingsOpen(!settingsOpen);
-                    }}
-                    style={{ 
-                      color: settingsOpen ? token.colorPrimary : token.colorTextSecondary,
-                    }}
-                  />
+                  <Badge
+                    dot={(() => {
+                      // Check if any option has a custom merchant margin different from default
+                      return generatedOptions.some(opt => 
+                        opt.merchantMargin !== undefined && opt.merchantMargin !== defaultMerchantMargin
+                      );
+                    })()}
+                    color={token.colorPrimary}
+                    offset={[1, 1]}
+                  >
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<Settings size={16} />}
+                      onClick={() => {
+                        setSettingsOpen(!settingsOpen);
+                      }}
+                      style={{ 
+                        color: settingsOpen ? token.colorPrimary : token.colorTextSecondary,
+                      }}
+                    />
+                  </Badge>
                 </div>
               }
               size="small"
@@ -979,70 +1050,63 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
                 </div>
               ) : (
                 <>
-                  {/* Pricing Status Summary */}
-                  {(() => {
-                    const foundCount = generatedOptions.filter(opt => opt.pricingSource === "merchant_scraped").length;
-                    const totalCount = generatedOptions.length;
-                    const notFoundCount = totalCount - foundCount;
-                    const verifiedOption = generatedOptions.find(opt => opt.pricingSource === "merchant_scraped");
-                    const merchantPricingUrl = verifiedOption?.merchantPricingUrl;
-                    
-                    // Determine which URL to show (website, Instagram, or Facebook)
-                    const siteUrl = account.website || account.instagram?.url || account.facebook?.url;
-                    
-                    return (
-                      <Alert
-                        message={
-                          <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
-                            <span>
-                              {foundCount > 0 
-                                ? `Couldn't verify ${notFoundCount} price${notFoundCount !== 1 ? 's' : ''}`
-                                : `Couldn't verify ${totalCount} price${totalCount !== 1 ? 's' : ''}`}
-                            </span>
-                            {foundCount > 0 && merchantPricingUrl && (
-                              <Button
-                                type="link"
-                                size="small"
-                                icon={<ExternalLink size={12} />}
-                                href={merchantPricingUrl}
-                                target="_blank"
-                                style={{
-                                  padding: 0,
-                                  height: 'auto',
-                                  fontSize: 12,
-                                }}
-                              >
-                                View Site
-                              </Button>
-                            )}
-                            {(!foundCount || !merchantPricingUrl) && siteUrl && (
-                              <Button
-                                type="link"
-                                size="small"
-                                icon={<ExternalLink size={12} />}
-                                href={siteUrl}
-                                target="_blank"
-                                style={{
-                                  padding: 0,
-                                  height: 'auto',
-                                  fontSize: 12,
-                                }}
-                              >
-                                View Site
-                              </Button>
-                            )}
-                          </Space>
-                        }
-                        type={foundCount === totalCount ? "success" : foundCount > 0 ? "info" : "warning"}
-                        showIcon
-                        style={{ 
-                          marginBottom: 16,
-                          fontSize: 13,
-                          borderRadius: 6,
+                  {/* Merchant Margin - Above all options */}
+                  <div style={{ 
+                    marginBottom: 16, 
+                    padding: "12px 16px", 
+                    background: token.colorBgContainer, 
+                    borderRadius: 8,
+                    border: `1px solid ${token.colorBorder}`,
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                      <div style={{ flex: 1 }}>
+                        <Text strong style={{ display: "block", fontSize: 13, marginBottom: 4 }}>Groupon Margin</Text>
+                      </div>
+                      <InputNumber
+                        value={100 - defaultMerchantMargin}
+                        onChange={(value) => {
+                          // Handle null/undefined properly - treat as Groupon margin input
+                          const newGrouponMargin = value !== null && value !== undefined ? value : 50;
+                          // Calculate merchant margin from groupon margin
+                          const newMerchantMargin = 100 - newGrouponMargin;
+                          // Store the old default groupon margin to check which options are using the default
+                          const oldDefaultGrouponMargin = 100 - defaultMerchantMargin;
+                          setDefaultMerchantMargin(newMerchantMargin);
+                          // Update all options that are using the default (not custom)
+                          setGeneratedOptions((prev) =>
+                            prev.map((opt: any) => {
+                              // Check if option is using the default margin (matches old default or is undefined)
+                              const currentGrouponMargin = opt.grouponMargin !== undefined ? opt.grouponMargin : oldDefaultGrouponMargin;
+                              const isUsingDefault = opt.grouponMargin === undefined || currentGrouponMargin === oldDefaultGrouponMargin;
+                              
+                              if (isUsingDefault) {
+                                // Option is using default, update it to new default
+                                const updated = { ...opt };
+                                updated.grouponMargin = newGrouponMargin;
+                                updated.merchantMargin = newMerchantMargin;
+                                // Recalculate merchant payout: merchant gets (100 - grouponMargin)% of groupon price
+                                updated.merchantPayout = Math.round((opt.grouponPrice * newMerchantMargin) / 100);
+                                return updated;
+                              } else {
+                                // Option has custom margin, keep it but recalculate merchantMargin and payout from its custom grouponMargin
+                                const updated = { ...opt };
+                                updated.merchantMargin = 100 - opt.grouponMargin;
+                                updated.merchantPayout = Math.round((opt.grouponPrice * updated.merchantMargin) / 100);
+                                return updated;
+                              }
+                            })
+                          );
                         }}
+                        suffix="%"
+                        min={0}
+                        max={100}
+                        step={1}
+                        precision={0}
+                        controls={true}
+                        style={{ width: 120 }}
                       />
-                    );
-                  })()}
+                    </div>
+                  </div>
                   
                   {/* Deal Options Cards - Draggable */}
                   {(() => {
@@ -1085,6 +1149,7 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
                                       }
                                     }}
                                     useDecimals={useDecimals}
+                                    defaultMerchantMargin={defaultMerchantMargin}
                                   />
                                 );
                               })}
@@ -1150,6 +1215,7 @@ const AICategorySelector: React.FC<AICategorySelectorProps> = ({
                                           }
                                         }}
                                         useDecimals={useDecimals}
+                                        defaultMerchantMargin={defaultMerchantMargin}
                                       />
                                     </div>
                                   );

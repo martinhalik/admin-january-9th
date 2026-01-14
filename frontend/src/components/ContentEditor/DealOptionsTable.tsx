@@ -14,6 +14,7 @@ import {
   AutoComplete,
   Modal,
   Collapse,
+  Checkbox,
 } from "antd";
 import {
   Settings,
@@ -76,6 +77,7 @@ const DealOptionsTable = ({
   const precision = useDecimals ? 2 : 0;
   const step = useDecimals ? 0.01 : 1;
   const [autoSaving, setAutoSaving] = useState(false);
+  const [applyMarginToAll, setApplyMarginToAll] = useState(false);
 
   // Calculate discount from prices
   const calculateDiscount = (
@@ -145,6 +147,8 @@ const DealOptionsTable = ({
   };
 
   const handleOpenSettings = (option: DealOption) => {
+    // Reset apply to all checkbox when opening settings
+    setApplyMarginToAll(false);
     // If onOptionSelect is provided (universal sidebar mode), use that instead
     if (onOptionSelect) {
       console.log("🎯 Universal sidebar mode - calling onOptionSelect");
@@ -161,6 +165,7 @@ const DealOptionsTable = ({
   const handleCloseSettings = () => {
     setSettingsOpen(false);
     onSettingsPanelChange?.(false);
+    setApplyMarginToAll(false);
     setTimeout(() => setSelectedOption(null), 300); // Wait for drawer animation
   };
 
@@ -1291,7 +1296,7 @@ const DealOptionsTable = ({
                         size="middle"
                       >
                         {/* Subtitle */}
-                        <div>
+                        <div style={{ display: "none" }}>
                           <Text
                             type="secondary"
                             style={{
@@ -1313,7 +1318,7 @@ const DealOptionsTable = ({
                         </div>
 
                         {/* Details */}
-                        <div>
+                        <div style={{ display: "none" }}>
                           <Text
                             type="secondary"
                             style={{
@@ -1396,58 +1401,7 @@ const DealOptionsTable = ({
                         size="middle"
                       >
                         {/* Merchant and Groupon Margin - 2 Column Layout */}
-                        <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: token.marginSM,
-                          }}
-                        >
-                          <div>
-                            <Text
-                              type="secondary"
-                              style={{
-                                fontSize: 12,
-                                display: "block",
-                                marginBottom: 8,
-                              }}
-                            >
-                              Merchant Margin %
-                            </Text>
-                            <InputNumber
-                              value={selectedOption.merchantMargin || 50}
-                              onChange={(value) => {
-                                const merchantMargin = value || 0;
-                                handleSettingsChange(
-                                  "merchantMargin",
-                                  merchantMargin
-                                );
-                                // Auto-adjust Groupon margin to make 100%
-                                handleSettingsChange(
-                                  "grouponMargin",
-                                  100 - merchantMargin
-                                );
-                              }}
-                              suffix="%"
-                              size="large"
-                              style={{ width: "100%" }}
-                              min={0}
-                              max={100}
-                              step={1}
-                              precision={0}
-                            />
-                            <Text
-                              type="secondary"
-                              style={{
-                                fontSize: 11,
-                                marginTop: 4,
-                                display: "block",
-                              }}
-                            >
-                              40-70% ideal
-                            </Text>
-                          </div>
-
+                        <div>
                           <div>
                             <Text
                               type="secondary"
@@ -1460,18 +1414,46 @@ const DealOptionsTable = ({
                               Groupon Margin %
                             </Text>
                             <InputNumber
-                              value={selectedOption.grouponMargin || 50}
+                              value={selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 50}
                               onChange={(value) => {
-                                const grouponMargin = value || 0;
-                                handleSettingsChange(
-                                  "grouponMargin",
-                                  grouponMargin
-                                );
-                                // Auto-adjust Merchant margin to make 100%
-                                handleSettingsChange(
-                                  "merchantMargin",
-                                  100 - grouponMargin
-                                );
+                                const grouponMargin = value !== null && value !== undefined ? value : 50;
+                                // Calculate merchant margin: if Groupon gets X%, merchant gets (100-X)%
+                                const merchantMargin = 100 - grouponMargin;
+                                
+                                if (applyMarginToAll) {
+                                  // Apply to all options
+                                  const updatedOptions = options.map((opt) => ({
+                                    ...opt,
+                                    grouponMargin,
+                                    merchantMargin,
+                                    merchantPayout: opt.grouponPrice 
+                                      ? Math.round((opt.grouponPrice * merchantMargin) / 100)
+                                      : opt.merchantPayout,
+                                  }));
+                                  onOptionsChange(updatedOptions);
+                                  // Update selected option state
+                                  setSelectedOption({
+                                    ...selectedOption,
+                                    grouponMargin,
+                                    merchantMargin,
+                                  });
+                                } else {
+                                  // Apply only to selected option
+                                  handleSettingsChange(
+                                    "grouponMargin",
+                                    grouponMargin
+                                  );
+                                  // Calculate merchant margin from groupon margin
+                                  handleSettingsChange(
+                                    "merchantMargin",
+                                    merchantMargin
+                                  );
+                                  // Recalculate merchant payout
+                                  const merchantPayout = selectedOption.grouponPrice 
+                                    ? Math.round((selectedOption.grouponPrice * merchantMargin) / 100)
+                                    : selectedOption.merchantPayout;
+                                  handleSettingsChange("merchantPayout", merchantPayout);
+                                }
                               }}
                               suffix="%"
                               size="large"
@@ -1481,16 +1463,13 @@ const DealOptionsTable = ({
                               step={1}
                               precision={0}
                             />
-                            <Text
-                              type="secondary"
-                              style={{
-                                fontSize: 11,
-                                marginTop: 4,
-                                display: "block",
-                              }}
+                            <Checkbox
+                              checked={applyMarginToAll}
+                              onChange={(e) => setApplyMarginToAll(e.target.checked)}
+                              style={{ marginTop: 8 }}
                             >
-                              Auto-balanced
-                            </Text>
+                              Apply to all options
+                            </Checkbox>
                           </div>
                         </div>
 
@@ -1547,7 +1526,7 @@ const DealOptionsTable = ({
                                 $
                                 {Math.round(
                                   (selectedOption.grouponPrice *
-                                    (selectedOption.merchantMargin || 50)) /
+                                    (100 - (selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 50))) /
                                     100
                                 )}
                               </Text>
@@ -1563,7 +1542,7 @@ const DealOptionsTable = ({
                                 Merchant margin
                               </Text>
                               <Text strong style={{ fontSize: 14 }}>
-                                {selectedOption.merchantMargin || 50}%
+                                {100 - (selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 50)}%
                               </Text>
                             </div>
                             <Divider style={{ margin: "8px 0" }} />
@@ -1579,7 +1558,7 @@ const DealOptionsTable = ({
                                 $
                                 {Math.round(
                                   (selectedOption.grouponPrice *
-                                    (selectedOption.grouponMargin || 50)) /
+                                    (selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 50)) /
                                     100
                                 )}
                               </Text>
@@ -1595,7 +1574,7 @@ const DealOptionsTable = ({
                                 Groupon margin
                               </Text>
                               <Text strong style={{ fontSize: 14 }}>
-                                {selectedOption.grouponMargin || 50}%
+                                {selectedOption.grouponMargin !== undefined ? selectedOption.grouponMargin : 50}%
                               </Text>
                             </div>
                           </Space>
