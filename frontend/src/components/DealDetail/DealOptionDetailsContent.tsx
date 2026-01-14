@@ -568,12 +568,28 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <Text style={{ fontSize: 13 }}>Promotion split (Merchant pays)</Text>
+              <Text
+                  style={{
+                    fontSize: 13,
+                    maxWidth: 140,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    display: "inline-block",
+                    verticalAlign: "bottom",
+                  }}
+                  title="Promotion split (Merchant pays)"
+                >Promotion split (Merchant pays)</Text>
                 <Info size={12} style={{ color: token.colorTextTertiary }} />
               </div>
-              <Text strong style={{ fontSize: 14 }}>
-                {merchantPaysMax}% ${promotionCalculations.promotionSplitMerchantPays}
-              </Text>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <Tag style={{ color: token.colorTextSecondary }}>
+                  {merchantPaysMax}%
+                </Tag>
+                <Text strong style={{ fontSize: 14, whiteSpace: "nowrap" }}>
+                  ${promotionCalculations.promotionSplitMerchantPays}
+                </Text>
+              </div>
             </div>
             <div
               style={{
@@ -599,13 +615,14 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
                 </Text>
                 <Info size={12} style={{ color: token.colorTextTertiary }} />
               </div>
-              
-              <Tag style={{ color: token.colorTextSecondary }}>
-                {100 - merchantPaysMax}%
-              </Tag>
-              <Text strong style={{ fontSize: 14, marginLeft: token.marginXS }}>
-                ${promotionCalculations.promotionSplitGrouponCovers}
-              </Text>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <Tag style={{ color: token.colorTextSecondary }}>
+                  {100 - merchantPaysMax}%
+                </Tag>
+                <Text strong style={{ fontSize: 14, whiteSpace: "nowrap" }}>
+                  ${promotionCalculations.promotionSplitGrouponCovers}
+                </Text>
+              </div>
             </div>
             <div
               style={{
@@ -622,6 +639,7 @@ const DealOptionDetailsContent: React.FC<DealOptionDetailsContentProps> = ({
                 ${promotionCalculations.unitPriceWithPromotion}
               </Text>
             </div>
+            <Divider style={{ margin: "8px 0" }} />
             <div
               style={{
                 display: "flex",
