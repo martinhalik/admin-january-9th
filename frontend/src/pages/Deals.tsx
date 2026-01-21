@@ -35,6 +35,8 @@ import {
   updateHierarchyData 
 } from "../data/companyHierarchy";
 import { ListPageHeader } from "../components/PageHeaders";
+import { getMerchantAccount, loadMerchantAccounts, getMerchantAccountsWithOwners } from "../data/accountOwnerAssignments";
+import { PotentialTag } from "../utils/potentialHelpers";
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -57,6 +59,11 @@ const Deals = () => {
         updateHierarchyData(employees);
       }
     }).catch(err => console.error('[Deals] Error loading employees:', err));
+  }, []);
+
+  // Load merchant accounts in background for merchant quality column
+  useEffect(() => {
+    loadMerchantAccounts().catch(err => console.error('[Deals] Error loading merchant accounts:', err));
   }, []);
   
   // Initialize state from URL params
@@ -141,7 +148,7 @@ const Deals = () => {
       cr: true,
       margin: true,
       dealStart: true,
-      stage: true,
+      merchantQuality: true,
       accountOwner: true,
       actions: true,
     };
@@ -277,7 +284,7 @@ const Deals = () => {
     // Column visibility - only include if different from default
     const defaultColumns = {
       image: true, title: true, orders: true, views: true, gp: true,
-      gpPerView: true, cr: true, margin: true, dealStart: true, stage: true, accountOwner: true, actions: true,
+      gpPerView: true, cr: true, margin: true, dealStart: true, merchantQuality: true, accountOwner: true, actions: true,
     };
     const columnsChanged = JSON.stringify(visibleColumns) !== JSON.stringify(defaultColumns);
     if (columnsChanged) {
@@ -1223,15 +1230,61 @@ const Deals = () => {
     render: () => <Text type="secondary">US${Math.floor(Math.random() * 50000 + 5000).toLocaleString()}</Text>,
   };
 
-  // ========== STAGE COLUMN (for All tab) ==========
-  const stageColumn = {
-    title: () => <Space size={4}><Text type="secondary">Stage</Text><Tooltip title="Campaign Stage"><Info size={14} style={{ color: token.colorTextSecondary }} /></Tooltip></Space>,
-    key: "stage",
+  // ========== MERCHANT QUALITY COLUMN (for All tab) ==========
+  const merchantQualityColumn = {
+    title: () => <Space size={4}><Text type="secondary">Merchant Quality</Text><Tooltip title="Merchant Potential"><Info size={14} style={{ color: token.colorTextSecondary }} /></Tooltip></Space>,
+    key: "merchantQuality",
     width: 140,
     render: (_: any, record: any) => {
-      const { campaignStage, draftSubStage, wonSubStage, lostSubStage } = record;
-      const subStage = campaignStage === "draft" ? draftSubStage : campaignStage === "won" ? wonSubStage : lostSubStage;
-      return <CampaignStageTag stage={campaignStage} subStage={subStage} style={{ margin: 0 }} />;
+      let account = null;
+      let potential: "low" | "mid" | "high" | null = null;
+      
+      // First try: Get account by accountId
+      if (record.accountId) {
+        account = getMerchantAccount(record.accountId);
+        if (account?.potential) {
+          potential = account.potential;
+        }
+      }
+      
+      // Second try: Find account by matching merchant name from location
+      if (!account && record.location) {
+        const merchantName = record.location.split(",")[0]?.trim();
+        if (merchantName) {
+          // Try to find account by name match
+          const allAccounts = getMerchantAccountsWithOwners();
+          account = allAccounts.find((acc) => 
+            acc.name.toLowerCase().includes(merchantName.toLowerCase()) ||
+            merchantName.toLowerCase().includes(acc.name.toLowerCase().split(" ")[0])
+          );
+          if (account?.potential) {
+            potential = account.potential;
+          }
+        }
+      }
+      
+      // Third try: For draft deals without account, assign default value based on deal quality or deterministic hash
+      if (!potential && record.campaignStage === "draft") {
+        // Use deal ID to create deterministic hash for consistent assignment
+        const hash = record.id.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+        const hashMod = hash % 100;
+        
+        // Distribution: 30% high, 50% mid, 20% low
+        if (hashMod < 30) {
+          potential = "high";
+        } else if (hashMod < 80) {
+          potential = "mid";
+        } else {
+          potential = "low";
+        }
+      }
+      
+      // If still no potential, show dash
+      if (!potential) {
+        return <Text type="secondary">-</Text>;
+      }
+      
+      return <PotentialTag potential={potential} showIcon={true} size="small" style={{ margin: 0 }} />;
     },
   };
 
@@ -1255,15 +1308,15 @@ const Deals = () => {
 
   // ========== PHASE-SPECIFIC COLUMN SETS ==========
   const columnsByPhase: Record<string, any[]> = {
-    "all": [imageColumn, titleColumn, ordersColumn, viewsColumn, gpColumn, crColumn, accountOwnerColumn, stageColumn, dealStartColumn, actionsColumn],
-    "live": [imageColumn, titleColumn, ordersColumn, viewsColumn, gpColumn, gpPerViewColumn, crColumn, daysLiveColumn, marginColumn, accountOwnerColumn, stageColumn, actionsColumn],
-    "scheduled": [imageColumn, titleColumn, launchDateColumn, daysUntilLaunchColumn, opportunityOwnerColumn, accountOwnerColumn, dealStrengthColumn, potentialColumn, stageColumn, actionsColumn],
-    "paused": [imageColumn, titleColumn, daysPausedColumn, pauseReasonColumn, gpBeforePauseColumn, ordersColumn, accountOwnerColumn, stageColumn, actionsColumn],
-    "recently-closed": [imageColumn, titleColumn, launchedDateColumn, dealEndColumn, voucherExpirationColumn, unredeemedVouchersColumn, totalOrdersColumn, totalGpColumn, accountOwnerColumn, stageColumn, actionsColumn],
-    "draft": [imageColumn, titleColumn, draftStageColumn, createdDateColumn, lastUpdatedColumn, completionColumn, accountOwnerColumn, stageColumn, actionsColumn],
-    "all-won": [imageColumn, titleColumn, ordersColumn, viewsColumn, gpColumn, crColumn, daysLiveColumn, accountOwnerColumn, stageColumn, actionsColumn],
-    "sold-out": [imageColumn, titleColumn, totalOrdersColumn, totalGpColumn, daysToSellOutColumn, soldOutDateColumn, waitlistColumn, accountOwnerColumn, stageColumn, actionsColumn],
-    "lost": [imageColumn, titleColumn, lostDateColumn, lostReasonColumn, lostStageColumn, potentialValueColumn, accountOwnerColumn, stageColumn, actionsColumn],
+    "all": [imageColumn, titleColumn, ordersColumn, viewsColumn, gpColumn, crColumn, accountOwnerColumn, merchantQualityColumn, dealStartColumn, actionsColumn],
+    "live": [imageColumn, titleColumn, ordersColumn, viewsColumn, gpColumn, gpPerViewColumn, crColumn, daysLiveColumn, marginColumn, accountOwnerColumn, merchantQualityColumn, actionsColumn],
+    "scheduled": [imageColumn, titleColumn, launchDateColumn, daysUntilLaunchColumn, opportunityOwnerColumn, accountOwnerColumn, dealStrengthColumn, potentialColumn, merchantQualityColumn, actionsColumn],
+    "paused": [imageColumn, titleColumn, daysPausedColumn, pauseReasonColumn, gpBeforePauseColumn, ordersColumn, accountOwnerColumn, merchantQualityColumn, actionsColumn],
+    "recently-closed": [imageColumn, titleColumn, launchedDateColumn, dealEndColumn, voucherExpirationColumn, unredeemedVouchersColumn, totalOrdersColumn, totalGpColumn, accountOwnerColumn, merchantQualityColumn, actionsColumn],
+    "draft": [imageColumn, titleColumn, draftStageColumn, createdDateColumn, lastUpdatedColumn, completionColumn, accountOwnerColumn, merchantQualityColumn, actionsColumn],
+    "all-won": [imageColumn, titleColumn, ordersColumn, viewsColumn, gpColumn, crColumn, daysLiveColumn, accountOwnerColumn, merchantQualityColumn, actionsColumn],
+    "sold-out": [imageColumn, titleColumn, totalOrdersColumn, totalGpColumn, daysToSellOutColumn, soldOutDateColumn, waitlistColumn, accountOwnerColumn, merchantQualityColumn, actionsColumn],
+    "lost": [imageColumn, titleColumn, lostDateColumn, lostReasonColumn, lostStageColumn, potentialValueColumn, accountOwnerColumn, merchantQualityColumn, actionsColumn],
   };
 
   // Legacy columns for backward compatibility
