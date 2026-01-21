@@ -38,7 +38,7 @@ const AI_SIDEBAR_CONSTANTS = {
   WIDTH_DEFAULT: 420,
   WIDTH_MIN: 320,
   WIDTH_MAX: 700,
-  TOP_OFFSET: 102, // Below AI generation header
+  TOP_OFFSET: 64, // Below main header
 } as const;
 
 type FlowStep = "account" | "category" | "preview";

@@ -82,42 +82,6 @@ const DefaultSidebarContent: React.FC<DefaultSidebarContentProps> = ({
                   />
                 </>
               )}
-              
-              {/* Nearby Competitors */}
-              {selectedMerchantAccount.nearbyCompetitors && selectedMerchantAccount.nearbyCompetitors.length > 0 && (
-                <>
-                  <Divider style={{ margin: "12px 0" }} />
-                  <div style={{ paddingBottom: 16 }}>
-                    <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>
-                      Nearby Competitors
-                    </Text>
-                    <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                      {selectedMerchantAccount.nearbyCompetitors.slice(0, 5).map((comp, idx) => (
-                        <div key={idx} style={{ 
-                          display: 'flex', 
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '8px 12px',
-                          background: token.colorFillQuaternary,
-                          borderRadius: token.borderRadius,
-                        }}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <Text style={{ fontSize: 12, fontWeight: 500, display: 'block' }}>
-                              {comp.name}
-                            </Text>
-                            <Text type="secondary" style={{ fontSize: 11 }}>
-                              {comp.distance} • {comp.type}
-                            </Text>
-                          </div>
-                          <Tag color={comp.rating >= 4.0 ? 'green' : 'orange'} style={{ margin: 0 }}>
-                            {comp.rating}★
-                          </Tag>
-                        </div>
-                      ))}
-                    </Space>
-                  </div>
-                </>
-              )}
             </Space>
           </div>
         ),
@@ -748,6 +712,64 @@ const DefaultSidebarContent: React.FC<DefaultSidebarContentProps> = ({
                 }}
                 allDeals={generatedMockDeals}
                 defaultRadius={10}
+              />
+            )}
+
+            {/* Nearby Competitors - shown below the map */}
+            {selectedMerchantAccount && selectedMerchantAccount.nearbyCompetitors && selectedMerchantAccount.nearbyCompetitors.length > 0 && (
+              <Collapse
+                defaultActiveKey={['nearby-competitors']}
+                ghost
+                expandIconPosition="start"
+                bordered={false}
+                className="sidebar-collapse-no-radius"
+                style={{ 
+                  background: 'transparent',
+                  borderBottom: `1px solid ${token.colorBorder}`,
+                }}
+                expandIcon={({ isActive }) => (
+                  <ChevronRight 
+                    size={16} 
+                    style={{ 
+                      transform: isActive ? 'rotate(90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s',
+                    }} 
+                  />
+                )}
+                items={[
+                  {
+                    key: 'nearby-competitors',
+                    label: <Text strong style={{ fontSize: 16 }}>Nearby Competitors</Text>,
+                    children: (
+                      <div style={{ padding: '0 0 20px 0' }}>
+                        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                          {selectedMerchantAccount.nearbyCompetitors.slice(0, 5).map((comp, idx) => (
+                            <div key={idx} style={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '8px 12px',
+                              background: token.colorFillQuaternary,
+                              borderRadius: token.borderRadius,
+                            }}>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <Text style={{ fontSize: 12, fontWeight: 500, display: 'block' }}>
+                                  {comp.name}
+                                </Text>
+                                <Text type="secondary" style={{ fontSize: 11 }}>
+                                  {comp.distance} • {comp.type}
+                                </Text>
+                              </div>
+                              <Tag color={comp.rating >= 4.0 ? 'green' : 'orange'} style={{ margin: 0 }}>
+                                {comp.rating}★
+                              </Tag>
+                            </div>
+                          ))}
+                        </Space>
+                      </div>
+                    ),
+                  },
+                ]}
               />
             )}
           </>
